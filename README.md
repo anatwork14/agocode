@@ -12,39 +12,36 @@ AgoCode is intentionally not another static textbook, animation gallery, or prob
 
 ## Implementation status
 
-The **Chapter 1 / Binary Search reference vertical slice** is functional across Read, Lab, Practice, and Review modes and is being hardened before the project expands to the rest of Chapter 1.
+**Chapter 1 is now an end-to-end interactive chapter**, and Binary Search has a working learning/transfer loop across Read, Lab, Practice, and Review modes.
 
 Currently implemented:
 
 - Next.js + React + TypeScript application scaffold
-- canonical design tokens and editorial page shell
-- final SVG-first v1 brand mark and lockup
+- canonical paper/ink/red design system and SVG-first AgoCode brand
 - responsive Book / Roadmap / Lab / Practice / Review routes
-- book-faithful Binary Search Read mode
-- interactive one-by-one vs midpoint number-guessing lab
-- deterministic semantic Binary Search trace generator
-- synchronized array state + Python code trace
-- prediction gates before important trace transitions
-- prediction-safe timeline scrubbing through already-visited states
-- editable sorted-array / target scenarios in the full trace lab
-- embedded retrieval exercises
-- invariant / sorted-input / complexity reasoning assessment
-- in-browser Python execution isolated in a Web Worker
-- timeout protection, stdout/stderr capture, test reports, progressive hints, and Python-friendly Tab indentation
-- Binary Search reconstruction exercise with real Python tests
-- transfer rung 01: insertion-position search with a recorded first hypothesis
-- transfer rung 02: first-occurrence boundary search where equality no longer ends the algorithm
-- local completion evidence and a spaced-review queue derived from completed learning actions
-- reduced-motion and keyboard-accessible controls baseline
-- CI for typecheck, lint, and production build
+- Binary Search intuition, number guessing, halving, sorted-input counterexample, code trace, reconstruction, explanation, and recap
+- deterministic semantic Binary Search trace generator with synchronized array state and Python code
+- prediction gates before branch updates and prediction-safe timeline scrubbing through visited states
+- editable sorted-array / target scenarios in the full Lab
+- in-browser Python execution isolated in a Web Worker with timeout protection, stdout/stderr, tests, progressive hints, and Python-friendly indentation
+- transfer rung 01: insertion-position search
+- transfer rung 02: first-occurrence boundary search
+- transfer rung 03: rotated-array pattern recognition with the technique hidden from the problem framing
+- Running Time lesson with interactive linear-vs-logarithmic growth comparison
+- Big O lesson with common growth classes and worst-case reasoning
+- Traveling Salesperson factorial-growth scene with an original SVG route visualization
+- Chapter 1 cumulative retrieval check
+- local completion evidence and a spaced-review queue
+- deterministic Binary Search trace tests using Node's native test runner
+- CI gates for typecheck, tests, lint, and production build
 
 Next implementation priorities:
 
-1. third Binary Search transfer rung with the technique hidden more aggressively,
-2. richer mastery evidence and review scheduling,
-3. a fully blank implementation mode and/or richer editor integration,
-4. Chapter 1 Running Time and Big O lessons,
-5. deterministic unit tests for algorithm/event generation.
+1. search-on-answer transfer rung to complete the first Binary Search ladder,
+2. richer mastery evidence and review scheduling rather than simple completion flags,
+3. a fully blank implementation mode and stronger code-editor ergonomics,
+4. Chapter 2: memory model, arrays vs. linked lists, and Selection Sort,
+5. reusable visualization reducers/primitives and broader deterministic tests before graph/DP chapters.
 
 ## Local development
 
@@ -57,6 +54,7 @@ Quality checks:
 
 ```bash
 pnpm typecheck
+pnpm test
 pnpm lint
 pnpm build
 ```
@@ -95,6 +93,6 @@ Interview-specific techniques such as two pointers, sliding window, monotonic st
 - **Practice** — reconstruction and progressively less-labeled transfer problems
 - **Review** — spaced retrieval based on completed learning evidence
 
-## Reference MVP
+## Reference milestone
 
-The first complete vertical slice is **Chapter 1 / Binary Search**. The MVP is successful when a learner can return days later, implement binary search from scratch, explain why sorted input is required and why the search is logarithmic, and recognize the pattern in an unlabeled problem.
+The first milestone is successful when a learner can return after a delay, implement Binary Search from scratch, explain its invariant and logarithmic behavior, and recognize the discard-region idea inside a problem that is not presented as an exact Binary Search exercise.

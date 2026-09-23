@@ -27,40 +27,50 @@ function readProgress(key: string): ProgressRecord | null {
   }
 }
 
+function buildReviewItems() {
+  const rebuild = readProgress("agocode.progress.binary-search.rebuild");
+  const transfer = readProgress("agocode.progress.binary-search.transfer-01");
+  const nextItems: ReviewItem[] = [];
+
+  if (rebuild) {
+    nextItems.push({
+      title: "Rebuild Binary Search",
+      description: "Return without rereading the implementation. Reconstruct low, high, mid, and the two interval updates.",
+      href: "/learn/binary-search#rebuild",
+      dueAt: new Date(new Date(rebuild.completedAt).getTime() + DAY_MS),
+    });
+  }
+
+  if (transfer) {
+    nextItems.push({
+      title: "Insertion boundary transfer",
+      description: "Solve the nearby boundary variant again and explain why the final low index is meaningful.",
+      href: "/practice/binary-search",
+      dueAt: new Date(new Date(transfer.completedAt).getTime() + 2 * DAY_MS),
+    });
+  }
+
+  return nextItems;
+}
+
 function formatWait(ms: number) {
   const hours = Math.max(1, Math.ceil(ms / (60 * 60 * 1000)));
-  return hours >= 24 ? `${Math.ceil(hours / 24)} day` : `${hours} hour`;
+  return hours >= 24 ? `${Math.ceil(hours / 24)} day${hours > 24 ? "s" : ""}` : `${hours} hour${hours > 1 ? "s" : ""}`;
 }
 
 export function ReviewQueue() {
   const [loaded, setLoaded] = useState(false);
   const [items, setItems] = useState<ReviewItem[]>([]);
+  const [now, setNow] = useState(0);
 
   useEffect(() => {
-    const rebuild = readProgress("agocode.progress.binary-search.rebuild");
-    const transfer = readProgress("agocode.progress.binary-search.transfer-01");
-    const nextItems: ReviewItem[] = [];
+    const timeout = window.setTimeout(() => {
+      setItems(buildReviewItems());
+      setNow(Date.now());
+      setLoaded(true);
+    }, 0);
 
-    if (rebuild) {
-      nextItems.push({
-        title: "Rebuild Binary Search",
-        description: "Return without rereading the implementation. Reconstruct low, high, mid, and the two interval updates.",
-        href: "/learn/binary-search#rebuild",
-        dueAt: new Date(new Date(rebuild.completedAt).getTime() + DAY_MS),
-      });
-    }
-
-    if (transfer) {
-      nextItems.push({
-        title: "Insertion boundary transfer",
-        description: "Solve the nearby boundary variant again and explain why the final low index is meaningful.",
-        href: "/practice/binary-search",
-        dueAt: new Date(new Date(transfer.completedAt).getTime() + 2 * DAY_MS),
-      });
-    }
-
-    setItems(nextItems);
-    setLoaded(true);
+    return () => window.clearTimeout(timeout);
   }, []);
 
   if (!loaded) {
@@ -81,30 +91,28 @@ export function ReviewQueue() {
     );
   }
 
-  const now = Date.now();
+  const sortedItems = [...items].sort((a, b) => a.dueAt.getTime() - b.dueAt.getTime());
 
   return (
     <div className="review-list">
-      {items
-        .sort((a, b) => a.dueAt.getTime() - b.dueAt.getTime())
-        .map((item) => {
-          const remaining = item.dueAt.getTime() - now;
-          const due = remaining <= 0;
-          return (
-            <article className="review-row" key={item.title}>
-              <div>
-                <span className={due ? "review-row__status review-row__status--due" : "review-row__status"}>
-                  {due ? "Due now" : `Due in ${formatWait(remaining)}`}
-                </span>
-                <h2>{item.title}</h2>
-                <p>{item.description}</p>
-              </div>
-              <Link className={due ? "button button--primary" : "button"} href={item.href}>
-                {due ? "Review now →" : "Preview"}
-              </Link>
-            </article>
-          );
-        })}
+      {sortedItems.map((item) => {
+        const remaining = item.dueAt.getTime() - now;
+        const due = remaining <= 0;
+        return (
+          <article className="review-row" key={item.title}>
+            <div>
+              <span className={due ? "review-row__status review-row__status--due" : "review-row__status"}>
+                {due ? "Due now" : `Due in ${formatWait(remaining)}`}
+              </span>
+              <h2>{item.title}</h2>
+              <p>{item.description}</p>
+            </div>
+            <Link className={due ? "button button--primary" : "button"} href={item.href}>
+              {due ? "Review now →" : "Preview"}
+            </Link>
+          </article>
+        );
+      })}
     </div>
   );
 }

@@ -30,7 +30,7 @@ export function DoublingCheck() {
               className={`prediction-option ${answer === option.id ? (correct ? "prediction-option--correct" : "prediction-option--wrong") : ""}`}
               key={option.id}
               onClick={() => setAnswer(option.id)}
-              disabled={Boolean(answer)}
+              disabled={correct}
             >
               {option.label}
             </button>
@@ -40,7 +40,7 @@ export function DoublingCheck() {
           <p className={`prediction-feedback ${correct ? "prediction-feedback--correct" : ""}`} aria-live="polite">
             {correct
               ? "Correct. O(n) scales directly with n. For binary search, doubling the candidates adds only one more halving because log₂(2n) = log₂(n) + 1."
-              : "Compare the operations, not a stopwatch. Linear search may inspect every new item, while one additional halving is enough to account for a doubled binary-search space."}
+              : "Not yet. Compare the operations, not a stopwatch. Linear search may inspect every new item, while one additional halving is enough to account for a doubled binary-search space. Try another choice."}
           </p>
         ) : null}
       </div>

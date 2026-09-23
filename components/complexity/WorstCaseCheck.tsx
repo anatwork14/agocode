@@ -30,7 +30,7 @@ export function WorstCaseCheck() {
               className={`prediction-option ${answer === option.id ? (correct ? "prediction-option--correct" : "prediction-option--wrong") : ""}`}
               key={option.id}
               onClick={() => setAnswer(option.id)}
-              disabled={Boolean(answer)}
+              disabled={correct}
             >
               {option.label}
             </button>
@@ -40,7 +40,7 @@ export function WorstCaseCheck() {
           <p className={`prediction-feedback ${correct ? "prediction-feedback--correct" : ""}`} aria-live="polite">
             {correct
               ? "Correct. One lucky execution can finish immediately, but simple search can still require examining every item as n grows."
-              : "Separate this one execution from the algorithm's growth bound. A best-case result does not remove the linear worst case."}
+              : "Separate this one execution from the algorithm's growth bound. A best-case result does not remove the linear worst case. Try another choice."}
           </p>
         ) : null}
       </div>

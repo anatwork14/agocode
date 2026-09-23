@@ -7,7 +7,8 @@ const chapterOneTopics = [
   ["Binary Search", "/learn/binary-search", "Live"],
   ["Running Time", "/learn/running-time", "Live"],
   ["Big O", "/learn/big-o", "Live"],
-  ["Traveling Salesperson", "", "Planned"],
+  ["Traveling Salesperson", "/learn/traveling-salesperson", "Live"],
+  ["Chapter 1 Recap", "/learn/chapter-1-recap", "Live"],
 ] as const;
 
 export default function LearnIndexPage() {
@@ -32,17 +33,11 @@ export default function LearnIndexPage() {
                       <h3>{chapter.title}</h3>
                       <p>{chapter.topics.join(" · ")}</p>
                       <div className="action-row" style={{ marginTop: 16 }}>
-                        {chapterOneTopics.map(([title, href, status]) =>
-                          status === "Live" ? (
-                            <Link className="button" href={href} key={title}>
-                              {title}
-                            </Link>
-                          ) : (
-                            <span className="button" aria-disabled="true" key={title} style={{ opacity: 0.48 }}>
-                              {title} · planned
-                            </span>
-                          ),
-                        )}
+                        {chapterOneTopics.map(([title, href]) => (
+                          <Link className="button" href={href} key={title}>
+                            {title}
+                          </Link>
+                        ))}
                       </div>
                     </div>
                     <div className="chapter-row__status chapter-row__status--active">Open</div>

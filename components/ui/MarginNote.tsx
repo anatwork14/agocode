@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 type MarginNoteProps = {
-  label?: "Note" | "Why?" | "Watch" | "Remember";
+  label?: string;
   children: ReactNode;
 };
 

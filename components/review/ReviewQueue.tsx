@@ -32,6 +32,7 @@ function buildReviewItems() {
   const explain = readProgress("agocode.progress.binary-search.explain");
   const transferInsert = readProgress("agocode.progress.binary-search.transfer-01");
   const transferBoundary = readProgress("agocode.progress.binary-search.transfer-02");
+  const chapterRecap = readProgress("agocode.progress.chapter-1.recap");
   const nextItems: ReviewItem[] = [];
 
   if (rebuild) {
@@ -67,6 +68,15 @@ function buildReviewItems() {
       description: "Find the first duplicate again. Recall why equality becomes a candidate answer instead of an immediate return.",
       href: "/practice/binary-search/boundary",
       dueAt: new Date(new Date(transferBoundary.completedAt).getTime() + 4 * DAY_MS),
+    });
+  }
+
+  if (chapterRecap) {
+    nextItems.push({
+      title: "Chapter 1 cumulative recall",
+      description: "Reconnect Binary Search, running time, Big O, and factorial growth without rereading the chapter first.",
+      href: "/learn/chapter-1-recap",
+      dueAt: new Date(new Date(chapterRecap.completedAt).getTime() + 7 * DAY_MS),
     });
   }
 

@@ -106,8 +106,8 @@ export default function BigOPage() {
                   <Link className="button" href="/learn/running-time">
                     ← Running Time
                   </Link>
-                  <Link className="button button--primary" href="/roadmap">
-                    Next: Traveling Salesperson (planned) →
+                  <Link className="button button--primary" href="/learn/traveling-salesperson">
+                    Continue: Traveling Salesperson →
                   </Link>
                 </div>
               </section>

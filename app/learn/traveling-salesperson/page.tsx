@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PermutationExplosion } from "@/components/complexity/PermutationExplosion";
+import { LessonCompleteLink } from "@/components/progress/LessonCompleteLink";
 import { MarginNote } from "@/components/ui/MarginNote";
 
 export const metadata = { title: "Traveling Salesperson" };
@@ -56,21 +57,14 @@ export default function TravelingSalespersonPage() {
                   multiplies the previous number of candidate routes by the new <span className="mono">n</span>.
                 </p>
                 <div className="concept-equation" aria-label="Factorial recurrence">
-                  <div>
-                    <span>previous search space</span>
-                    <strong className="mono">(n - 1)!</strong>
-                  </div>
+                  <div><span>previous search space</span><strong className="mono">(n - 1)!</strong></div>
                   <div className="concept-equation__divider">× n</div>
-                  <div>
-                    <span>new search space</span>
-                    <strong className="mono">n!</strong>
-                  </div>
+                  <div><span>new search space</span><strong className="mono">n!</strong></div>
                 </div>
                 <p>
                   The purpose of this example is not to memorize a route-planning implementation. It is to recognize
                   that some natural brute-force strategies explode so quickly that algorithm design must look for
-                  stronger structure, better exact methods, or useful approximations. Later chapters return to those
-                  problem-solving trade-offs.
+                  stronger structure, better exact methods, or useful approximations. Later chapters return to those problem-solving trade-offs.
                 </p>
               </section>
 
@@ -82,12 +76,14 @@ export default function TravelingSalespersonPage() {
                   simple-looking strategy whose search space grows explosively.
                 </p>
                 <div className="action-row">
-                  <Link className="button" href="/learn/big-o">
-                    ← Big O
-                  </Link>
-                  <Link className="button button--primary" href="/learn/chapter-1-recap">
+                  <Link className="button" href="/learn/big-o">← Big O</Link>
+                  <LessonCompleteLink
+                    storageKey="agocode.progress.chapter-1.tsp"
+                    lessonId="chapter-1-traveling-salesperson"
+                    href="/learn/chapter-1-recap"
+                  >
                     Chapter 1 recap →
-                  </Link>
+                  </LessonCompleteLink>
                 </div>
               </section>
             </div>

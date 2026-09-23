@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 function factorial(n: number) {
   let result = 1;
@@ -15,20 +15,16 @@ function formatInteger(value: number) {
 export function PermutationExplosion() {
   const [cities, setCities] = useState(5);
   const routeCount = factorial(cities);
-
-  const points = useMemo(() => {
-    const center = 150;
-    const radius = 105;
-    return Array.from({ length: cities }, (_, index) => {
-      const angle = -Math.PI / 2 + (index * Math.PI * 2) / cities;
-      return {
-        x: center + Math.cos(angle) * radius,
-        y: center + Math.sin(angle) * radius,
-        label: String.fromCharCode(65 + index),
-      };
-    });
-  }, [cities]);
-
+  const center = 150;
+  const radius = 105;
+  const points = Array.from({ length: cities }, (_, index) => {
+    const angle = -Math.PI / 2 + (index * Math.PI * 2) / cities;
+    return {
+      x: center + Math.cos(angle) * radius,
+      y: center + Math.sin(angle) * radius,
+      label: String.fromCharCode(65 + index),
+    };
+  });
   const routePoints = [...points, points[0]].map((point) => `${point.x},${point.y}`).join(" ");
 
   return (

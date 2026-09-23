@@ -29,7 +29,7 @@ export default function BigOPage() {
             <div className="eyebrow">Chapter 01 · Introduction to algorithms</div>
             <h1 className="editorial-title editorial-title--compact">Big O Notation</h1>
             <p className="lede">
-              Big O gives us a compact way to talk about how an algorithm's work grows as the input grows. It is a
+              Big O gives us a compact way to talk about how an algorithm&apos;s work grows as the input grows. It is a
               comparison language for scale, not a stopwatch reading.
             </p>
 

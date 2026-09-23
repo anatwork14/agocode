@@ -6,6 +6,7 @@ import "./globals.css";
 import "./learning.css";
 import "./timeline.css";
 import "./explain.css";
+import "./complexity.css";
 import "./review.css";
 
 const editorial = Fraunces({

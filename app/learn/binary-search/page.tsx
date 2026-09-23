@@ -163,8 +163,11 @@ export default function BinarySearchLessonPage() {
                   <Link className="button" href="/lab/binary-search">
                     Open custom trace lab
                   </Link>
-                  <Link className="button button--primary" href="/practice/binary-search">
-                    Transfer the idea →
+                  <Link className="button" href="/practice/binary-search">
+                    Transfer the idea
+                  </Link>
+                  <Link className="button button--primary" href="/learn/running-time">
+                    Continue chapter: Running Time →
                   </Link>
                 </div>
               </section>

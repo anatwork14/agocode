@@ -3,6 +3,13 @@ import { chapters } from "@/lib/curriculum";
 
 export const metadata = { title: "Book" };
 
+const chapterOneTopics = [
+  ["Binary Search", "/learn/binary-search", "Live"],
+  ["Running Time", "/learn/running-time", "Live"],
+  ["Big O", "/learn/big-o", "Live"],
+  ["Traveling Salesperson", "", "Planned"],
+] as const;
+
 export default function LearnIndexPage() {
   return (
     <main className="page">
@@ -11,27 +18,49 @@ export default function LearnIndexPage() {
         <h1 className="editorial-title editorial-title--compact">The interactive book.</h1>
         <p className="lede">
           Read in order when you want the full foundation, or jump into a topic when you need a focused refresher.
-          Each finished lesson will connect prose, original visuals, traceable state, code, exercises, and recall.
+          Each finished lesson connects prose, original visuals, traceable state, code, exercises, and recall.
         </p>
 
         <section className="section">
           <div className="chapter-list">
-            {chapters.map((chapter) => (
-              <Link
-                key={chapter.number}
-                href={chapter.number === 1 ? "/learn/binary-search" : "/roadmap"}
-                className="chapter-row"
-              >
-                <div className="chapter-row__number">{String(chapter.number).padStart(2, "0")}</div>
-                <div>
-                  <h3>{chapter.title}</h3>
-                  <p>{chapter.topics.join(" · ")}</p>
-                </div>
-                <div className={`chapter-row__status ${chapter.status === "active" ? "chapter-row__status--active" : ""}`}>
-                  {chapter.status === "active" ? "Open" : "Planned"}
-                </div>
-              </Link>
-            ))}
+            {chapters.map((chapter) => {
+              if (chapter.number === 1) {
+                return (
+                  <div className="chapter-row chapter-row--expanded" key={chapter.number}>
+                    <div className="chapter-row__number">01</div>
+                    <div>
+                      <h3>{chapter.title}</h3>
+                      <p>{chapter.topics.join(" · ")}</p>
+                      <div className="action-row" style={{ marginTop: 16 }}>
+                        {chapterOneTopics.map(([title, href, status]) =>
+                          status === "Live" ? (
+                            <Link className="button" href={href} key={title}>
+                              {title}
+                            </Link>
+                          ) : (
+                            <span className="button" aria-disabled="true" key={title} style={{ opacity: 0.48 }}>
+                              {title} · planned
+                            </span>
+                          ),
+                        )}
+                      </div>
+                    </div>
+                    <div className="chapter-row__status chapter-row__status--active">Open</div>
+                  </div>
+                );
+              }
+
+              return (
+                <Link key={chapter.number} href="/roadmap" className="chapter-row">
+                  <div className="chapter-row__number">{String(chapter.number).padStart(2, "0")}</div>
+                  <div>
+                    <h3>{chapter.title}</h3>
+                    <p>{chapter.topics.join(" · ")}</p>
+                  </div>
+                  <div className="chapter-row__status">Planned</div>
+                </Link>
+              );
+            })}
           </div>
         </section>
       </div>

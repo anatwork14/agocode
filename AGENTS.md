@@ -20,10 +20,11 @@ Read these documents before major implementation work:
 
 1. `docs/PRODUCT_BLUEPRINT.md`
 2. `docs/DESIGN_SYSTEM.md`
-3. `docs/LEARNING_CONTENT_SPEC.md`
-4. `docs/TECHNICAL_ARCHITECTURE.md`
-5. `docs/IMPLEMENTATION_ROADMAP.md`
-6. `docs/CONTENT_COPYRIGHT_POLICY.md`
+3. `docs/BRAND_GUIDELINES.md`
+4. `docs/LEARNING_CONTENT_SPEC.md`
+5. `docs/TECHNICAL_ARCHITECTURE.md`
+6. `docs/IMPLEMENTATION_ROADMAP.md`
+7. `docs/CONTENT_COPYRIGHT_POLICY.md`
 
 If implementation conflicts with these documents, prefer the documented product intent unless the task explicitly updates the specification.
 

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 64" role="img" aria-labelledby="title desc">
+  <title id="title">AgoCode</title>
+  <desc id="desc">AgoCode horizontal logo.</desc>
+  <g transform="translate(0 0)">
+    <path d="M8 54 25.2 13.5c1.7-4 7.9-4 9.6 0L52 54" fill="none" stroke="#171717" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M19 39h22" fill="none" stroke="#171717" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="19" cy="39" r="3.5" fill="#FCFBF7" stroke="#171717" stroke-width="2.5"/>
+    <circle cx="30" cy="39" r="4" fill="#A62424"/>
+    <circle cx="41" cy="39" r="3.5" fill="#FCFBF7" stroke="#171717" stroke-width="2.5"/>
+  </g>
+  <text x="70" y="42" fill="#171717" font-family="Arial, Helvetica, sans-serif" font-size="29" font-weight="700" letter-spacing="-1">Ago<tspan fill="#A62424">Code</tspan></text>
+</svg>

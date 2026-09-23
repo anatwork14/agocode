@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LearningPlan } from "@/components/home/LearningPlan";
 import { chapters } from "@/lib/curriculum";
 
 export default function HomePage() {
@@ -11,11 +12,11 @@ export default function HomePage() {
             <h1 className="editorial-title">See it. Trace it. Write it again.</h1>
             <p className="lede">
               AgoCode turns algorithm learning into a visual, hands-on sequence: first build the mental model,
-              then trace the state, reconstruct the code, and finally apply the idea to unfamiliar problems.
+              then trace the state, reconstruct the code, explain the invariant, and finally transfer the idea.
             </p>
             <div className="action-row">
-              <Link className="button button--primary" href="/learn/binary-search">
-                Continue Chapter 01 →
+              <Link className="button button--primary" href="/learn">
+                Open the Book →
               </Link>
               <Link className="button" href="/roadmap">
                 Open roadmap
@@ -23,21 +24,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <aside className="hero__aside" aria-label="Current lesson">
-            <div className="hero__aside-label">Continue reading</div>
-            <h2>Binary Search</h2>
-            <p>
-              Start with a guessing game, discover why halving works, then connect the visual state to code.
-            </p>
-            <div className="halving-sequence" aria-label="Search space halving example">
-              {[100, 50, 25, 13, 7, 4, 2, 1].map((value, index, values) => (
-                <div key={value} style={{ display: "contents" }}>
-                  <div className="halving-step">{value}</div>
-                  {index < values.length - 1 ? <span className="halving-arrow">→</span> : null}
-                </div>
-              ))}
-            </div>
-          </aside>
+          <LearningPlan />
         </section>
 
         <section className="section">
@@ -54,9 +41,9 @@ export default function HomePage() {
           <div className="learning-strip">
             {[
               ["01", "Understand", "Build a concrete visual model before formal notation."],
-              ["02", "Trace", "Predict and inspect each state transition."],
-              ["03", "Rebuild", "Write the algorithm again without copying the finished code."],
-              ["04", "Transfer", "Recognize the idea inside an unlabeled problem."],
+              ["02", "Predict + Trace", "Reason about each state transition before it is revealed."],
+              ["03", "Rebuild + Explain", "Write the algorithm again and defend why the invariant is safe."],
+              ["04", "Transfer + Recall", "Recognize the idea in changed problems, then return after a delay."],
             ].map(([number, title, description]) => (
               <article className="learning-strip__item" key={number}>
                 <div className="learning-strip__number">{number}</div>
@@ -74,7 +61,7 @@ export default function HomePage() {
               <h2>One coherent path, chapter by chapter.</h2>
               <p>
                 The core sequence follows the learning progression of <em>Grokking Algorithms</em>, while AgoCode
-                adds interaction, executable traces, recall, and transfer practice around that structure.
+                adds original interactions, executable traces, recall, and transfer practice around that structure.
               </p>
             </div>
           </div>
@@ -82,7 +69,7 @@ export default function HomePage() {
           <div className="chapter-list">
             {chapters.slice(0, 6).map((chapter) => (
               <Link
-                href={chapter.number === 1 ? "/learn/binary-search" : "/roadmap"}
+                href={chapter.number === 1 ? "/learn" : "/roadmap"}
                 className="chapter-row"
                 key={chapter.number}
               >
@@ -94,7 +81,7 @@ export default function HomePage() {
                 <div
                   className={`chapter-row__status ${chapter.status === "active" ? "chapter-row__status--active" : ""}`}
                 >
-                  {chapter.status === "active" ? "Now learning" : "Planned"}
+                  {chapter.status === "active" ? "Interactive" : "Planned"}
                 </div>
               </Link>
             ))}

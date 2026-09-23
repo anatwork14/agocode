@@ -29,6 +29,7 @@ function readProgress(key: string): ProgressRecord | null {
 
 function buildReviewItems() {
   const rebuild = readProgress("agocode.progress.binary-search.rebuild");
+  const explain = readProgress("agocode.progress.binary-search.explain");
   const transfer = readProgress("agocode.progress.binary-search.transfer-01");
   const nextItems: ReviewItem[] = [];
 
@@ -41,12 +42,21 @@ function buildReviewItems() {
     });
   }
 
+  if (explain) {
+    nextItems.push({
+      title: "Explain the invariant",
+      description: "Explain why sorted order makes a whole region disposable and what low…high promises after every update.",
+      href: "/learn/binary-search#explain",
+      dueAt: new Date(new Date(explain.completedAt).getTime() + 2 * DAY_MS),
+    });
+  }
+
   if (transfer) {
     nextItems.push({
       title: "Insertion boundary transfer",
       description: "Solve the nearby boundary variant again and explain why the final low index is meaningful.",
       href: "/practice/binary-search",
-      dueAt: new Date(new Date(transfer.completedAt).getTime() + 2 * DAY_MS),
+      dueAt: new Date(new Date(transfer.completedAt).getTime() + 3 * DAY_MS),
     });
   }
 

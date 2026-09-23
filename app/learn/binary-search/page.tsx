@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BinarySearchExplainCheck } from "@/components/binary-search/BinarySearchExplainCheck";
 import { BinarySearchRebuild } from "@/components/binary-search/BinarySearchRebuild";
 import { BinarySearchTrace } from "@/components/binary-search/BinarySearchTrace";
 import { GuessingLab } from "@/components/binary-search/GuessingLab";
@@ -20,7 +21,8 @@ export default function BinarySearchLessonPage() {
             <a href="#sorted">04 · Sorted input</a>
             <a href="#code">05 · Code trace</a>
             <a href="#rebuild">06 · Rebuild</a>
-            <a href="#recap">07 · Recap</a>
+            <a href="#explain">07 · Explain</a>
+            <a href="#recap">08 · Recap</a>
           </nav>
 
           <article className="reading-column">
@@ -112,7 +114,7 @@ export default function BinarySearchLessonPage() {
                 </p>
                 <BinarySearchTrace />
                 <p>
-                  The trace now pauses at each important comparison. Predict the update before advancing; passive
+                  The trace pauses at each important comparison. Predict the update before advancing; passive
                   playback is deliberately not enough.
                 </p>
                 <p>
@@ -129,6 +131,15 @@ export default function BinarySearchLessonPage() {
                   tests against your implementation. Use hints only when the invariant no longer tells you what to do.
                 </p>
                 <BinarySearchRebuild />
+              </section>
+
+              <section id="explain">
+                <h2>Then defend why it works.</h2>
+                <p>
+                  Passing tests is necessary, but implementation alone does not prove that the model is clear. Check
+                  the invariant, the sorted-input precondition, and what logarithmic growth actually means.
+                </p>
+                <BinarySearchExplainCheck />
               </section>
 
               <section id="recap">

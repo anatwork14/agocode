@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ComplexityRace } from "@/components/complexity/ComplexityRace";
 import { WorstCaseCheck } from "@/components/complexity/WorstCaseCheck";
+import { LessonCompleteLink } from "@/components/progress/LessonCompleteLink";
 import { MarginNote } from "@/components/ui/MarginNote";
 
 export const metadata = { title: "Big O Notation" };
@@ -58,19 +59,14 @@ export default function BigOPage() {
                 <h2>Growth classes separate quickly.</h2>
                 <p>
                   With tiny inputs, several algorithms can all feel fast. Increase <span className="mono">n</span> and
-                  the shape of the growth becomes the dominant story. Use the control below to compare five common
-                  classes.
+                  the shape of the growth becomes the dominant story. Use the control below to compare five common classes.
                 </p>
                 <ComplexityRace />
-
                 <div className="complexity-definitions">
                   {commonClasses.map(([notation, name, description]) => (
                     <div className="complexity-definition" key={notation}>
                       <strong className="mono">{notation}</strong>
-                      <div>
-                        <b>{name}</b>
-                        <p>{description}</p>
-                      </div>
+                      <div><b>{name}</b><p>{description}</p></div>
                     </div>
                   ))}
                 </div>
@@ -80,8 +76,7 @@ export default function BigOPage() {
                 <h2>A lucky run does not erase the growth bound.</h2>
                 <p>
                   A linear search can sometimes find its target immediately. But when we need a dependable upper view
-                  of how its work can grow, we still account for the case where the target is last—or absent—and every
-                  item must be checked.
+                  of how its work can grow, we still account for the case where the target is last—or absent—and every item must be checked.
                 </p>
                 <WorstCaseCheck />
               </section>
@@ -89,10 +84,7 @@ export default function BigOPage() {
               <section id="recap">
                 <h2>Keep the distinction clear.</h2>
                 <div className="exercise-panel">
-                  <div className="exercise-panel__header">
-                    <strong>Chapter notes</strong>
-                    <span>recall before moving on</span>
-                  </div>
+                  <div className="exercise-panel__header"><strong>Chapter notes</strong><span>recall before moving on</span></div>
                   <div className="exercise-panel__body">
                     <ul className="recap-list">
                       <li>Algorithm growth is compared through operations, not fixed seconds.</li>
@@ -103,12 +95,14 @@ export default function BigOPage() {
                   </div>
                 </div>
                 <div className="action-row">
-                  <Link className="button" href="/learn/running-time">
-                    ← Running Time
-                  </Link>
-                  <Link className="button button--primary" href="/learn/traveling-salesperson">
+                  <Link className="button" href="/learn/running-time">← Running Time</Link>
+                  <LessonCompleteLink
+                    storageKey="agocode.progress.chapter-1.big-o"
+                    lessonId="chapter-1-big-o"
+                    href="/learn/traveling-salesperson"
+                  >
                     Continue: Traveling Salesperson →
-                  </Link>
+                  </LessonCompleteLink>
                 </div>
               </section>
             </div>

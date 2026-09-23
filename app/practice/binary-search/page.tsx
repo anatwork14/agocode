@@ -10,8 +10,8 @@ export default function BinarySearchPracticePage() {
         <div className="eyebrow">Practice · Binary Search</div>
         <h1 className="editorial-title editorial-title--compact">Transfer the invariant to a nearby problem.</h1>
         <p className="lede">
-          This first rung is intentionally close to exact search. Later rungs will hide the topic and introduce
-          rotated arrays, boundaries, and monotonic answer spaces.
+          This first rung is intentionally close to exact search. Later rungs change what equality means, hide the
+          technique, and introduce rotated arrays and monotonic answer spaces.
         </p>
 
         <section className="section" style={{ paddingTop: 44 }}>
@@ -22,6 +22,9 @@ export default function BinarySearchPracticePage() {
             </Link>
             <Link className="button" href="/lab/binary-search">
               Open trace lab
+            </Link>
+            <Link className="button button--primary" href="/practice/binary-search/boundary">
+              Next: boundary search →
             </Link>
           </div>
         </section>

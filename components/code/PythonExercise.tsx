@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { KeyboardEvent, useEffect, useRef, useState } from "react";
 
 export type PythonTestCase = {
   label: string;
@@ -152,6 +152,25 @@ export function PythonExercise({
     setRuntimeNonce((value) => value + 1);
   }
 
+  function handleEditorKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key !== "Tab") return;
+
+    event.preventDefault();
+    const editor = event.currentTarget;
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+    const indentation = "    ";
+    const nextCode = `${code.slice(0, start)}${indentation}${code.slice(end)}`;
+
+    setCode(nextCode);
+    setReport(null);
+
+    requestAnimationFrame(() => {
+      editor.selectionStart = start + indentation.length;
+      editor.selectionEnd = start + indentation.length;
+    });
+  }
+
   const passedCount = report?.tests.filter((test) => test.passed).length ?? 0;
   const passedAll = Boolean(report?.tests.length) && passedCount === report?.tests.length && !report?.error;
 
@@ -179,6 +198,7 @@ export function PythonExercise({
               setCode(event.target.value);
               setReport(null);
             }}
+            onKeyDown={handleEditorKeyDown}
             spellCheck={false}
             aria-describedby={`${id}-runtime-status`}
           />
@@ -272,8 +292,8 @@ export function PythonExercise({
             </div>
           ) : (
             <div className="test-report test-report--idle">
-              <strong>Five checks are waiting.</strong>
-              <span>They cover found, missing, boundary, single-item, and empty-array behavior.</span>
+              <strong>{tests.length} checks are waiting.</strong>
+              <span>Run the suite to test normal behavior and edge cases without leaving the page.</span>
             </div>
           )}
         </aside>

@@ -12,7 +12,7 @@ AgoCode is intentionally not another static textbook, animation gallery, or prob
 
 ## Implementation status
 
-The **Chapter 1 / Binary Search reference vertical slice** is now functional across Read, Lab, Practice, and Review modes.
+The **Chapter 1 / Binary Search reference vertical slice** is functional across Read, Lab, Practice, and Review modes and is being hardened before the project expands to the rest of Chapter 1.
 
 Currently implemented:
 
@@ -25,23 +25,26 @@ Currently implemented:
 - deterministic semantic Binary Search trace generator
 - synchronized array state + Python code trace
 - prediction gates before important trace transitions
+- prediction-safe timeline scrubbing through already-visited states
 - editable sorted-array / target scenarios in the full trace lab
 - embedded retrieval exercises
+- invariant / sorted-input / complexity reasoning assessment
 - in-browser Python execution isolated in a Web Worker
-- timeout protection, stdout/stderr capture, test reports, and progressive hints
+- timeout protection, stdout/stderr capture, test reports, progressive hints, and Python-friendly Tab indentation
 - Binary Search reconstruction exercise with real Python tests
-- first transfer problem: insertion-boundary search with a recorded first hypothesis
-- local completion evidence and a first spaced-review queue
+- transfer rung 01: insertion-position search with a recorded first hypothesis
+- transfer rung 02: first-occurrence boundary search where equality no longer ends the algorithm
+- local completion evidence and a spaced-review queue derived from completed learning actions
 - reduced-motion and keyboard-accessible controls baseline
 - CI for typecheck, lint, and production build
 
 Next implementation priorities:
 
-1. stronger explanation/invariant assessment,
-2. second and third Binary Search transfer rungs,
-3. richer mastery evidence and review scheduling,
-4. timeline scrubbing / playback controls,
-5. Chapter 1 Running Time and Big O lessons.
+1. third Binary Search transfer rung with the technique hidden more aggressively,
+2. richer mastery evidence and review scheduling,
+3. a fully blank implementation mode and/or richer editor integration,
+4. Chapter 1 Running Time and Big O lessons,
+5. deterministic unit tests for algorithm/event generation.
 
 ## Local development
 

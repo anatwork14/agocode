@@ -17,15 +17,15 @@ Only after that loop feels excellent should the platform expand to many topics.
 ## 2. Phase 0 — Repository and product foundations
 
 ### Deliverables
-- [ ] Next.js + TypeScript app scaffold
-- [ ] Tailwind configuration
-- [ ] design token file
-- [ ] editorial + mono font setup
-- [ ] base route structure
+- [x] Next.js + TypeScript app scaffold
+- [x] Tailwind configuration
+- [ ] dedicated design token file (tokens currently live in `app/globals.css`)
+- [x] editorial + mono font setup
+- [x] base route structure
 - [ ] content directory structure
-- [ ] lint / format / test setup
-- [ ] CI build check
-- [ ] accessibility baseline
+- [ ] lint / format / test setup (lint/typecheck exist; automated unit tests are still pending)
+- [x] CI build check
+- [x] accessibility baseline
 
 ### Acceptance criteria
 - App starts locally with one command.
@@ -36,22 +36,22 @@ Only after that loop feels excellent should the platform expand to many topics.
 ## 3. Phase 1 — Design foundation
 
 ### Build
-- [ ] page shell
-- [ ] chapter navigation
-- [ ] editorial heading system
-- [ ] prose system
-- [ ] margin note component
-- [ ] buttons / inputs
-- [ ] exercise surface
-- [ ] code block component
-- [ ] responsive reading layout
+- [x] page shell
+- [x] chapter navigation
+- [x] editorial heading system
+- [x] prose system
+- [x] margin note component
+- [x] buttons / inputs
+- [x] exercise surface
+- [x] code block component
+- [x] responsive reading layout
 
 ### Prototype screens
-- [ ] Home / Continue learning
-- [ ] Roadmap
-- [ ] Binary Search Read mode
-- [ ] Binary Search Lab mode
-- [ ] Binary Search Practice mode
+- [x] Home / Continue learning
+- [x] Roadmap
+- [x] Binary Search Read mode
+- [x] Binary Search Lab mode
+- [x] Binary Search Practice mode
 
 ### Acceptance criteria
 - Visual identity is recognizably editorial/illustrated rather than generic SaaS.
@@ -61,26 +61,26 @@ Only after that loop feels excellent should the platform expand to many topics.
 ## 4. Phase 2 — Visualization runtime
 
 ### Core primitives
-- [ ] array renderer
-- [ ] pointer labels
-- [ ] range highlight / discarded state
-- [ ] comparison annotation
-- [ ] state inspector
-- [ ] playback timeline
+- [x] array renderer
+- [x] pointer labels
+- [x] range highlight / discarded state
+- [x] comparison annotation
+- [x] state inspector
+- [x] playback timeline (visited-history scrubbing; autoplay is still pending)
 
 ### Engine
-- [ ] semantic event types
-- [ ] trace model
+- [x] semantic event types
+- [x] trace model
 - [ ] deterministic reducer
-- [ ] forward/backward step support
+- [x] forward/backward step support
 - [ ] play/pause
-- [ ] reduced-motion mode
+- [x] reduced-motion mode
 
 ### Acceptance criteria
 Given a predefined Binary Search trace, a user can:
 - step forward,
 - step backward,
-- scrub,
+- scrub through already-unlocked states,
 - identify `low/mid/high`,
 - see active/discarded intervals,
 - read a textual description of each transition.
@@ -88,37 +88,42 @@ Given a predefined Binary Search trace, a user can:
 ## 5. Phase 3 — Binary Search interactive lesson
 
 ### Scene 1 — Search intuition
-- [ ] original ordered-search illustration
-- [ ] choice between scanning and midpoint reasoning
+- [x] original ordered-search illustration
+- [x] choice between scanning and midpoint reasoning
 
 ### Scene 2 — Sequential number guessing
-- [ ] 1–100 interaction
-- [ ] attempt counter
-- [ ] visual elimination of one candidate
+- [x] 1–100 interaction
+- [x] attempt counter
+- [x] visual elimination of one candidate
 
 ### Scene 3 — Midpoint strategy
-- [ ] half-range elimination
-- [ ] animated candidate interval
-- [ ] prediction prompts
+- [x] half-range elimination
+- [x] animated candidate interval
+- [x] prediction prompts
 
 ### Scene 4 — Halving / logarithm intuition
-- [ ] shrinking-size visualization
-- [ ] step-count questions
+- [x] shrinking-size visualization
+- [x] step-count question
 
 ### Scene 5 — Sorted-input requirement
-- [ ] sorted example
-- [ ] unsorted counterexample
+- [x] sorted example
+- [x] unsorted counterexample
 
 ### Scene 6 — Code sync
-- [ ] Python 3 reference implementation
-- [ ] stable code line IDs
-- [ ] current line highlight
-- [ ] variable-to-visual entity linking
+- [x] Python 3 reference implementation
+- [ ] stable semantic code-line IDs
+- [x] current line highlight
+- [x] variable-to-visual state synchronization
 
 ### Scene 7 — Book-style embedded exercises
-- [ ] maximum-step question
+- [x] maximum-step question
 - [ ] doubled-input question
-- [ ] growth-rate checks
+- [ ] broader growth-rate checks
+
+### Additional active-learning layer
+- [x] prediction gates before branch updates
+- [x] invariant / precondition / complexity reasoning check
+- [x] editable sorted-array scenarios in Lab mode
 
 ### Acceptance criteria
 The learner should never need to leave the page to understand the core algorithm.
@@ -127,71 +132,72 @@ The learner should never need to leave the page to understand the core algorithm
 
 ### Build
 - [ ] Monaco integration
-- [ ] Pyodide worker
-- [ ] stdout/stderr capture
-- [ ] timeout/reset behavior
-- [ ] visible tests
+- [x] Pyodide worker
+- [x] stdout/stderr capture
+- [x] timeout/reset behavior
+- [x] visible tests
 - [ ] hidden tests
-- [ ] result summary
+- [x] result summary
 
 ### Learning tasks
 - [ ] missing-line completion
-- [ ] code skeleton
-- [ ] blank implementation
+- [x] code skeleton reconstruction
+- [ ] completely blank implementation mode
 
 ### Hint ladder
-- [ ] conceptual hint
-- [ ] invariant hint
-- [ ] pseudocode hint
-- [ ] skeleton reveal
+- [x] conceptual hint
+- [x] invariant hint
+- [x] pseudocode/algorithm hint
+- [x] implementation-shape hint
 - [ ] full solution reveal
 
 ### Acceptance criteria
-Learner can implement Binary Search from a blank editor and pass edge cases without page reload.
+Learner can implement Binary Search from a minimally scaffolded editor and pass edge cases without page reload. A fully blank mode is still pending.
 
 ## 7. Phase 5 — Mastery and review
 
 ### Build
-- [ ] mastery model
-- [ ] attempt persistence
+- [ ] full mastery model
+- [x] completion evidence persistence in local storage
 - [ ] dimension updates
-- [ ] review queue
+- [x] review queue
 - [ ] due-review home section
 
 ### First mastery dimensions
-- [ ] Understand
-- [ ] Trace
-- [ ] Implement
-- [ ] Analyze
-- [ ] Recognize
-- [ ] Transfer
+- [x] Understand — first structured explanation evidence exists
+- [x] Trace — prediction/trace evidence exists in-session
+- [x] Implement — rebuild completion evidence exists
+- [x] Analyze — complexity explanation evidence exists
+- [x] Recognize — transfer hypothesis evidence exists in-session
+- [x] Transfer — transfer completion evidence exists
+
+These dimensions are not yet aggregated into a durable mastery score/model.
 
 ### Review tasks
-- [ ] fresh trace
-- [ ] blank implementation
-- [ ] complexity explanation
+- [x] fresh trace available through custom Lab scenarios
+- [x] implementation recall
+- [x] invariant / complexity explanation recall
 - [ ] bug repair
 
 ### Acceptance criteria
-The site can recommend a review task based on actual learner evidence rather than only chapter completion.
+The site can already schedule review items from concrete completion evidence, but richer attempt history and mastery-aware scheduling remain pending.
 
 ## 8. Phase 6 — Transfer / LeetCode bridge
 
 ### Binary Search ladder
-- [ ] direct exact search
-- [ ] insertion position
-- [ ] boundary search
+- [x] insertion position
+- [x] first-occurrence boundary search
 - [ ] rotated array
 - [ ] search-on-answer problem
 
 ### UX
-- [ ] direct problems may show the topic
+- [x] direct problems may show the topic
 - [ ] later problems hide the topic
-- [ ] learner records initial hypothesis
-- [ ] post-attempt reflection explains pattern match/mismatch
+- [x] learner records an initial hypothesis/decision before coding
+- [x] immediate reasoning feedback explains the pattern match/mismatch
 
 ### Acceptance criteria
-A learner can attempt an unlabeled problem and receive feedback focused on recognition, not just accepted/rejected status.
+The first two rungs test adaptation, but a truly unlabeled problem is still required before this phase is complete.
 
 ## 9. Phase 7 — Chapter 1 completion
 
@@ -315,7 +321,7 @@ Only after the core Book Track works well:
 - [ ] prefix sum
 - [ ] monotonic stack
 - [ ] fast/slow pointers
-- [ ] binary search boundaries
+- [x] binary search boundaries (initial transfer work)
 - [ ] binary search on answer
 - [ ] tree patterns
 - [ ] heap

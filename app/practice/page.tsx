@@ -4,8 +4,8 @@ export const metadata = { title: "Practice" };
 
 const ladder = [
   ["01", "Insertion boundary", "Direct", "Live", "/practice/binary-search"],
-  ["02", "First / last occurrence", "Variant", "Next", "#"],
-  ["03", "Rotated sorted array", "Pattern", "Planned", "#"],
+  ["02", "First occurrence boundary", "Variant", "Live", "/practice/binary-search/boundary"],
+  ["03", "Rotated sorted array", "Pattern", "Next", "#"],
   ["04", "Monotonic answer search", "Mixed", "Planned", "#"],
 ] as const;
 

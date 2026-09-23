@@ -30,7 +30,8 @@ function readProgress(key: string): ProgressRecord | null {
 function buildReviewItems() {
   const rebuild = readProgress("agocode.progress.binary-search.rebuild");
   const explain = readProgress("agocode.progress.binary-search.explain");
-  const transfer = readProgress("agocode.progress.binary-search.transfer-01");
+  const transferInsert = readProgress("agocode.progress.binary-search.transfer-01");
+  const transferBoundary = readProgress("agocode.progress.binary-search.transfer-02");
   const nextItems: ReviewItem[] = [];
 
   if (rebuild) {
@@ -51,12 +52,21 @@ function buildReviewItems() {
     });
   }
 
-  if (transfer) {
+  if (transferInsert) {
     nextItems.push({
       title: "Insertion boundary transfer",
-      description: "Solve the nearby boundary variant again and explain why the final low index is meaningful.",
+      description: "Solve the insertion-position variant again and explain why the final low index is meaningful.",
       href: "/practice/binary-search",
-      dueAt: new Date(new Date(transfer.completedAt).getTime() + 3 * DAY_MS),
+      dueAt: new Date(new Date(transferInsert.completedAt).getTime() + 3 * DAY_MS),
+    });
+  }
+
+  if (transferBoundary) {
+    nextItems.push({
+      title: "First-occurrence boundary",
+      description: "Find the first duplicate again. Recall why equality becomes a candidate answer instead of an immediate return.",
+      href: "/practice/binary-search/boundary",
+      dueAt: new Date(new Date(transferBoundary.completedAt).getTime() + 4 * DAY_MS),
     });
   }
 

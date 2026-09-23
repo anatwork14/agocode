@@ -5,8 +5,8 @@ export const metadata = { title: "Practice" };
 const ladder = [
   ["01", "Insertion boundary", "Direct", "Live", "/practice/binary-search"],
   ["02", "First occurrence boundary", "Variant", "Live", "/practice/binary-search/boundary"],
-  ["03", "Rotated sorted array", "Pattern", "Next", "#"],
-  ["04", "Monotonic answer search", "Mixed", "Planned", "#"],
+  ["03", "Rotated ordered array", "Pattern", "Live", "/practice/binary-search/rotated"],
+  ["04", "Monotonic answer search", "Mixed", "Next", "#"],
 ] as const;
 
 export default function PracticePage() {
@@ -25,7 +25,7 @@ export default function PracticePage() {
             <div className="section-heading__index">BINARY SEARCH</div>
             <div>
               <h2>Transfer ladder</h2>
-              <p>Each rung changes what must be recognized while preserving the underlying search invariant.</p>
+              <p>Each rung changes what must be recognized while preserving the underlying discard-region idea.</p>
             </div>
           </div>
 

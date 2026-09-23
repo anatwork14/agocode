@@ -23,6 +23,9 @@ export default function BinarySearchBoundaryPage() {
             <Link className="button" href="/practice">
               View transfer ladder
             </Link>
+            <Link className="button button--primary" href="/practice/binary-search/rotated">
+              Next: hidden-pattern transfer →
+            </Link>
           </div>
         </section>
       </div>

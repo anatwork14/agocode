@@ -32,6 +32,8 @@ function buildReviewItems() {
   const explain = readProgress("agocode.progress.binary-search.explain");
   const transferInsert = readProgress("agocode.progress.binary-search.transfer-01");
   const transferBoundary = readProgress("agocode.progress.binary-search.transfer-02");
+  const transferRotated = readProgress("agocode.progress.binary-search.transfer-03");
+  const transferAnswer = readProgress("agocode.progress.binary-search.transfer-04");
   const chapterRecap = readProgress("agocode.progress.chapter-1.recap");
   const nextItems: ReviewItem[] = [];
 
@@ -68,6 +70,24 @@ function buildReviewItems() {
       description: "Find the first duplicate again. Recall why equality becomes a candidate answer instead of an immediate return.",
       href: "/practice/binary-search/boundary",
       dueAt: new Date(new Date(transferBoundary.completedAt).getTime() + 4 * DAY_MS),
+    });
+  }
+
+  if (transferRotated) {
+    nextItems.push({
+      title: "Rotated-array pattern recall",
+      description: "Recover the structural observation that one side of a distinct rotated array around mid remains sorted.",
+      href: "/practice/binary-search/rotated",
+      dueAt: new Date(new Date(transferRotated.completedAt).getTime() + 5 * DAY_MS),
+    });
+  }
+
+  if (transferAnswer) {
+    nextItems.push({
+      title: "Answer-space search recall",
+      description: "Reconstruct why a monotonic feasibility predicate makes a range of possible answers searchable by binary search.",
+      href: "/practice/binary-search/answer-space",
+      dueAt: new Date(new Date(transferAnswer.completedAt).getTime() + 6 * DAY_MS),
     });
   }
 

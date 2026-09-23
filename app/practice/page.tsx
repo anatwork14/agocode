@@ -3,10 +3,10 @@ import Link from "next/link";
 export const metadata = { title: "Practice" };
 
 const ladder = [
-  ["01", "Insertion boundary", "Direct", "Live", "/practice/binary-search"],
-  ["02", "First occurrence boundary", "Variant", "Live", "/practice/binary-search/boundary"],
-  ["03", "Rotated ordered array", "Pattern", "Live", "/practice/binary-search/rotated"],
-  ["04", "Monotonic answer search", "Mixed", "Next", "#"],
+  ["01", "Insertion boundary", "Direct", "/practice/binary-search"],
+  ["02", "First occurrence boundary", "Variant", "/practice/binary-search/boundary"],
+  ["03", "Rotated ordered array", "Pattern", "/practice/binary-search/rotated"],
+  ["04", "Monotonic answer space", "Mixed", "/practice/binary-search/answer-space"],
 ] as const;
 
 export default function PracticePage() {
@@ -16,8 +16,8 @@ export default function PracticePage() {
         <div className="eyebrow">Transfer mode</div>
         <h1 className="editorial-title editorial-title--compact">Knowing the name is not recognizing the pattern.</h1>
         <p className="lede">
-          Practice gradually removes scaffolding. Start with a nearby variation, record your first hypothesis, then
-          move toward problems where the useful technique is no longer announced.
+          Practice gradually removes scaffolding. The four-rung Binary Search ladder moves from a direct positional
+          variation to an answer space where the candidate values do not appear as a sorted input array at all.
         </p>
 
         <section className="section">
@@ -25,36 +25,21 @@ export default function PracticePage() {
             <div className="section-heading__index">BINARY SEARCH</div>
             <div>
               <h2>Transfer ladder</h2>
-              <p>Each rung changes what must be recognized while preserving the underlying discard-region idea.</p>
+              <p>Each rung preserves the deeper rule: one decision must justify discarding an impossible region.</p>
             </div>
           </div>
 
           <div className="practice-ladder">
-            {ladder.map(([number, title, level, status, href]) => {
-              const live = status === "Live";
-              const content = (
-                <>
-                  <span className="practice-ladder__number">{number}</span>
-                  <div>
-                    <strong>{title}</strong>
-                    <span>{level}</span>
-                  </div>
-                  <span className={live ? "practice-ladder__status practice-ladder__status--live" : "practice-ladder__status"}>
-                    {status}
-                  </span>
-                </>
-              );
-
-              return live ? (
-                <Link className="practice-ladder__row" href={href} key={number}>
-                  {content}
-                </Link>
-              ) : (
-                <div className="practice-ladder__row practice-ladder__row--locked" key={number} aria-disabled="true">
-                  {content}
+            {ladder.map(([number, title, level, href]) => (
+              <Link className="practice-ladder__row" href={href} key={number}>
+                <span className="practice-ladder__number">{number}</span>
+                <div>
+                  <strong>{title}</strong>
+                  <span>{level}</span>
                 </div>
-              );
-            })}
+                <span className="practice-ladder__status practice-ladder__status--live">Live</span>
+              </Link>
+            ))}
           </div>
         </section>
       </div>

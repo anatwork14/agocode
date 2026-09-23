@@ -23,6 +23,9 @@ export default function RotatedArrayPracticePage() {
             <Link className="button" href="/practice">
               View transfer ladder
             </Link>
+            <Link className="button button--primary" href="/practice/binary-search/answer-space">
+              Next: answer-space search →
+            </Link>
           </div>
         </section>
       </div>

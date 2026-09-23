@@ -30,6 +30,14 @@ const code = [
   "    return None",
 ];
 
+function eventLabel(type: string) {
+  if (type === "SET_RANGE") return "range";
+  if (type === "SET_POINTER") return "mid";
+  if (type === "COMPARE") return "compare";
+  if (type === "FOUND") return "found";
+  return "step";
+}
+
 export function BinarySearchTrace({
   allowScenarioEditing = false,
   requirePrediction = true,
@@ -40,6 +48,7 @@ export function BinarySearchTrace({
   const [targetDraft, setTargetDraft] = useState(String(binarySearchExample.target));
   const [scenarioError, setScenarioError] = useState("");
   const [index, setIndex] = useState(0);
+  const [maxUnlocked, setMaxUnlocked] = useState(0);
   const [answers, setAnswers] = useState<Record<number, PredictionAnswer>>({});
 
   const steps = useMemo(() => buildBinarySearchTrace(values, target), [values, target]);
@@ -54,7 +63,15 @@ export function BinarySearchTrace({
 
   function resetTrace() {
     setIndex(0);
+    setMaxUnlocked(0);
     setAnswers({});
+  }
+
+  function advanceTrace() {
+    if (predictionLocked) return;
+    const next = Math.min(steps.length - 1, index + 1);
+    setIndex(next);
+    setMaxUnlocked((current) => Math.max(current, next));
   }
 
   function answerPrediction(optionId: string) {
@@ -151,6 +168,32 @@ export function BinarySearchTrace({
           {scenarioError ? <p className="scenario-builder__error" role="alert">{scenarioError}</p> : null}
         </form>
       ) : null}
+
+      <div className="trace-timeline" aria-label="Visited trace timeline">
+        <div className="trace-timeline__meta">
+          <span className="mono">visited {maxUnlocked + 1}/{steps.length}</span>
+          <span>{eventLabel(step.event.type)}</span>
+        </div>
+        <input
+          type="range"
+          min={0}
+          max={Math.max(maxUnlocked, 0)}
+          step={1}
+          value={index}
+          onChange={(event) => setIndex(Number(event.target.value))}
+          disabled={maxUnlocked === 0}
+          aria-label="Scrub through visited trace steps"
+        />
+        <div className="trace-timeline__ticks" aria-hidden="true">
+          {steps.map((traceStep, stepIndex) => (
+            <span
+              key={`${traceStep.event.type}-${stepIndex}`}
+              className={`trace-timeline__tick ${stepIndex <= maxUnlocked ? "trace-timeline__tick--visited" : ""} ${stepIndex === index ? "trace-timeline__tick--current" : ""}`}
+              title={eventLabel(traceStep.event.type)}
+            />
+          ))}
+        </div>
+      </div>
 
       <div className="algorithm-grid">
         <section aria-label="Binary search visualization">
@@ -263,7 +306,7 @@ export function BinarySearchTrace({
             <button
               type="button"
               className="button button--primary"
-              onClick={() => setIndex((value) => Math.min(steps.length - 1, value + 1))}
+              onClick={advanceTrace}
               disabled={index === steps.length - 1 || predictionLocked}
             >
               {step.prediction && requirePrediction ? "Apply update →" : "Step →"}

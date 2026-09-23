@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { DoublingCheck } from "@/components/complexity/DoublingCheck";
 import { GrowthComparison } from "@/components/complexity/GrowthComparison";
+import { LessonCompleteLink } from "@/components/progress/LessonCompleteLink";
 import { MarginNote } from "@/components/ui/MarginNote";
 
 export const metadata = { title: "Running Time" };
@@ -34,15 +35,9 @@ export default function RunningTimePage() {
                   midpoint decision removes about half of the remaining candidates.
                 </p>
                 <div className="concept-equation" aria-label="Simple search versus binary search growth">
-                  <div>
-                    <span>Simple search</span>
-                    <strong className="mono">n checks</strong>
-                  </div>
+                  <div><span>Simple search</span><strong className="mono">n checks</strong></div>
                   <div className="concept-equation__divider">vs.</div>
-                  <div>
-                    <span>Binary search</span>
-                    <strong className="mono">log₂ n checks</strong>
-                  </div>
+                  <div><span>Binary search</span><strong className="mono">log₂ n checks</strong></div>
                 </div>
                 <p>
                   Wall-clock speed depends on hardware, language, implementation, and many other details. Counting
@@ -79,12 +74,14 @@ export default function RunningTimePage() {
                   describes how the number of operations scales with the input. That is the role of Big O notation.
                 </p>
                 <div className="action-row">
-                  <Link className="button" href="/learn/binary-search">
-                    ← Binary Search
-                  </Link>
-                  <Link className="button button--primary" href="/learn/big-o">
+                  <Link className="button" href="/learn/binary-search">← Binary Search</Link>
+                  <LessonCompleteLink
+                    storageKey="agocode.progress.chapter-1.running-time"
+                    lessonId="chapter-1-running-time"
+                    href="/learn/big-o"
+                  >
                     Continue to Big O →
-                  </Link>
+                  </LessonCompleteLink>
                 </div>
               </section>
             </div>

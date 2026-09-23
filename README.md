@@ -12,29 +12,36 @@ AgoCode is intentionally not another static textbook, animation gallery, or prob
 
 ## Implementation status
 
-Implementation has started with the **Chapter 1 / Binary Search reference vertical slice**.
+The **Chapter 1 / Binary Search reference vertical slice** is now functional across Read, Lab, Practice, and Review modes.
 
 Currently implemented:
 
 - Next.js + React + TypeScript application scaffold
 - canonical design tokens and editorial page shell
 - final SVG-first v1 brand mark and lockup
-- responsive Book / Roadmap / Lab / Practice / Review route shells
+- responsive Book / Roadmap / Lab / Practice / Review routes
 - book-faithful Binary Search Read mode
 - interactive one-by-one vs midpoint number-guessing lab
 - deterministic semantic Binary Search trace generator
 - synchronized array state + Python code trace
-- embedded retrieval exercise
+- prediction gates before important trace transitions
+- editable sorted-array / target scenarios in the full trace lab
+- embedded retrieval exercises
+- in-browser Python execution isolated in a Web Worker
+- timeout protection, stdout/stderr capture, test reports, and progressive hints
+- Binary Search reconstruction exercise with real Python tests
+- first transfer problem: insertion-boundary search with a recorded first hypothesis
+- local completion evidence and a first spaced-review queue
 - reduced-motion and keyboard-accessible controls baseline
 - CI for typecheck, lint, and production build
 
 Next implementation priorities:
 
-1. prediction gates inside the trace,
-2. executable Python editor / Pyodide worker,
-3. blank reconstruction exercise,
-4. first transfer problem,
-5. persistence and review scheduling.
+1. stronger explanation/invariant assessment,
+2. second and third Binary Search transfer rungs,
+3. richer mastery evidence and review scheduling,
+4. timeline scrubbing / playback controls,
+5. Chapter 1 Running Time and Big O lessons.
 
 ## Local development
 
@@ -81,9 +88,9 @@ Interview-specific techniques such as two pointers, sliding window, monotonic st
 ## Core product modes
 
 - **Read** — illustrated editorial lessons and interactive analogies
-- **Lab** — synchronized visualization, algorithm state, code, and timeline
-- **Practice** — blank-editor reconstruction and LeetCode-style transfer problems
-- **Review** — spaced retrieval based on mastery and previous mistakes
+- **Lab** — synchronized visualization, algorithm state, code, prediction, and custom scenarios
+- **Practice** — reconstruction and progressively less-labeled transfer problems
+- **Review** — spaced retrieval based on completed learning evidence
 
 ## Reference MVP
 

@@ -1,4 +1,25 @@
-import type { ArrayTraceFrame } from "@/lib/visualization/types";
+import type { ArrayTraceFrame, TracePrediction } from "@/lib/visualization/types";
+
+function predictionFor(guess: number, target: number): TracePrediction {
+  const relation = guess === target ? "equal" : guess > target ? "high" : "low";
+  const correctOptionId = relation === "equal" ? "return" : relation === "high" ? "move-high" : "move-low";
+
+  return {
+    prompt: "Before the trace advances: what should the algorithm do next?",
+    options: [
+      { id: "return", label: "Return mid — the target is found" },
+      { id: "move-high", label: "Move high to mid - 1" },
+      { id: "move-low", label: "Move low to mid + 1" },
+    ],
+    correctOptionId,
+    explanation:
+      relation === "equal"
+        ? "The midpoint value equals the target, so the index can be returned immediately."
+        : relation === "high"
+          ? "The midpoint value is too large. Because the array is sorted, mid and everything to its right can be discarded."
+          : "The midpoint value is too small. Because the array is sorted, mid and everything to its left can be discarded.",
+  };
+}
 
 export function buildBinarySearchTrace(values: number[], target: number): ArrayTraceFrame[] {
   if (!values.length) return [];
@@ -19,6 +40,7 @@ export function buildBinarySearchTrace(values: number[], target: number): ArrayT
   while (low <= high) {
     const mid = Math.floor((low + high) / 2);
     const guess = values[mid];
+    const operator = guess === target ? "==" : guess < target ? "<" : ">";
 
     frames.push({
       event: { type: "SET_POINTER", pointer: "mid", index: mid },
@@ -26,7 +48,16 @@ export function buildBinarySearchTrace(values: number[], target: number): ArrayT
       high,
       mid,
       activeLine: 5,
-      comparison: `${guess} ${guess === target ? "==" : guess < target ? "<" : ">"} ${target}`,
+      note: "Choose the midpoint of the current candidate interval.",
+    });
+
+    frames.push({
+      event: { type: "COMPARE", left: guess, operator, right: target },
+      low,
+      high,
+      mid,
+      activeLine: 7,
+      comparison: `${guess} ${operator} ${target}`,
       note:
         guess === target
           ? "The midpoint equals the target."
@@ -34,6 +65,7 @@ export function buildBinarySearchTrace(values: number[], target: number): ArrayT
             ? "The midpoint is smaller than the target."
             : "The midpoint is larger than the target.",
       found: guess === target,
+      prediction: predictionFor(guess, target),
     });
 
     if (guess === target) {
@@ -72,6 +104,16 @@ export function buildBinarySearchTrace(values: number[], target: number): ArrayT
       });
     }
   }
+
+  frames.push({
+    event: { type: "SET_RANGE", low, high },
+    low,
+    high,
+    mid: null,
+    activeLine: 13,
+    comparison: "return None",
+    note: "The candidate interval is empty, so the target is not present.",
+  });
 
   return frames;
 }

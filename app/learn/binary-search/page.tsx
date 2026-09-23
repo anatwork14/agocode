@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BinarySearchRebuild } from "@/components/binary-search/BinarySearchRebuild";
 import { BinarySearchTrace } from "@/components/binary-search/BinarySearchTrace";
 import { GuessingLab } from "@/components/binary-search/GuessingLab";
 import { OrderedLookupIllustration } from "@/components/binary-search/OrderedLookupIllustration";
@@ -18,7 +19,8 @@ export default function BinarySearchLessonPage() {
             <a href="#halving">03 · Halving</a>
             <a href="#sorted">04 · Sorted input</a>
             <a href="#code">05 · Code trace</a>
-            <a href="#recap">06 · Recap</a>
+            <a href="#rebuild">06 · Rebuild</a>
+            <a href="#recap">07 · Recap</a>
           </nav>
 
           <article className="reading-column">
@@ -110,10 +112,23 @@ export default function BinarySearchLessonPage() {
                 </p>
                 <BinarySearchTrace />
                 <p>
+                  The trace now pauses at each important comparison. Predict the update before advancing; passive
+                  playback is deliberately not enough.
+                </p>
+                <p>
                   The code is short; the invariant is the real knowledge. If you change whether
                   <code className="mono"> high</code> is inclusive or exclusive, the loop condition and updates must
                   change consistently too.
                 </p>
+              </section>
+
+              <section id="rebuild">
+                <h2>Hide the finished code and rebuild it.</h2>
+                <p>
+                  Recognition is weaker than recall. Write the function again and let the browser run real Python
+                  tests against your implementation. Use hints only when the invariant no longer tells you what to do.
+                </p>
+                <BinarySearchRebuild />
               </section>
 
               <section id="recap">
@@ -134,11 +149,11 @@ export default function BinarySearchLessonPage() {
                   </div>
                 </div>
                 <div className="action-row">
-                  <Link className="button button--primary" href="/lab/binary-search">
-                    Open full trace lab →
+                  <Link className="button" href="/lab/binary-search">
+                    Open custom trace lab
                   </Link>
-                  <Link className="button" href="/practice">
-                    See transfer ladder
+                  <Link className="button button--primary" href="/practice/binary-search">
+                    Transfer the idea →
                   </Link>
                 </div>
               </section>

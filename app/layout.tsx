@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 import { Fraunces, JetBrains_Mono, Source_Sans_3 } from "next/font/google";
 import { SiteHeader } from "@/components/SiteHeader";
 import "./globals.css";
+import "./learning.css";
+import "./review.css";
 
 const editorial = Fraunces({
   subsets: ["latin"],

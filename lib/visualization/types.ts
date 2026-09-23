@@ -4,6 +4,18 @@ export type SemanticEvent =
   | { type: "COMPARE"; left: number; operator: "<" | ">" | "=="; right: number }
   | { type: "FOUND"; index: number };
 
+export type TracePredictionOption = {
+  id: string;
+  label: string;
+};
+
+export type TracePrediction = {
+  prompt: string;
+  options: TracePredictionOption[];
+  correctOptionId: string;
+  explanation: string;
+};
+
 export type ArrayTraceFrame = {
   event: SemanticEvent;
   low: number;
@@ -13,4 +25,5 @@ export type ArrayTraceFrame = {
   note: string;
   comparison?: string;
   found?: boolean;
+  prediction?: TracePrediction;
 };

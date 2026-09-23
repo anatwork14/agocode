@@ -10,16 +10,16 @@ export default function BinarySearchLabPage() {
         <div className="eyebrow">Lab · Binary Search</div>
         <h1 className="editorial-title editorial-title--compact">Trace the invariant, not the animation.</h1>
         <p className="lede">
-          Step backward and forward. At every moment, ask which indices are still valid candidates and why the rest
-          are safe to discard.
+          Change the sorted input, predict every branch, then step backward and forward. At every moment, ask which
+          indices are still valid candidates and why the rest are safe to discard.
         </p>
         <section className="section" style={{ paddingTop: 44 }}>
-          <BinarySearchTrace />
+          <BinarySearchTrace allowScenarioEditing requirePrediction />
           <div className="action-row">
             <Link className="button" href="/learn/binary-search">
               ← Back to lesson
             </Link>
-            <Link className="button button--primary" href="/practice">
+            <Link className="button button--primary" href="/practice/binary-search">
               Continue to transfer →
             </Link>
           </div>

@@ -70,8 +70,6 @@ export function PythonExercise({
   useEffect(() => {
     const worker = new Worker("/workers/python-runner.worker.js");
     workerRef.current = worker;
-    setRuntimeStatus("loading");
-    setRuntimeMessage("Loading Python in an isolated browser worker…");
 
     worker.onmessage = (event) => {
       const message = event.data;
@@ -149,6 +147,8 @@ export function PythonExercise({
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = null;
     setReport(null);
+    setRuntimeStatus("loading");
+    setRuntimeMessage("Loading Python in an isolated browser worker…");
     setRuntimeNonce((value) => value + 1);
   }
 

@@ -1,3 +1,78 @@
+.price-lookup-lab,
+.hash-function-lab,
+.hash-use-cases,
+.collision-lab {
+  margin: 28px 0 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 22px;
+}
+
+.price-lookup-lab__header,
+.hash-function-lab__header,
+.hash-use-cases__header,
+.collision-lab__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.price-lookup-lab__header h3,
+.hash-function-lab__header h3,
+.hash-use-cases__header h3,
+.collision-lab__header h3 {
+  margin: 4px 0 0;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 1.35rem;
+}
+
+.lookup-comparison {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.lookup-method {
+  border: 1px solid var(--border);
+  background: var(--paper);
+  padding: 14px;
+}
+
+.lookup-method__heading {
+  display: grid;
+  gap: 5px;
+}
+
+.lookup-method__heading span {
+  color: var(--muted);
+  font-size: .72rem;
+}
+
+.lookup-method__bar {
+  height: 9px;
+  margin-top: 12px;
+  overflow: hidden;
+  background: var(--note);
+}
+
+.lookup-method__bar span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+.lookup-method:last-child .lookup-method__bar span {
+  background: var(--success);
+}
+
+.lookup-method p {
+  margin: 10px 0 0;
+  color: var(--ink-secondary);
+  font-size: .8rem;
+}
+
 .hash-mental-model {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 0.8fr) auto minmax(0, 1fr);
@@ -19,32 +94,6 @@
 .hash-mental-model__function {
   border-color: var(--accent) !important;
   background: var(--accent-soft) !important;
-}
-
-.hash-function-lab,
-.hash-use-cases,
-.collision-lab {
-  margin: 28px 0 8px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  padding: 22px;
-}
-
-.hash-function-lab__header,
-.hash-use-cases__header,
-.collision-lab__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
-}
-
-.hash-function-lab__header h3,
-.hash-use-cases__header h3,
-.collision-lab__header h3 {
-  margin: 4px 0 0;
-  font-family: var(--font-editorial), Georgia, serif;
-  font-size: 1.35rem;
 }
 
 .hash-capacity-control,
@@ -357,6 +406,7 @@
 }
 
 @media (max-width: 760px) {
+  .lookup-comparison,
   .hash-mental-model {
     grid-template-columns: 1fr;
   }
@@ -387,12 +437,14 @@
 }
 
 @media (max-width: 480px) {
+  .price-lookup-lab,
   .hash-function-lab,
   .hash-use-cases,
   .collision-lab {
     padding: 16px;
   }
 
+  .price-lookup-lab__header,
   .hash-function-lab__header,
   .hash-use-cases__header,
   .collision-lab__header {

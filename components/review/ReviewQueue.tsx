@@ -2,10 +2,21 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { readLearningEvidence } from "@/lib/learning/evidence";
+import { readLearningEvidence, recordRecallOutcome } from "@/lib/learning/evidence";
 
-type ReviewItem = { title: string; description: string; href: string; dueAt: Date };
-type ReviewDefinition = Omit<ReviewItem, "dueAt"> & { key: string; delayDays: number };
+type ReviewItem = {
+  key: string;
+  exerciseId: string;
+  title: string;
+  description: string;
+  href: string;
+  dueAt: Date;
+  delayDays: number;
+  intervalDays: number | null;
+  reviewSessions: number;
+};
+
+type ReviewDefinition = Omit<ReviewItem, "dueAt" | "exerciseId" | "intervalDays" | "reviewSessions">;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -28,6 +39,7 @@ const reviewDefinitions: ReviewDefinition[] = [
   { key: "agocode.progress.chapter-4.recap", delayDays: 7, title: "Chapter 4 cumulative recall", description: "Reconnect divide and conquer, partitioning, recursive combine, and balanced-versus-lopsided runtime behavior.", href: "/learn/chapter-4-recap" },
   { key: "agocode.progress.hash-tables.duplicate-filter", delayDays: 3, title: "Hash-backed membership recall", description: "Rebuild the duplicate-filter task and explain why a set or dictionary changes repeated membership checking into key lookup.", href: "/learn/hash-tables#apply" },
   { key: "agocode.progress.chapter-5.recap", delayDays: 7, title: "Chapter 5 cumulative recall", description: "Reconnect hash function, array buckets, use cases, collisions, load factor, resizing, and average-case performance.", href: "/learn/chapter-5-recap" },
+  { key: "agocode.progress.bfs.prediction", delayDays: 2, title: "BFS queue prediction", description: "Predict which queued node must leave next and justify the FIFO order before replaying the trace.", href: "/learn/breadth-first-search#trace" },
   { key: "agocode.progress.bfs.rebuild", delayDays: 3, title: "Rebuild Breadth-First Search", description: "Recover the FIFO queue, visited/discovered state, and path information that make shortest unweighted search work.", href: "/learn/breadth-first-search#rebuild" },
   { key: "agocode.progress.chapter-6.recap", delayDays: 7, title: "Chapter 6 cumulative recall", description: "Reconnect graph modeling, FIFO layer order, visited state, shortest paths, and O(V + E) before moving to weighted graphs.", href: "/learn/chapter-6-recap" },
   { key: "agocode.progress.dijkstra.rebuild", delayDays: 3, title: "Rebuild Dijkstra's Algorithm", description: "Recover the cheapest-unprocessed-node rule, edge relaxation, parent updates, and processed-node invariant without reopening the trace.", href: "/learn/dijkstra#rebuild" },
@@ -51,20 +63,20 @@ const reviewDefinitions: ReviewDefinition[] = [
   { key: "agocode.progress.transfer.mixed-recognition", delayDays: 7, title: "Mixed transfer recognition", description: "Repeat the no-label scenarios after a delay and try to improve the first-try pattern-recognition score without chapter cues.", href: "/practice/mixed" },
 ];
 
-function completedAt(key: string) {
-  const value = readLearningEvidence(localStorage, key)?.completedAt;
-  return value ? new Date(value).getTime() : null;
-}
-
 function buildReviewItems() {
   return reviewDefinitions.flatMap((definition): ReviewItem[] => {
-    const completionTime = completedAt(definition.key);
-    if (completionTime === null) return [];
+    const evidence = readLearningEvidence(localStorage, definition.key);
+    if (!evidence?.completedAt) return [];
+
+    const initialDueAt = new Date(new Date(evidence.completedAt).getTime() + definition.delayDays * DAY_MS);
+    const dueAt = evidence.recall?.nextReviewAt ? new Date(evidence.recall.nextReviewAt) : initialDueAt;
+
     return [{
-      title: definition.title,
-      description: definition.description,
-      href: definition.href,
-      dueAt: new Date(completionTime + definition.delayDays * DAY_MS),
+      ...definition,
+      exerciseId: evidence.exerciseId,
+      dueAt,
+      intervalDays: evidence.recall?.intervalDays ?? null,
+      reviewSessions: evidence.recall?.sessions ?? 0,
     }];
   });
 }
@@ -79,14 +91,27 @@ export function ReviewQueue() {
   const [items, setItems] = useState<ReviewItem[]>([]);
   const [now, setNow] = useState(0);
 
+  function refresh() {
+    setItems(buildReviewItems());
+    setNow(Date.now());
+  }
+
   useEffect(() => {
     const timeout = window.setTimeout(() => {
-      setItems(buildReviewItems());
-      setNow(Date.now());
+      refresh();
       setLoaded(true);
     }, 0);
     return () => window.clearTimeout(timeout);
   }, []);
+
+  function markRecall(item: ReviewItem, outcome: "remembered" | "needs-work") {
+    recordRecallOutcome(localStorage, item.key, {
+      exerciseId: item.exerciseId,
+      outcome,
+      baseIntervalDays: item.delayDays,
+    });
+    refresh();
+  }
 
   if (!loaded) return <div className="review-loading">Reading local learning evidence…</div>;
 
@@ -110,17 +135,29 @@ export function ReviewQueue() {
         const remaining = item.dueAt.getTime() - now;
         const due = remaining <= 0;
         return (
-          <article className="review-row" key={item.title}>
+          <article className="review-row" key={item.key}>
             <div>
               <span className={due ? "review-row__status review-row__status--due" : "review-row__status"}>
                 {due ? "Due now" : `Due in ${formatWait(remaining)}`}
               </span>
               <h2>{item.title}</h2>
               <p>{item.description}</p>
+              {item.reviewSessions ? (
+                <small className="review-row__history">{item.reviewSessions} recall session{item.reviewSessions === 1 ? "" : "s"} · current interval {item.intervalDays} day{item.intervalDays === 1 ? "" : "s"}</small>
+              ) : null}
             </div>
-            <Link className={due ? "button button--primary" : "button"} href={item.href}>
-              {due ? "Review now →" : "Preview"}
-            </Link>
+            <div className="review-row__actions">
+              <Link className={due ? "button button--primary" : "button"} href={item.href}>
+                {due ? "Review now →" : "Preview"}
+              </Link>
+              {due ? (
+                <div className="review-row__outcome" aria-label={`Record recall outcome for ${item.title}`}>
+                  <span>After attempting</span>
+                  <button className="button button--quiet" type="button" onClick={() => markRecall(item, "remembered")}>Remembered</button>
+                  <button className="button button--quiet" type="button" onClick={() => markRecall(item, "needs-work")}>Needs work</button>
+                </div>
+              ) : null}
+            </div>
           </article>
         );
       })}

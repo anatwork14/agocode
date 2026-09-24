@@ -1,43 +1,46 @@
 # AgoCode
 
-AgoCode is a visual-first algorithm learning platform designed to help learners **understand algorithms, re-implement them from memory, and transfer that understanding to LeetCode-style problems**.
+AgoCode is a visual-first algorithm learning platform designed to help learners **understand algorithms, re-implement them from memory, and transfer that understanding to unfamiliar problems**.
 
-The canonical learning backbone follows the pedagogical progression of *Grokking Algorithms* by Aditya Bhargava. The product does **not** reproduce the book; it transforms its teaching principles into an original interactive learning experience: concrete examples first, visual mental models, executable code, short exercises, recaps, deliberate recall, and later problem transfer.
+The canonical learning backbone follows the pedagogical progression of *Grokking Algorithms* by Aditya Bhargava. AgoCode does **not** reproduce the book; it transforms its teaching principles into an original interactive learning experience: concrete examples first, visual mental models, executable traces, short prediction gates, reconstruction, explanation, delayed recall, and later problem transfer.
 
 ## Product principle
 
 > Understand → Predict → Trace → Rebuild → Explain → Transfer → Recall
 
-AgoCode is intentionally not another static textbook, animation gallery, or problem dump. Every lesson should make the learner actively reason about algorithm state and eventually reproduce the mechanism without copying a finished solution.
+AgoCode is intentionally not another static textbook, animation gallery, or problem dump. A lesson is only successful when the learner can reason about state, reproduce the mechanism without copying, explain why it works, and recognize the idea again after the surface story changes.
 
 ## Implementation status
 
-**Chapters 1–5 now have live Book Track learning slices.** Binary Search still has the deepest transfer/review loop, while Chapters 2–5 progressively add reusable memory, stack, recursion, divide-and-conquer, sorting, and hash-table visualization primitives.
+The Book Track now has interactive learning slices across all 11 chapters, with progressively richer visual and practice systems around the core algorithms.
 
 Currently implemented:
 
-- Next.js + React + TypeScript application scaffold
+- Next.js + React + TypeScript application foundation
 - canonical paper/ink/red design system and SVG-first AgoCode brand
-- responsive Book / Roadmap / Lab / Practice / Review routes
+- responsive Book / Roadmap / Lab / Practice / Review / Progress routes
 - in-browser Python execution isolated in a Web Worker with timeout protection, tests, stdout/stderr, progressive hints, and Python-friendly indentation
-- richer local learning evidence with attempt history, best test performance, hint-use tracking, next-step guidance, and delayed-review scheduling
-- shared visited-timeline reducer and reusable stack/call-frame renderer
-- Chapter 1: Binary Search, Running Time, Big O, Traveling Salesperson, cumulative recap
-- Binary Search prediction gates, custom scenarios, guided + blank reconstruction, bug repair, and four-rung transfer ladder
-- Chapter 2: memory-slot model, arrays vs. linked lists, Selection Sort trace, Python rebuild, cumulative recap
-- Chapter 3: recursion analogy, base/recursive cases, ordinary call stack, recursive factorial stack, prediction gates, Python rebuild, cumulative recap
-- Chapter 4: book-aligned 1680×640 divide-and-conquer farm reduction, recursive-sum trace/rebuild, Quicksort partition trace, pivot strategy comparison, Python rebuild, cumulative recap
-- Chapter 5: grocery lookup comparison, inspectable key→index hashing, mapping/duplicate/cache use cases, collision chains, load factor + rehashing, built-in dictionary exercise, cumulative recap
-- deterministic tests for Binary Search, Selection Sort, factorial recursion, recursive sum, Quicksort, hash-table mechanics, learning evidence, and timeline behavior
+- deterministic algorithm traces and reusable timeline behavior
+- reusable array, stack/call-frame, queue, graph, weighted-graph, table, grid, and state-inspector visualization primitives
+- Chapter 1: Binary Search, running time, Big O, Traveling Salesperson, cumulative recap
+- Chapter 2: memory model, arrays vs. linked lists, Selection Sort, cumulative recap
+- Chapter 3: recursion, base/recursive cases, stack, recursive call stack, cumulative recap
+- Chapter 4: divide and conquer, recursive reduction, Quicksort, runtime behavior, cumulative recap
+- Chapter 5: hash functions, key→index mapping, use cases, collisions, load factor, resizing, cumulative recap
+- Chapter 6: graph modeling, FIFO queue behavior, Breadth-First Search, shortest unweighted paths, prediction gates, reconstruction, cumulative recap
+- Chapter 7: weighted graphs, Dijkstra relaxation, parent reconstruction, negative-weight limitation, cumulative recap
+- Chapter 8: greedy scheduling, counterexamples, set-cover approximation, cumulative recap
+- Chapter 9: dynamic-programming state grids, knapsack recurrence, sequence DP, cumulative recap
+- Chapter 10: K-nearest-neighbor classification/regression, feature distance, neighborhood quality, cumulative recap
+- Chapter 11: advanced-topic map and next-step exploration
+- Transfer Track with direct coding challenges plus no-label mixed pattern recognition
+- adaptive mixed-recognition sessions that prioritize recent misses and track technique-level first-try accuracy
+- local learning evidence for coding attempts, hint use, first-try recognition, BFS prediction, explanation quality, and delayed recall
+- seven-dimension mastery model: Understand / Trace / Predict / Rebuild / Explain / Transfer / Recall
+- progress dashboard that separates completion from evidence strength and surfaces the weakest learning dimension
+- adaptive spaced review: successful recall expands intervals, weak recall returns the item sooner
+- deterministic tests for the core algorithms, timeline behavior, learning evidence, recognition, and mastery scoring
 - CI gates for typecheck, tests, lint, and production build
-
-Next implementation priorities:
-
-1. polish Chapter 5 collision/distribution feedback around the book's apple/avocado example and 0.7 resize rule,
-2. persist prediction-attempt evidence and aggregate explicit mastery dimensions,
-3. reschedule reviews from actual recall success/failure instead of only original completion time,
-4. begin Chapter 6 Breadth-First Search with graph representation, queue ordering, shortest-unweighted-path reasoning, and deterministic traversal traces,
-5. continue extracting reusable array/node/stack/graph/table renderer contracts before later graph and DP chapters.
 
 ## Local development
 
@@ -87,7 +90,8 @@ Interview-specific techniques such as two pointers, sliding window, monotonic st
 - **Read** — illustrated editorial lessons and interactive analogies
 - **Lab** — synchronized visualization, algorithm state, code, prediction, and custom scenarios
 - **Practice** — reconstruction and progressively less-labeled transfer problems
-- **Review** — spaced retrieval based on completed learning evidence
+- **Review** — spaced retrieval rescheduled by actual recall outcome
+- **Progress** — evidence ledger plus multi-dimensional mastery diagnosis
 
 ## Reference milestone
 

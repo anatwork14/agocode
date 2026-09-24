@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { readLearningEvidence, recordLearningAttempt, recordRecognitionCompletion } from "../lib/learning/evidence.ts";
+import {
+  readLearningEvidence,
+  recordExplanationCompletion,
+  recordLearningAttempt,
+  recordPredictionAttempt,
+  recordRecallOutcome,
+  recordRecognitionCompletion,
+} from "../lib/learning/evidence.ts";
 
 function makeStorage(initial = {}) {
   const values = new Map(Object.entries(initial));
@@ -170,6 +177,88 @@ test("recognition score is clamped to the scenario count", () => {
   });
 
   assert.equal(evidence.recognition?.lastFirstTryCorrect, 10);
+});
+
+test("prediction evidence tracks first-try accuracy and sessions", () => {
+  const storage = makeStorage();
+
+  recordPredictionAttempt(storage, "prediction", {
+    exerciseId: "bfs-prediction",
+    sessionId: "session-a",
+    correct: true,
+    answeredAt: "2026-09-20T00:00:00.000Z",
+  });
+  recordPredictionAttempt(storage, "prediction", {
+    exerciseId: "bfs-prediction",
+    sessionId: "session-a",
+    correct: false,
+    answeredAt: "2026-09-20T00:01:00.000Z",
+  });
+  const third = recordPredictionAttempt(storage, "prediction", {
+    exerciseId: "bfs-prediction",
+    sessionId: "session-b",
+    correct: true,
+    answeredAt: "2026-09-21T00:00:00.000Z",
+  });
+
+  assert.equal(third.prediction?.sessions, 2);
+  assert.equal(third.prediction?.totalQuestions, 3);
+  assert.equal(third.prediction?.correctFirstTry, 2);
+  assert.equal(third.prediction?.bestStreak, 1);
+  assert.equal(third.prediction?.lastAccuracy, 2 / 3);
+  assert.equal(third.completedAt, "2026-09-21T00:00:00.000Z");
+});
+
+test("explanation evidence keeps best and average score", () => {
+  const storage = makeStorage();
+
+  recordExplanationCompletion(storage, "explain", {
+    exerciseId: "binary-search-explain",
+    score: 0.5,
+    completed: true,
+    completedAt: "2026-09-20T00:00:00.000Z",
+  });
+  const later = recordExplanationCompletion(storage, "explain", {
+    exerciseId: "binary-search-explain",
+    score: 0.9,
+    completed: true,
+    completedAt: "2026-09-21T00:00:00.000Z",
+  });
+
+  assert.equal(later.explanation?.sessions, 2);
+  assert.equal(later.explanation?.completed, 2);
+  assert.equal(later.explanation?.bestScore, 0.9);
+  assert.equal(later.explanation?.averageScore, 0.7);
+  assert.equal(later.completedAt, "2026-09-20T00:00:00.000Z");
+});
+
+test("recall outcomes expand successful intervals and reset weak recall", () => {
+  const storage = makeStorage();
+
+  const first = recordRecallOutcome(storage, "recall", {
+    exerciseId: "binary-search-recall",
+    outcome: "remembered",
+    reviewedAt: "2026-09-20T00:00:00.000Z",
+    baseIntervalDays: 2,
+  });
+  assert.equal(first.recall?.intervalDays, 2);
+  assert.equal(first.recall?.nextReviewAt, "2026-09-22T00:00:00.000Z");
+
+  const second = recordRecallOutcome(storage, "recall", {
+    exerciseId: "binary-search-recall",
+    outcome: "remembered",
+    reviewedAt: "2026-09-22T00:00:00.000Z",
+    baseIntervalDays: 2,
+  });
+  assert.equal(second.recall?.intervalDays, 4);
+
+  const weak = recordRecallOutcome(storage, "recall", {
+    exerciseId: "binary-search-recall",
+    outcome: "needs-work",
+    reviewedAt: "2026-09-26T00:00:00.000Z",
+  });
+  assert.equal(weak.recall?.intervalDays, 1);
+  assert.equal(weak.recall?.failed, 1);
 });
 
 test("attempt history is bounded", () => {

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { readLearningEvidence, type LearningEvidence } from "@/lib/learning/evidence";
+import { buildMasterySnapshot } from "@/lib/learning/mastery";
 import { bookProgressChapters, progressEvidenceKeys, transferProgressItems } from "@/lib/learning/progressCatalog";
 import { transferTechniques } from "@/lib/practice/transfer";
 
@@ -26,6 +27,9 @@ function getLatestTimestamp(evidence: EvidenceMap) {
   for (const item of Object.values(evidence)) {
     if (!item) continue;
     if (item.completedAt) latest = Math.max(latest, new Date(item.completedAt).getTime());
+    if (item.prediction?.lastAnsweredAt) latest = Math.max(latest, new Date(item.prediction.lastAnsweredAt).getTime());
+    if (item.explanation?.lastCompletedAt) latest = Math.max(latest, new Date(item.explanation.lastCompletedAt).getTime());
+    if (item.recall?.lastReviewedAt) latest = Math.max(latest, new Date(item.recall.lastReviewedAt).getTime());
     for (const attempt of item.attempts) {
       latest = Math.max(latest, new Date(attempt.attemptedAt).getTime());
     }
@@ -93,6 +97,11 @@ export function ProgressDashboard() {
     return snapshot.evidence["agocode.progress.transfer.mixed-recognition"]?.recognition ?? null;
   }, [snapshot]);
 
+  const mastery = useMemo(() => {
+    if (!snapshot) return null;
+    return buildMasterySnapshot(snapshot.evidence);
+  }, [snapshot]);
+
   const recognitionDiagnosis = useMemo(() => {
     const byTechnique = mixedRecognition?.byTechnique;
     if (!byTechnique) return [];
@@ -108,7 +117,7 @@ export function ProgressDashboard() {
       .sort((a, b) => a.accuracy - b.accuracy || b.totalSeen - a.totalSeen);
   }, [mixedRecognition]);
 
-  if (!snapshot) {
+  if (!snapshot || !mastery) {
     return <div className="progress-loading">Reading learning evidence from this browser…</div>;
   }
 
@@ -131,9 +140,9 @@ export function ProgressDashboard() {
           <small>cross-context evidence items complete</small>
         </div>
         <div>
-          <span>Code attempts</span>
-          <strong>{snapshot.codeAttempts}</strong>
-          <small>{snapshot.noHintPasses} successful attempts without hints</small>
+          <span>Evidence strength</span>
+          <strong>{mastery.overall}%</strong>
+          <small>{snapshot.codeAttempts} code attempts · {snapshot.noHintPasses} no-hint passes</small>
         </div>
       </section>
 
@@ -143,17 +152,60 @@ export function ProgressDashboard() {
           <strong>{formatActivity(snapshot.latestActivity)}</strong>
         </div>
         <p>
-          AgoCode records evidence in this browser for the current MVP. These counts describe completed learning actions;
-          they are not a mastery score and they do not claim that a concept is permanently learned.
+          AgoCode records evidence in this browser for the current MVP. The mastery view below is an evidence-weighted estimate,
+          not a certification: independent reconstruction, first-try prediction, transfer, and delayed recall count more than simply opening a lesson.
         </p>
       </div>
+
+      <section className="progress-section progress-mastery">
+        <div className="section-heading">
+          <div className="section-heading__index">MASTERY MAP</div>
+          <div>
+            <h2>One completion percentage hides the skill that actually needs work.</h2>
+            <p>AgoCode separates conceptual understanding from tracing, prediction, rebuilding, explanation, transfer, and delayed recall.</p>
+          </div>
+        </div>
+
+        <div className="mastery-summary">
+          <div className="mastery-summary__score">
+            <span className="eyebrow">Evidence-weighted strength</span>
+            <strong>{mastery.overall}%</strong>
+            <small>across seven learning dimensions</small>
+          </div>
+          <div className="mastery-summary__diagnosis">
+            <div><span>Strongest evidence</span><strong>{mastery.strongest.label} · {mastery.strongest.score}%</strong></div>
+            <div><span>Priority gap</span><strong>{mastery.weakest.label} · {mastery.weakest.score}%</strong></div>
+            <Link className="button button--quiet" href={mastery.weakest.id === "transfer" ? "/practice" : mastery.weakest.id === "recall" ? "/review" : "/learn"}>
+              Work the weakest dimension →
+            </Link>
+          </div>
+        </div>
+
+        <div className="mastery-grid" aria-label="Mastery dimensions">
+          {mastery.dimensions.map((dimension) => (
+            <article className={`mastery-row mastery-row--${dimension.band}`} key={dimension.id}>
+              <div className="mastery-row__heading">
+                <div>
+                  <strong>{dimension.label}</strong>
+                  <span>{dimension.evidenceCount} evidence source{dimension.evidenceCount === 1 ? "" : "s"} · {dimension.completedCount} completed</span>
+                </div>
+                <span className="mono">{dimension.score}%</span>
+              </div>
+              <div className="mastery-row__bar" aria-label={`${dimension.label}: ${dimension.score}% evidence strength`}>
+                <span style={{ width: `${dimension.score}%` }} />
+              </div>
+              <span className="mastery-row__band mono">{dimension.band.replace("-", " ")}</span>
+            </article>
+          ))}
+        </div>
+      </section>
 
       <section className="progress-section">
         <div className="section-heading">
           <div className="section-heading__index">BOOK TRACK</div>
           <div>
             <h2>Chapter progress is a ledger of evidence.</h2>
-            <p>Each row asks whether you have produced the retrieval, explanation, or reconstruction evidence attached to that chapter.</p>
+            <p>Each row asks whether you have produced the retrieval, explanation, prediction, or reconstruction evidence attached to that chapter.</p>
           </div>
         </div>
 
@@ -270,10 +322,10 @@ export function ProgressDashboard() {
       <section className="progress-section progress-next">
         <div>
           <span className="eyebrow">Adaptive retrieval</span>
-          <h2>Previous misses now change the next session.</h2>
+          <h2>The next session should be shaped by the evidence you already produced.</h2>
           <p>
-            Mixed recognition stores the latest missed scenarios and cumulative technique-level first-try evidence. When you return,
-            those missed scenarios move to the front while the chapter labels stay hidden.
+            First-try prediction, no-hint reconstruction, mixed recognition, and delayed recall now feed the same evidence model.
+            The product can therefore direct you toward the skill that is weak, not merely the next unchecked chapter.
           </p>
         </div>
         <div className="action-row">

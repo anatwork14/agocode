@@ -23,6 +23,7 @@ import "./chapter-ten.css";
 import "./chapter-eleven.css";
 import "./review.css";
 import "./progress.css";
+import "./mastery.css";
 
 const editorial = Fraunces({ subsets: ["latin"], variable: "--font-editorial", display: "swap" });
 const reading = Source_Sans_3({ subsets: ["latin"], variable: "--font-reading", display: "swap" });

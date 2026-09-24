@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { recordExplanationCompletion } from "@/lib/learning/evidence";
 
 type Question = {
   id: string;
@@ -9,6 +10,8 @@ type Question = {
   correctOptionId: string;
   explanation: string;
 };
+
+const storageKey = "agocode.progress.binary-search.explain";
 
 const questions: Question[] = [
   {
@@ -61,12 +64,11 @@ export function BinarySearchExplainCheck() {
     if (!complete) return;
     setSubmitted(true);
 
-    if (score === questions.length) {
-      localStorage.setItem(
-        "agocode.progress.binary-search.explain",
-        JSON.stringify({ completedAt: new Date().toISOString(), exerciseId: "binary-search-explain" }),
-      );
-    }
+    recordExplanationCompletion(localStorage, storageKey, {
+      exerciseId: "binary-search-explain",
+      score: score / questions.length,
+      completed: score === questions.length,
+    });
   }
 
   return (
@@ -133,7 +135,7 @@ export function BinarySearchExplainCheck() {
         {submitted ? (
           <p aria-live="polite" className={mastered ? "explain-result explain-result--mastered" : "explain-result"}>
             {mastered
-              ? "All three explanations are consistent with the binary-search invariant."
+              ? "All three explanations are consistent with the binary-search invariant. Explanation evidence recorded."
               : "Use the feedback above, then choose again. The goal is the reasoning, not the score."}
           </p>
         ) : null}

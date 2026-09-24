@@ -26,6 +26,36 @@ export type RecognitionEvidence = {
   recentMissedScenarioIds?: string[];
 };
 
+export type PredictionEvidence = {
+  sessions: number;
+  totalQuestions: number;
+  correctFirstTry: number;
+  currentStreak: number;
+  bestStreak: number;
+  lastAccuracy: number;
+  lastAnsweredAt?: string;
+  lastSessionId?: string;
+};
+
+export type ExplanationEvidence = {
+  sessions: number;
+  completed: number;
+  lastScore: number;
+  bestScore: number;
+  averageScore: number;
+  lastCompletedAt?: string;
+};
+
+export type RecallEvidence = {
+  sessions: number;
+  successful: number;
+  failed: number;
+  lastOutcome: "remembered" | "needs-work";
+  lastReviewedAt: string;
+  nextReviewAt: string;
+  intervalDays: number;
+};
+
 export type LearningEvidence = {
   version: 1;
   exerciseId: string;
@@ -35,6 +65,9 @@ export type LearningEvidence = {
   totalTests: number;
   lowestHintCountOnPass?: number;
   recognition?: RecognitionEvidence;
+  prediction?: PredictionEvidence;
+  explanation?: ExplanationEvidence;
+  recall?: RecallEvidence;
 };
 
 type RecordAttemptInput = Omit<LearningAttempt, "attemptedAt"> & {
@@ -51,7 +84,34 @@ type RecordRecognitionInput = {
   missedScenarioIds?: string[];
 };
 
+type RecordPredictionInput = {
+  exerciseId: string;
+  sessionId: string;
+  correct: boolean;
+  answeredAt?: string;
+  completeAfterQuestions?: number;
+};
+
+type RecordExplanationInput = {
+  exerciseId: string;
+  score: number;
+  completed?: boolean;
+  completedAt?: string;
+};
+
+type RecordRecallInput = {
+  exerciseId: string;
+  outcome: "remembered" | "needs-work";
+  reviewedAt?: string;
+  baseIntervalDays?: number;
+};
+
 const MAX_ATTEMPTS = 50;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function clamp01(value: number) {
+  return Math.max(0, Math.min(1, value));
+}
 
 function isAttempt(value: unknown): value is LearningAttempt {
   if (!value || typeof value !== "object") return false;
@@ -111,6 +171,83 @@ function parseRecognition(value: unknown): RecognitionEvidence | undefined {
   };
 }
 
+function parsePrediction(value: unknown): PredictionEvidence | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const prediction = value as Partial<PredictionEvidence>;
+  if (
+    typeof prediction.sessions !== "number" ||
+    typeof prediction.totalQuestions !== "number" ||
+    typeof prediction.correctFirstTry !== "number" ||
+    typeof prediction.currentStreak !== "number" ||
+    typeof prediction.bestStreak !== "number" ||
+    typeof prediction.lastAccuracy !== "number"
+  ) {
+    return undefined;
+  }
+
+  const totalQuestions = Math.max(0, prediction.totalQuestions);
+  const correctFirstTry = Math.max(0, Math.min(prediction.correctFirstTry, totalQuestions));
+  return {
+    sessions: Math.max(0, prediction.sessions),
+    totalQuestions,
+    correctFirstTry,
+    currentStreak: Math.max(0, prediction.currentStreak),
+    bestStreak: Math.max(0, prediction.bestStreak),
+    lastAccuracy: clamp01(prediction.lastAccuracy),
+    lastAnsweredAt: typeof prediction.lastAnsweredAt === "string" ? prediction.lastAnsweredAt : undefined,
+    lastSessionId: typeof prediction.lastSessionId === "string" ? prediction.lastSessionId : undefined,
+  };
+}
+
+function parseExplanation(value: unknown): ExplanationEvidence | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const explanation = value as Partial<ExplanationEvidence>;
+  if (
+    typeof explanation.sessions !== "number" ||
+    typeof explanation.completed !== "number" ||
+    typeof explanation.lastScore !== "number" ||
+    typeof explanation.bestScore !== "number" ||
+    typeof explanation.averageScore !== "number"
+  ) {
+    return undefined;
+  }
+
+  return {
+    sessions: Math.max(0, explanation.sessions),
+    completed: Math.max(0, explanation.completed),
+    lastScore: clamp01(explanation.lastScore),
+    bestScore: clamp01(explanation.bestScore),
+    averageScore: clamp01(explanation.averageScore),
+    lastCompletedAt: typeof explanation.lastCompletedAt === "string" ? explanation.lastCompletedAt : undefined,
+  };
+}
+
+function parseRecall(value: unknown): RecallEvidence | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const recall = value as Partial<RecallEvidence>;
+  if (
+    typeof recall.sessions !== "number" ||
+    typeof recall.successful !== "number" ||
+    typeof recall.failed !== "number" ||
+    (recall.lastOutcome !== "remembered" && recall.lastOutcome !== "needs-work") ||
+    typeof recall.lastReviewedAt !== "string" ||
+    typeof recall.nextReviewAt !== "string" ||
+    typeof recall.intervalDays !== "number"
+  ) {
+    return undefined;
+  }
+
+  return {
+    sessions: Math.max(0, recall.sessions),
+    successful: Math.max(0, recall.successful),
+    failed: Math.max(0, recall.failed),
+    lastOutcome: recall.lastOutcome,
+    lastReviewedAt: recall.lastReviewedAt,
+    nextReviewAt: recall.nextReviewAt,
+    intervalDays: Math.max(1, recall.intervalDays),
+  };
+}
+
 function legacyRecognition(parsed: Record<string, unknown>): RecognitionEvidence | undefined {
   if (typeof parsed.score !== "number" || typeof parsed.total !== "number") return undefined;
   const totalScenarios = Math.max(0, parsed.total);
@@ -121,6 +258,15 @@ function legacyRecognition(parsed: Record<string, unknown>): RecognitionEvidence
     bestFirstTryCorrect: score,
     totalScenarios,
   };
+}
+
+function persist(storage: StorageLike, key: string, evidence: LearningEvidence) {
+  try {
+    storage.setItem(key, JSON.stringify(evidence));
+  } catch {
+    // Learning should still work if browser storage is unavailable or full.
+  }
+  return evidence;
 }
 
 export function readLearningEvidence(
@@ -147,6 +293,9 @@ export function readLearningEvidence(
         lowestHintCountOnPass:
           typeof parsed.lowestHintCountOnPass === "number" ? parsed.lowestHintCountOnPass : undefined,
         recognition: parseRecognition(parsed.recognition) ?? legacyRecognition(parsed),
+        prediction: parsePrediction(parsed.prediction),
+        explanation: parseExplanation(parsed.explanation),
+        recall: parseRecall(parsed.recall),
       };
     }
 
@@ -167,6 +316,22 @@ export function readLearningEvidence(
   }
 
   return null;
+}
+
+function baseEvidence(previous: LearningEvidence | null, exerciseId: string): LearningEvidence {
+  return {
+    version: 1,
+    exerciseId,
+    completedAt: previous?.completedAt,
+    attempts: previous?.attempts ?? [],
+    bestPassedCount: previous?.bestPassedCount ?? 0,
+    totalTests: previous?.totalTests ?? 0,
+    lowestHintCountOnPass: previous?.lowestHintCountOnPass,
+    recognition: previous?.recognition,
+    prediction: previous?.prediction,
+    explanation: previous?.explanation,
+    recall: previous?.recall,
+  };
 }
 
 export function recordLearningAttempt(
@@ -193,23 +358,15 @@ export function recordLearningAttempt(
     : previousHintFloor;
 
   const evidence: LearningEvidence = {
-    version: 1,
-    exerciseId: input.exerciseId,
+    ...baseEvidence(previous, input.exerciseId),
     completedAt: previous?.completedAt ?? (input.passed ? attemptedAt : undefined),
     attempts: [...(previous?.attempts ?? []), attempt].slice(-MAX_ATTEMPTS),
     bestPassedCount: Math.max(previous?.bestPassedCount ?? 0, input.passedCount),
     totalTests: Math.max(previous?.totalTests ?? 0, input.totalTests),
     lowestHintCountOnPass,
-    recognition: previous?.recognition,
   };
 
-  try {
-    storage.setItem(key, JSON.stringify(evidence));
-  } catch {
-    // Learning should still work if browser storage is unavailable or full.
-  }
-
-  return evidence;
+  return persist(storage, key, evidence);
 }
 
 export function recordRecognitionCompletion(
@@ -241,13 +398,8 @@ export function recordRecognitionCompletion(
     : Array.from(new Set(input.missedScenarioIds.filter((item) => typeof item === "string")));
 
   const evidence: LearningEvidence = {
-    version: 1,
-    exerciseId: input.exerciseId,
+    ...baseEvidence(previous, input.exerciseId),
     completedAt: previous?.completedAt ?? completedAt,
-    attempts: previous?.attempts ?? [],
-    bestPassedCount: previous?.bestPassedCount ?? 0,
-    totalTests: previous?.totalTests ?? 0,
-    lowestHintCountOnPass: previous?.lowestHintCountOnPass,
     recognition: {
       sessions: (priorRecognition?.sessions ?? 0) + 1,
       lastFirstTryCorrect: firstTryCorrect,
@@ -258,11 +410,100 @@ export function recordRecognitionCompletion(
     },
   };
 
-  try {
-    storage.setItem(key, JSON.stringify(evidence));
-  } catch {
-    // Recognition practice should remain usable without persistent storage.
-  }
+  return persist(storage, key, evidence);
+}
 
-  return evidence;
+export function recordPredictionAttempt(
+  storage: StorageLike,
+  key: string,
+  input: RecordPredictionInput,
+): LearningEvidence {
+  const answeredAt = input.answeredAt ?? new Date().toISOString();
+  const previous = readLearningEvidence(storage, key, input.exerciseId);
+  const prior = previous?.prediction;
+  const newSession = prior?.lastSessionId !== input.sessionId;
+  const totalQuestions = (prior?.totalQuestions ?? 0) + 1;
+  const correctFirstTry = (prior?.correctFirstTry ?? 0) + (input.correct ? 1 : 0);
+  const currentStreak = input.correct ? (prior?.currentStreak ?? 0) + 1 : 0;
+  const bestStreak = Math.max(prior?.bestStreak ?? 0, currentStreak);
+  const accuracy = totalQuestions ? correctFirstTry / totalQuestions : 0;
+  const completeAfterQuestions = Math.max(1, input.completeAfterQuestions ?? 3);
+  const qualifiesAsEvidence = totalQuestions >= completeAfterQuestions && accuracy >= 2 / 3;
+
+  const evidence: LearningEvidence = {
+    ...baseEvidence(previous, input.exerciseId),
+    completedAt: previous?.completedAt ?? (qualifiesAsEvidence ? answeredAt : undefined),
+    prediction: {
+      sessions: (prior?.sessions ?? 0) + (newSession ? 1 : 0),
+      totalQuestions,
+      correctFirstTry,
+      currentStreak,
+      bestStreak,
+      lastAccuracy: accuracy,
+      lastAnsweredAt: answeredAt,
+      lastSessionId: input.sessionId,
+    },
+  };
+
+  return persist(storage, key, evidence);
+}
+
+export function recordExplanationCompletion(
+  storage: StorageLike,
+  key: string,
+  input: RecordExplanationInput,
+): LearningEvidence {
+  const completedAt = input.completedAt ?? new Date().toISOString();
+  const previous = readLearningEvidence(storage, key, input.exerciseId);
+  const prior = previous?.explanation;
+  const score = clamp01(input.score);
+  const sessions = (prior?.sessions ?? 0) + 1;
+  const completed = (prior?.completed ?? 0) + (input.completed === false ? 0 : 1);
+  const averageScore = (((prior?.averageScore ?? 0) * (prior?.sessions ?? 0)) + score) / sessions;
+  const marksComplete = input.completed !== false;
+
+  const evidence: LearningEvidence = {
+    ...baseEvidence(previous, input.exerciseId),
+    completedAt: previous?.completedAt ?? (marksComplete ? completedAt : undefined),
+    explanation: {
+      sessions,
+      completed,
+      lastScore: score,
+      bestScore: Math.max(prior?.bestScore ?? 0, score),
+      averageScore,
+      lastCompletedAt: marksComplete ? completedAt : prior?.lastCompletedAt,
+    },
+  };
+
+  return persist(storage, key, evidence);
+}
+
+export function recordRecallOutcome(
+  storage: StorageLike,
+  key: string,
+  input: RecordRecallInput,
+): LearningEvidence {
+  const reviewedAt = input.reviewedAt ?? new Date().toISOString();
+  const previous = readLearningEvidence(storage, key, input.exerciseId);
+  const prior = previous?.recall;
+  const baseInterval = Math.max(1, input.baseIntervalDays ?? 1);
+  const intervalDays = input.outcome === "remembered"
+    ? Math.min(30, prior ? Math.max(baseInterval, prior.intervalDays * 2) : baseInterval)
+    : 1;
+  const nextReviewAt = new Date(new Date(reviewedAt).getTime() + intervalDays * DAY_MS).toISOString();
+
+  const evidence: LearningEvidence = {
+    ...baseEvidence(previous, input.exerciseId),
+    recall: {
+      sessions: (prior?.sessions ?? 0) + 1,
+      successful: (prior?.successful ?? 0) + (input.outcome === "remembered" ? 1 : 0),
+      failed: (prior?.failed ?? 0) + (input.outcome === "needs-work" ? 1 : 0),
+      lastOutcome: input.outcome,
+      lastReviewedAt: reviewedAt,
+      nextReviewAt,
+      intervalDays,
+    },
+  };
+
+  return persist(storage, key, evidence);
 }

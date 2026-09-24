@@ -4,6 +4,7 @@ import { useMemo, useReducer, useState } from "react";
 import { GraphRenderer, type GraphRendererEdge, type GraphRendererNode } from "@/components/visualization/GraphRenderer";
 import { QueueRenderer } from "@/components/visualization/QueueRenderer";
 import { buildBfsTrace, type Graph } from "@/lib/algorithms/bfs";
+import { recordPredictionAttempt } from "@/lib/learning/evidence";
 import { initialTimelineState, timelineReducer } from "@/lib/visualization/timeline";
 
 const graph: Graph = {
@@ -35,8 +36,9 @@ const edges: GraphRendererEdge[] = Object.entries(graph).flatMap(([from, neighbo
 );
 
 const targets = ["Iris", "Omar", "Niko", "Tess"] as const;
+const predictionStorageKey = "agocode.progress.bfs.prediction";
 
-type PredictionAnswer = { selected: string; correct: boolean };
+type PredictionAnswer = { selected: string; correct: boolean; firstTryCorrect: boolean };
 
 function eventLabel(type: string) {
   if (type === "INIT") return "initialize";
@@ -52,6 +54,9 @@ export function BfsTrace() {
   const [target, setTarget] = useState<(typeof targets)[number]>("Iris");
   const [timeline, dispatchTimeline] = useReducer(timelineReducer, initialTimelineState);
   const [answers, setAnswers] = useState<Record<number, PredictionAnswer>>({});
+  const [predictionSessionId] = useState(
+    () => `bfs-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+  );
   const frames = useMemo(() => buildBfsTrace(graph, "You", target), [target]);
   const frame = frames[timeline.index];
 
@@ -75,9 +80,26 @@ export function BfsTrace() {
 
   function answerPrediction(node: string) {
     if (!nextNode || answer?.correct) return;
+
+    const correct = node === nextNode;
+    const firstAttempt = answer === undefined;
+
+    if (firstAttempt) {
+      recordPredictionAttempt(localStorage, predictionStorageKey, {
+        exerciseId: "bfs-fifo-prediction",
+        sessionId: predictionSessionId,
+        correct,
+        completeAfterQuestions: 3,
+      });
+    }
+
     setAnswers((current) => ({
       ...current,
-      [timeline.index]: { selected: node, correct: node === nextNode },
+      [timeline.index]: {
+        selected: node,
+        correct,
+        firstTryCorrect: current[timeline.index]?.firstTryCorrect ?? correct,
+      },
     }));
   }
 
@@ -173,7 +195,7 @@ export function BfsTrace() {
           {answer ? (
             <p className={`prediction-feedback ${answer.correct ? "prediction-feedback--correct" : ""}`}>
               {answer.correct
-                ? `${nextNode} is at the front because it was discovered before every node behind it.`
+                ? `${nextNode} is at the front because it was discovered before every node behind it.${answer.firstTryCorrect ? " First-try prediction recorded." : " You recovered after feedback; only the first attempt counts toward prediction evidence."}`
                 : "Use queue order, not which node looks visually closer. Breadth-first search removes from the front."}
             </p>
           ) : null}

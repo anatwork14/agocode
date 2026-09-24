@@ -1,15 +1,21 @@
 import Link from "next/link";
+import { TransferTrackMap } from "@/components/practice/TransferTrackMap";
 
-export const metadata = { title: "Practice" };
+export const metadata = { title: "Transfer Track" };
 
-const ladder = [
-  ["01", "Insertion boundary", "Direct", "/practice/binary-search"],
-  ["02", "First occurrence boundary", "Variant", "/practice/binary-search/boundary"],
-  ["03", "Rotated ordered array", "Pattern", "/practice/binary-search/rotated"],
-  ["04", "Monotonic answer space", "Mixed", "/practice/binary-search/answer-space"],
+const directChallenges = [
+  ["01", "First repeated badge", "Hash membership", "/practice/hash-membership", "Preserve encounter order while replacing repeated scans with direct membership."],
+  ["02", "Fewest package handoffs", "BFS", "/practice/bfs-handoffs", "Recognize that all edges cost one and shortest means fewest hops."],
+  ["03", "Cheapest courier route", "Dijkstra", "/practice/dijkstra-route", "Switch from edge count to accumulated non-negative path cost."],
+  ["04", "Maximum studio schedule", "Greedy", "/practice/greedy-schedule", "Choose the local finish-time rule that preserves the most future room."],
+  ["05", "Fixed study budget", "Dynamic programming", "/practice/dp-budget", "Define reusable constrained subproblems when a local ratio rule can fail."],
 ] as const;
 
-const recallDrills = [
+const binarySearchLadder = [
+  ["B1", "Insertion boundary", "Direct", "/practice/binary-search"],
+  ["B2", "First occurrence boundary", "Variant", "/practice/binary-search/boundary"],
+  ["B3", "Rotated ordered array", "Pattern", "/practice/binary-search/rotated"],
+  ["B4", "Monotonic answer space", "Mixed", "/practice/binary-search/answer-space"],
   ["R1", "Blank implementation", "Recall", "/practice/binary-search/rebuild"],
   ["R2", "Boundary bug repair", "Debug", "/practice/binary-search/bug-repair"],
 ] as const;
@@ -19,28 +25,61 @@ export default function PracticePage() {
     <main className="page">
       <div className="site-shell">
         <div className="eyebrow">Transfer mode</div>
-        <h1 className="editorial-title editorial-title--compact">Knowing the name is not recognizing the pattern.</h1>
+        <h1 className="editorial-title editorial-title--compact">The chapter label is disappearing.</h1>
         <p className="lede">
-          Practice gradually removes scaffolding. The four-rung Binary Search ladder moves from a direct positional
-          variation to an answer space where the candidate values do not appear as a sorted input array at all.
+          Book Track teaches the mental models. Transfer Track tests whether you can recognize those models when the
+          surface story changes, justify a technique from constraints, rebuild the code, and eventually solve mixed
+          problems without being told which chapter they came from.
         </p>
 
         <section className="section">
+          <TransferTrackMap />
+        </section>
+
+        <section className="section">
           <div className="section-heading">
-            <div className="section-heading__index">BINARY SEARCH</div>
+            <div className="section-heading__index">MIXED</div>
             <div>
-              <h2>Transfer ladder</h2>
-              <p>Each rung preserves the deeper rule: one decision must justify discarding an impossible region.</p>
+              <h2>Recognize before you implement.</h2>
+              <p>
+                Ten original scenarios interleave Binary Search, hashing, BFS, Dijkstra, Greedy, Dynamic Programming,
+                KNN, and Recursion. There is no topic heading inside the drill to give the pattern away.
+              </p>
+            </div>
+          </div>
+
+          <div className="practice-domain-grid">
+            <article className="practice-domain-card">
+              <div className="practice-domain-card__meta"><span>10 scenarios</span><span>first-try score</span></div>
+              <h3>No-label pattern recognition</h3>
+              <p>Read the constraints, choose an invariant, see why plausible alternatives fail, then reconnect to the relevant Book Track lesson.</p>
+              <Link className="button button--primary" href="/practice/mixed">Start mixed recognition →</Link>
+            </article>
+            <article className="practice-domain-card">
+              <div className="practice-domain-card__meta"><span>5 challenges</span><span>code gated</span></div>
+              <h3>Cross-chapter coding transfer</h3>
+              <p>Each editor stays locked until you identify the technique from the problem structure. Tests then expose whether the implementation preserves the invariant.</p>
+              <Link className="button" href="/practice/hash-membership">Start direct transfer →</Link>
+            </article>
+          </div>
+        </section>
+
+        <section className="section">
+          <div className="section-heading">
+            <div className="section-heading__index">DIRECT TRANSFER</div>
+            <div>
+              <h2>Same concept. Different surface story.</h2>
+              <p>These challenges deliberately avoid copying examples from the book or external problem sites.</p>
             </div>
           </div>
 
           <div className="practice-ladder">
-            {ladder.map(([number, title, level, href]) => (
+            {directChallenges.map(([number, title, technique, href, description]) => (
               <Link className="practice-ladder__row" href={href} key={number}>
                 <span className="practice-ladder__number">{number}</span>
                 <div>
                   <strong>{title}</strong>
-                  <span>{level}</span>
+                  <span>{technique} · {description}</span>
                 </div>
                 <span className="practice-ladder__status practice-ladder__status--live">Live</span>
               </Link>
@@ -50,27 +89,42 @@ export default function PracticePage() {
 
         <section className="section">
           <div className="section-heading">
-            <div className="section-heading__index">RECALL</div>
+            <div className="section-heading__index">BINARY SEARCH LAB</div>
             <div>
-              <h2>Remove support, then debug from evidence.</h2>
+              <h2>Keep the deeper transfer ladder.</h2>
               <p>
-                These drills test whether the invariant survives after the clean lesson is gone: first rebuild from a
-                blank implementation surface, then repair a plausible off-by-one bug from failing edge cases.
+                Binary Search already has a mature progression from exact lookup to boundaries, rotated structure,
+                monotonic answer spaces, blank reconstruction, and debugging from failed tests.
               </p>
             </div>
           </div>
 
           <div className="practice-ladder">
-            {recallDrills.map(([number, title, level, href]) => (
+            {binarySearchLadder.map(([number, title, level, href]) => (
               <Link className="practice-ladder__row" href={href} key={number}>
                 <span className="practice-ladder__number">{number}</span>
-                <div>
-                  <strong>{title}</strong>
-                  <span>{level}</span>
-                </div>
+                <div><strong>{title}</strong><span>{level}</span></div>
                 <span className="practice-ladder__status practice-ladder__status--live">Live</span>
               </Link>
             ))}
+          </div>
+        </section>
+
+        <section className="section">
+          <div className="section-heading">
+            <div className="section-heading__index">RULE</div>
+            <div>
+              <h2>Do not measure progress only by solved count.</h2>
+              <p>
+                Strong transfer evidence is: recognize the technique before hints, explain the invariant, implement it
+                from a sparse scaffold, pass edge cases, then retrieve the idea again after a delay.
+              </p>
+            </div>
+          </div>
+          <div className="action-row">
+            <Link className="button" href="/learn">Reconnect to Book Track</Link>
+            <Link className="button" href="/review">Open spaced review</Link>
+            <Link className="button button--primary" href="/practice/mixed">Test recognition now →</Link>
           </div>
         </section>
       </div>

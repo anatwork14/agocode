@@ -26,6 +26,9 @@ const liveTopics: Record<number, readonly (readonly [string, string])[]> = {
     ["Quicksort", "/learn/quicksort"],
     ["Chapter 4 Recap", "/learn/chapter-4-recap"],
   ],
+  5: [
+    ["Hash Tables", "/learn/hash-tables"],
+  ],
 };
 
 export default function LearnIndexPage() {

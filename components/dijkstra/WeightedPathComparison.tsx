@@ -58,7 +58,7 @@ export function WeightedPathComparison() {
       </div>
 
       <p className="dijkstra-note">
-        BFS optimizes the number of edges in an unweighted graph. Once edges carry different costs, Dijkstra's algorithm targets minimum total non-negative weight instead.
+        BFS optimizes the number of edges in an unweighted graph. Once edges carry different costs, Dijkstra&apos;s algorithm targets minimum total non-negative weight instead.
       </p>
     </div>
   );

@@ -9,6 +9,11 @@ const ladder = [
   ["04", "Monotonic answer space", "Mixed", "/practice/binary-search/answer-space"],
 ] as const;
 
+const recallDrills = [
+  ["R1", "Blank implementation", "Recall", "/practice/binary-search/rebuild"],
+  ["R2", "Boundary bug repair", "Debug", "/practice/binary-search/bug-repair"],
+] as const;
+
 export default function PracticePage() {
   return (
     <main className="page">
@@ -31,6 +36,32 @@ export default function PracticePage() {
 
           <div className="practice-ladder">
             {ladder.map(([number, title, level, href]) => (
+              <Link className="practice-ladder__row" href={href} key={number}>
+                <span className="practice-ladder__number">{number}</span>
+                <div>
+                  <strong>{title}</strong>
+                  <span>{level}</span>
+                </div>
+                <span className="practice-ladder__status practice-ladder__status--live">Live</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section className="section">
+          <div className="section-heading">
+            <div className="section-heading__index">RECALL</div>
+            <div>
+              <h2>Remove support, then debug from evidence.</h2>
+              <p>
+                These drills test whether the invariant survives after the clean lesson is gone: first rebuild from a
+                blank implementation surface, then repair a plausible off-by-one bug from failing edge cases.
+              </p>
+            </div>
+          </div>
+
+          <div className="practice-ladder">
+            {recallDrills.map(([number, title, level, href]) => (
               <Link className="practice-ladder__row" href={href} key={number}>
                 <span className="practice-ladder__number">{number}</span>
                 <div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { KeyboardEvent, useEffect, useRef, useState } from "react";
+import { recordLearningAttempt } from "@/lib/learning/evidence";
 
 export type PythonTestCase = {
   label: string;
@@ -66,6 +67,7 @@ export function PythonExercise({
   const workerRef = useRef<Worker | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const runIdRef = useRef(0);
+  const hintCountRef = useRef(0);
 
   useEffect(() => {
     const worker = new Worker("/workers/python-runner.worker.js");
@@ -94,12 +96,21 @@ export function PythonExercise({
         setRuntimeStatus("ready");
         setRuntimeMessage("Python is ready. Edit and run again whenever you want.");
 
-        const passedAll = Boolean(nextReport.tests.length) && nextReport.tests.every((test) => test.passed) && !nextReport.error;
-        if (passedAll && storageKey) {
-          localStorage.setItem(
-            storageKey,
-            JSON.stringify({ completedAt: new Date().toISOString(), exerciseId: id }),
-          );
+        const passedCount = nextReport.tests.filter((test) => test.passed).length;
+        const passedAll =
+          Boolean(nextReport.tests.length) &&
+          passedCount === nextReport.tests.length &&
+          !nextReport.error;
+
+        if (storageKey) {
+          recordLearningAttempt(localStorage, storageKey, {
+            exerciseId: id,
+            passed: passedAll,
+            passedCount,
+            totalTests: tests.length,
+            hintCount: hintCountRef.current,
+            runtimeError: Boolean(nextReport.error),
+          });
         }
       }
     };
@@ -116,7 +127,7 @@ export function PythonExercise({
       worker.terminate();
       workerRef.current = null;
     };
-  }, [id, runtimeNonce, storageKey]);
+  }, [id, runtimeNonce, storageKey, tests]);
 
   function runCode() {
     if (runtimeStatus !== "ready" || !workerRef.current) return;
@@ -138,6 +149,16 @@ export function PythonExercise({
     timeoutRef.current = setTimeout(() => {
       workerRef.current?.terminate();
       workerRef.current = null;
+      if (storageKey) {
+        recordLearningAttempt(localStorage, storageKey, {
+          exerciseId: id,
+          passed: false,
+          passedCount: 0,
+          totalTests: tests.length,
+          hintCount: hintCountRef.current,
+          runtimeError: true,
+        });
+      }
       setRuntimeStatus("error");
       setRuntimeMessage("Execution exceeded 3 seconds. The worker was stopped so an infinite loop cannot freeze the page.");
     }, 3000);
@@ -253,7 +274,13 @@ export function PythonExercise({
             <button
               type="button"
               className="button button--quiet"
-              onClick={() => setHintIndex((value) => Math.min(hints.length - 1, value + 1))}
+              onClick={() =>
+                setHintIndex((value) => {
+                  const next = Math.min(hints.length - 1, value + 1);
+                  hintCountRef.current = Math.max(0, next + 1);
+                  return next;
+                })
+              }
               disabled={hintIndex >= hints.length - 1}
             >
               {hintIndex < 0 ? "Reveal first hint" : "Reveal next hint"}

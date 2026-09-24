@@ -8,9 +8,13 @@ const tests: PythonTestCase[] = [
   { label: "handles an empty array", args: [[], 9], expected: null },
 ];
 
-const starterCode = `def binary_search(nums, target):
+const guidedStarterCode = `def binary_search(nums, target):
     # Rebuild the algorithm from the invariant:
     # if target exists, it must stay inside the candidate interval.
+    pass
+`;
+
+const blankStarterCode = `def binary_search(nums, target):
     pass
 `;
 
@@ -21,18 +25,40 @@ const hints = [
   "With inclusive low/high boundaries: too high → high = mid - 1; too low → low = mid + 1.",
 ];
 
-export function BinarySearchRebuild() {
+type BinarySearchRebuildProps = {
+  mode?: "guided" | "blank";
+};
+
+export function BinarySearchRebuild({ mode = "guided" }: BinarySearchRebuildProps) {
+  const blank = mode === "blank";
+
   return (
     <PythonExercise
-      id="binary-search-rebuild"
-      title="Write binary search again without copying the trace."
-      description="Keep the finished implementation above out of view if you can. The goal is to reconstruct the invariant, not reproduce formatting."
+      id={blank ? "binary-search-rebuild-blank" : "binary-search-rebuild"}
+      title={
+        blank
+          ? "Rebuild binary search from only the function signature."
+          : "Write binary search again without copying the trace."
+      }
+      description={
+        blank
+          ? "No invariant reminder is embedded in the editor. Recover the interval, loop condition, midpoint, and both discard rules from memory."
+          : "Keep the finished implementation above out of view if you can. The goal is to reconstruct the invariant, not reproduce formatting."
+      }
       functionName="binary_search"
-      starterCode={starterCode}
+      starterCode={blank ? blankStarterCode : guidedStarterCode}
       tests={tests}
       hints={hints}
-      successMessage="You rebuilt the core algorithm against edge cases."
-      storageKey="agocode.progress.binary-search.rebuild"
+      successMessage={
+        blank
+          ? "You rebuilt the core algorithm from a blank implementation surface."
+          : "You rebuilt the core algorithm against edge cases."
+      }
+      storageKey={
+        blank
+          ? "agocode.progress.binary-search.rebuild-blank"
+          : "agocode.progress.binary-search.rebuild"
+      }
     />
   );
 }

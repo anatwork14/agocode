@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-
-type ProgressRecord = { completedAt: string; exerciseId: string };
+import { readLearningEvidence } from "@/lib/learning/evidence";
 
 type PlanStep = {
   title: string;
@@ -15,16 +14,12 @@ type PlanStep = {
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 function hasProgress(key: string) {
-  return Boolean(localStorage.getItem(key));
+  return Boolean(readLearningEvidence(localStorage, key)?.completedAt);
 }
 
-function getRecord(key: string): ProgressRecord | null {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as ProgressRecord) : null;
-  } catch {
-    return null;
-  }
+function getCompletionTime(key: string) {
+  const completedAt = readLearningEvidence(localStorage, key)?.completedAt;
+  return completedAt ? new Date(completedAt).getTime() : null;
 }
 
 function chooseNextStep(): PlanStep {
@@ -108,6 +103,22 @@ function chooseNextStep(): PlanStep {
       href: "/practice/binary-search/answer-space",
     };
   }
+  if (!hasProgress("agocode.progress.binary-search.rebuild-blank")) {
+    return {
+      label: "Delayed recall",
+      title: "Rebuild without the reminder",
+      description: "Start from only the function signature and recover the complete binary-search control flow from memory.",
+      href: "/practice/binary-search/rebuild",
+    };
+  }
+  if (!hasProgress("agocode.progress.binary-search.bug-repair")) {
+    return {
+      label: "Debugging recall",
+      title: "Repair a boundary bug",
+      description: "Use failing edge cases and the candidate-interval invariant to locate a one-character loop-condition bug.",
+      href: "/practice/binary-search/bug-repair",
+    };
+  }
 
   return {
     label: "Next chapter",
@@ -126,13 +137,14 @@ function countDueReviews(now: number) {
     ["agocode.progress.binary-search.transfer-03", 5],
     ["agocode.progress.binary-search.transfer-04", 6],
     ["agocode.progress.chapter-1.recap", 7],
+    ["agocode.progress.binary-search.rebuild-blank", 8],
+    ["agocode.progress.binary-search.bug-repair", 9],
   ] as const;
 
   return schedule.reduce((count, [key, days]) => {
-    const record = getRecord(key);
-    if (!record) return count;
-    const dueAt = new Date(record.completedAt).getTime() + days * DAY_MS;
-    return dueAt <= now ? count + 1 : count;
+    const completedAt = getCompletionTime(key);
+    if (completedAt === null) return count;
+    return completedAt + days * DAY_MS <= now ? count + 1 : count;
   }, 0);
 }
 
@@ -148,6 +160,8 @@ function evidenceCount() {
     "agocode.progress.binary-search.transfer-02",
     "agocode.progress.binary-search.transfer-03",
     "agocode.progress.binary-search.transfer-04",
+    "agocode.progress.binary-search.rebuild-blank",
+    "agocode.progress.binary-search.bug-repair",
   ];
   return keys.filter(hasProgress).length;
 }
@@ -186,7 +200,7 @@ export function LearningPlan() {
       <div className="home-plan__metrics">
         <div>
           <strong>{evidence}</strong>
-          <span>evidence items</span>
+          <span>completed evidence items</span>
         </div>
         <div>
           <strong>{dueReviews}</strong>

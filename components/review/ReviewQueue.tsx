@@ -2,11 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-
-type ProgressRecord = {
-  completedAt: string;
-  exerciseId: string;
-};
+import { readLearningEvidence } from "@/lib/learning/evidence";
 
 type ReviewItem = {
   title: string;
@@ -17,90 +13,80 @@ type ReviewItem = {
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-function readProgress(key: string): ProgressRecord | null {
-  try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return null;
-    return JSON.parse(raw) as ProgressRecord;
-  } catch {
-    return null;
-  }
+function completedAt(key: string) {
+  const value = readLearningEvidence(localStorage, key)?.completedAt;
+  return value ? new Date(value).getTime() : null;
+}
+
+function addScheduledReview(
+  items: ReviewItem[],
+  key: string,
+  delayDays: number,
+  item: Omit<ReviewItem, "dueAt">,
+) {
+  const completionTime = completedAt(key);
+  if (completionTime === null) return;
+  items.push({ ...item, dueAt: new Date(completionTime + delayDays * DAY_MS) });
 }
 
 function buildReviewItems() {
-  const rebuild = readProgress("agocode.progress.binary-search.rebuild");
-  const explain = readProgress("agocode.progress.binary-search.explain");
-  const transferInsert = readProgress("agocode.progress.binary-search.transfer-01");
-  const transferBoundary = readProgress("agocode.progress.binary-search.transfer-02");
-  const transferRotated = readProgress("agocode.progress.binary-search.transfer-03");
-  const transferAnswer = readProgress("agocode.progress.binary-search.transfer-04");
-  const chapterRecap = readProgress("agocode.progress.chapter-1.recap");
-  const nextItems: ReviewItem[] = [];
+  const items: ReviewItem[] = [];
 
-  if (rebuild) {
-    nextItems.push({
-      title: "Rebuild Binary Search",
-      description: "Return without rereading the implementation. Reconstruct low, high, mid, and the two interval updates.",
-      href: "/learn/binary-search#rebuild",
-      dueAt: new Date(new Date(rebuild.completedAt).getTime() + DAY_MS),
-    });
-  }
+  addScheduledReview(items, "agocode.progress.binary-search.rebuild", 1, {
+    title: "Rebuild Binary Search",
+    description: "Return without rereading the implementation. Reconstruct low, high, mid, and the two interval updates.",
+    href: "/learn/binary-search#rebuild",
+  });
 
-  if (explain) {
-    nextItems.push({
-      title: "Explain the invariant",
-      description: "Explain why sorted order makes a whole region disposable and what low…high promises after every update.",
-      href: "/learn/binary-search#explain",
-      dueAt: new Date(new Date(explain.completedAt).getTime() + 2 * DAY_MS),
-    });
-  }
+  addScheduledReview(items, "agocode.progress.binary-search.explain", 2, {
+    title: "Explain the invariant",
+    description: "Explain why sorted order makes a whole region disposable and what low…high promises after every update.",
+    href: "/learn/binary-search#explain",
+  });
 
-  if (transferInsert) {
-    nextItems.push({
-      title: "Insertion boundary transfer",
-      description: "Solve the insertion-position variant again and explain why the final low index is meaningful.",
-      href: "/practice/binary-search",
-      dueAt: new Date(new Date(transferInsert.completedAt).getTime() + 3 * DAY_MS),
-    });
-  }
+  addScheduledReview(items, "agocode.progress.binary-search.transfer-01", 3, {
+    title: "Insertion boundary transfer",
+    description: "Solve the insertion-position variant again and explain why the final low index is meaningful.",
+    href: "/practice/binary-search",
+  });
 
-  if (transferBoundary) {
-    nextItems.push({
-      title: "First-occurrence boundary",
-      description: "Find the first duplicate again. Recall why equality becomes a candidate answer instead of an immediate return.",
-      href: "/practice/binary-search/boundary",
-      dueAt: new Date(new Date(transferBoundary.completedAt).getTime() + 4 * DAY_MS),
-    });
-  }
+  addScheduledReview(items, "agocode.progress.binary-search.transfer-02", 4, {
+    title: "First-occurrence boundary",
+    description: "Find the first duplicate again. Recall why equality becomes a candidate answer instead of an immediate return.",
+    href: "/practice/binary-search/boundary",
+  });
 
-  if (transferRotated) {
-    nextItems.push({
-      title: "Rotated-array pattern recall",
-      description: "Recover the structural observation that one side of a distinct rotated array around mid remains sorted.",
-      href: "/practice/binary-search/rotated",
-      dueAt: new Date(new Date(transferRotated.completedAt).getTime() + 5 * DAY_MS),
-    });
-  }
+  addScheduledReview(items, "agocode.progress.binary-search.transfer-03", 5, {
+    title: "Rotated-array pattern recall",
+    description: "Recover the structural observation that one side of a distinct rotated array around mid remains sorted.",
+    href: "/practice/binary-search/rotated",
+  });
 
-  if (transferAnswer) {
-    nextItems.push({
-      title: "Answer-space search recall",
-      description: "Reconstruct why a monotonic feasibility predicate makes a range of possible answers searchable by binary search.",
-      href: "/practice/binary-search/answer-space",
-      dueAt: new Date(new Date(transferAnswer.completedAt).getTime() + 6 * DAY_MS),
-    });
-  }
+  addScheduledReview(items, "agocode.progress.binary-search.transfer-04", 6, {
+    title: "Answer-space search recall",
+    description: "Reconstruct why a monotonic feasibility predicate makes a range of possible answers searchable by binary search.",
+    href: "/practice/binary-search/answer-space",
+  });
 
-  if (chapterRecap) {
-    nextItems.push({
-      title: "Chapter 1 cumulative recall",
-      description: "Reconnect Binary Search, running time, Big O, and factorial growth without rereading the chapter first.",
-      href: "/learn/chapter-1-recap",
-      dueAt: new Date(new Date(chapterRecap.completedAt).getTime() + 7 * DAY_MS),
-    });
-  }
+  addScheduledReview(items, "agocode.progress.chapter-1.recap", 7, {
+    title: "Chapter 1 cumulative recall",
+    description: "Reconnect Binary Search, running time, Big O, and factorial growth without rereading the chapter first.",
+    href: "/learn/chapter-1-recap",
+  });
 
-  return nextItems;
+  addScheduledReview(items, "agocode.progress.binary-search.rebuild-blank", 8, {
+    title: "Blank implementation recall",
+    description: "Start from only the function signature and rebuild the loop, midpoint, and discard rules without embedded reminders.",
+    href: "/practice/binary-search/rebuild",
+  });
+
+  addScheduledReview(items, "agocode.progress.binary-search.bug-repair", 9, {
+    title: "Boundary bug repair",
+    description: "Diagnose the off-by-one loop condition again from failing boundary cases rather than from a clean reference solution.",
+    href: "/practice/binary-search/bug-repair",
+  });
+
+  return items;
 }
 
 function formatWait(ms: number) {

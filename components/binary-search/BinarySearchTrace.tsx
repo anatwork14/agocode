@@ -1,7 +1,8 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useMemo, useReducer, useState } from "react";
 import { binarySearchExample, buildBinarySearchTrace } from "@/lib/algorithms/binarySearch";
+import { initialTimelineState, timelineReducer } from "@/lib/visualization/timeline";
 
 type BinarySearchTraceProps = {
   allowScenarioEditing?: boolean;
@@ -47,11 +48,11 @@ export function BinarySearchTrace({
   const [arrayDraft, setArrayDraft] = useState(binarySearchExample.values.join(", "));
   const [targetDraft, setTargetDraft] = useState(String(binarySearchExample.target));
   const [scenarioError, setScenarioError] = useState("");
-  const [index, setIndex] = useState(0);
-  const [maxUnlocked, setMaxUnlocked] = useState(0);
+  const [timeline, dispatchTimeline] = useReducer(timelineReducer, initialTimelineState);
   const [answers, setAnswers] = useState<Record<number, PredictionAnswer>>({});
 
   const steps = useMemo(() => buildBinarySearchTrace(values, target), [values, target]);
+  const { index, maxUnlocked } = timeline;
   const step = steps[index];
 
   if (!step) return null;
@@ -62,16 +63,12 @@ export function BinarySearchTrace({
   const firstTryCorrect = answeredPredictions.filter((answer) => answer.attempts === 1).length;
 
   function resetTrace() {
-    setIndex(0);
-    setMaxUnlocked(0);
+    dispatchTimeline({ type: "reset" });
     setAnswers({});
   }
 
   function advanceTrace() {
-    if (predictionLocked) return;
-    const next = Math.min(steps.length - 1, index + 1);
-    setIndex(next);
-    setMaxUnlocked((current) => Math.max(current, next));
+    dispatchTimeline({ type: "advance", length: steps.length, locked: predictionLocked });
   }
 
   function answerPrediction(optionId: string) {
@@ -180,7 +177,7 @@ export function BinarySearchTrace({
           max={Math.max(maxUnlocked, 0)}
           step={1}
           value={index}
-          onChange={(event) => setIndex(Number(event.target.value))}
+          onChange={(event) => dispatchTimeline({ type: "scrub", index: Number(event.target.value) })}
           disabled={maxUnlocked === 0}
           aria-label="Scrub through visited trace steps"
         />
@@ -298,7 +295,7 @@ export function BinarySearchTrace({
             <button
               type="button"
               className="button"
-              onClick={() => setIndex((value) => Math.max(0, value - 1))}
+              onClick={() => dispatchTimeline({ type: "back" })}
               disabled={index === 0}
             >
               ← Back

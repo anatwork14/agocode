@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 
-const tasks = ["Wake", "Brew", "Pack", "Eat", "Leave"] as const;
 const dependencies: [string, string][] = [
   ["Wake", "Brew"],
   ["Wake", "Pack"],

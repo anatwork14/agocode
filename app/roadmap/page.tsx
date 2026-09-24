@@ -11,6 +11,8 @@ const activeRoutes: Record<number, string> = {
   5: "/learn/hash-tables",
   6: "/learn/breadth-first-search",
   7: "/learn/dijkstra",
+  8: "/learn/greedy",
+  9: "/learn/dynamic-programming",
 };
 
 export default function RoadmapPage() {

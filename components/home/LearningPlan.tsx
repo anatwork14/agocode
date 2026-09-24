@@ -41,11 +41,12 @@ function chooseNextStep(): PlanStep {
   if (!hasProgress("agocode.progress.chapter-2.recap")) return { label: "Recall", title: "Reconstruct Chapter 2", description: "Connect memory layout, structure trade-offs, repeated selection, and O(n²) without rereading first.", href: "/learn/chapter-2-recap" };
   if (!hasProgress("agocode.progress.recursion.factorial-rebuild")) return { label: "Chapter 03", title: "Make recursion visible", description: "Compare explicit work with recursive calls, identify base/recursive cases, then watch the call stack grow and unwind.", href: "/learn/recursion" };
   if (!hasProgress("agocode.progress.chapter-3.recap")) return { label: "Recall", title: "Reconstruct Recursion", description: "Retrieve the base case, progress rule, paused-caller model, and stack unwinding before moving into divide and conquer.", href: "/learn/chapter-3-recap" };
+  if (!hasProgress("agocode.progress.divide-conquer.sum-rebuild")) return { label: "Chapter 04", title: "Reduce the problem", description: "Learn divide and conquer as two explicit questions: identify the base case, then turn the problem into a smaller version of itself.", href: "/learn/divide-and-conquer" };
 
   return {
-    label: "Next chapter",
-    title: "Preview Divide & Conquer",
-    description: "You now have the recursion and call-stack model needed to begin Chapter 4 and understand Quicksort structurally.",
+    label: "Chapter 04",
+    title: "Next: partition with a pivot",
+    description: "The divide-and-conquer model is in place. The next slice will use it to build Quicksort and compare balanced versus unbalanced recursion.",
     href: "/roadmap",
   };
 }
@@ -65,6 +66,7 @@ function countDueReviews(now: number) {
     ["agocode.progress.chapter-2.recap", 7],
     ["agocode.progress.recursion.factorial-rebuild", 3],
     ["agocode.progress.chapter-3.recap", 7],
+    ["agocode.progress.divide-conquer.sum-rebuild", 3],
   ] as const;
 
   return schedule.reduce((count, [key, days]) => {
@@ -94,6 +96,7 @@ function evidenceCount() {
     "agocode.progress.chapter-2.recap",
     "agocode.progress.recursion.factorial-rebuild",
     "agocode.progress.chapter-3.recap",
+    "agocode.progress.divide-conquer.sum-rebuild",
   ];
   return keys.filter(hasProgress).length;
 }

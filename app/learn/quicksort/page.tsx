@@ -86,7 +86,7 @@ export default function QuicksortPage() {
                 <QuicksortRebuild />
                 <div className="action-row">
                   <Link className="button" href="/learn/divide-and-conquer">← Divide &amp; Conquer</Link>
-                  <Link className="button button--primary" href="/roadmap">Chapter 4 recap coming next →</Link>
+                  <Link className="button button--primary" href="/learn/chapter-4-recap">Chapter 4 recap →</Link>
                 </div>
               </section>
             </div>

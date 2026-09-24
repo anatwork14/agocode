@@ -23,6 +23,8 @@ const liveTopics: Record<number, readonly (readonly [string, string])[]> = {
   ],
   4: [
     ["Divide & Conquer", "/learn/divide-and-conquer"],
+    ["Quicksort", "/learn/quicksort"],
+    ["Chapter 4 Recap", "/learn/chapter-4-recap"],
   ],
 };
 

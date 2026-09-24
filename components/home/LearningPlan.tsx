@@ -23,59 +23,28 @@ function getCompletionTime(key: string) {
 }
 
 function chooseNextStep(): PlanStep {
-  if (!hasProgress("agocode.progress.binary-search.rebuild")) {
-    return { label: "Build recall", title: "Rebuild Binary Search", description: "Write the algorithm without copying the finished implementation, then pass the edge-case tests.", href: "/learn/binary-search#rebuild" };
-  }
-  if (!hasProgress("agocode.progress.binary-search.explain")) {
-    return { label: "Explain", title: "Defend the invariant", description: "Check whether you can explain sorted input, the candidate interval, and logarithmic growth.", href: "/learn/binary-search#explain" };
-  }
-  if (!hasProgress("agocode.progress.chapter-1.running-time")) {
-    return { label: "Book Track", title: "Continue with Running Time", description: "Move from one fast algorithm to the larger question: how does the amount of work grow with input size?", href: "/learn/running-time" };
-  }
-  if (!hasProgress("agocode.progress.chapter-1.big-o")) {
-    return { label: "Book Track", title: "Give growth a language", description: "Use Big O to compare common growth classes and reason about worst-case scaling.", href: "/learn/big-o" };
-  }
-  if (!hasProgress("agocode.progress.chapter-1.tsp")) {
-    return { label: "Book Track", title: "See factorial growth explode", description: "Finish the chapter story with the brute-force Traveling Salesperson search space.", href: "/learn/traveling-salesperson" };
-  }
-  if (!hasProgress("agocode.progress.chapter-1.recap")) {
-    return { label: "Recall", title: "Reconstruct Chapter 1", description: "Answer cumulative questions before rereading the lessons and connect search, growth, Big O, and factorial explosion.", href: "/learn/chapter-1-recap" };
-  }
-  if (!hasProgress("agocode.progress.binary-search.transfer-01")) {
-    return { label: "Transfer", title: "Insertion boundary", description: "Apply the invariant to a nearby problem where the target may be absent.", href: "/practice/binary-search" };
-  }
-  if (!hasProgress("agocode.progress.binary-search.transfer-02")) {
-    return { label: "Transfer", title: "First occurrence boundary", description: "Change what equality means and keep searching until the left boundary is proven.", href: "/practice/binary-search/boundary" };
-  }
-  if (!hasProgress("agocode.progress.binary-search.transfer-03")) {
-    return { label: "Pattern transfer", title: "Rotated ordered array", description: "Recognize the discard-region idea after global sorted order has been disrupted.", href: "/practice/binary-search/rotated" };
-  }
-  if (!hasProgress("agocode.progress.binary-search.transfer-04")) {
-    return { label: "Mixed transfer", title: "Search the answer space", description: "Use monotonic feasibility when the sorted candidates are possible answers rather than input positions.", href: "/practice/binary-search/answer-space" };
-  }
-  if (!hasProgress("agocode.progress.binary-search.rebuild-blank")) {
-    return { label: "Delayed recall", title: "Rebuild without the reminder", description: "Start from only the function signature and recover the complete binary-search control flow from memory.", href: "/practice/binary-search/rebuild" };
-  }
-  if (!hasProgress("agocode.progress.binary-search.bug-repair")) {
-    return { label: "Debugging recall", title: "Repair a boundary bug", description: "Use failing edge cases and the candidate-interval invariant to locate a one-character loop-condition bug.", href: "/practice/binary-search/bug-repair" };
-  }
-  if (!hasProgress("agocode.progress.chapter-2.memory")) {
-    return { label: "Chapter 02", title: "Build the memory model", description: "Start Selection Sort's chapter by making addresses, contiguous storage, and relocation concrete.", href: "/learn/memory" };
-  }
-  if (!hasProgress("agocode.progress.chapter-2.arrays-lists")) {
-    return { label: "Chapter 02", title: "Compare arrays and linked lists", description: "Connect physical layout to random reads, traversal, insertion, and deletion costs.", href: "/learn/arrays-linked-lists" };
-  }
-  if (!hasProgress("agocode.progress.selection-sort.rebuild")) {
-    return { label: "Chapter 02", title: "Trace and rebuild Selection Sort", description: "Predict each selected minimum, see the quadratic scan pattern, then write the algorithm yourself.", href: "/learn/selection-sort" };
-  }
-  if (!hasProgress("agocode.progress.chapter-2.recap")) {
-    return { label: "Recall", title: "Reconstruct Chapter 2", description: "Connect memory layout, structure trade-offs, repeated selection, and O(n²) without rereading first.", href: "/learn/chapter-2-recap" };
-  }
+  if (!hasProgress("agocode.progress.binary-search.rebuild")) return { label: "Build recall", title: "Rebuild Binary Search", description: "Write the algorithm without copying the finished implementation, then pass the edge-case tests.", href: "/learn/binary-search#rebuild" };
+  if (!hasProgress("agocode.progress.binary-search.explain")) return { label: "Explain", title: "Defend the invariant", description: "Check whether you can explain sorted input, the candidate interval, and logarithmic growth.", href: "/learn/binary-search#explain" };
+  if (!hasProgress("agocode.progress.chapter-1.running-time")) return { label: "Book Track", title: "Continue with Running Time", description: "Move from one fast algorithm to the larger question: how does the amount of work grow with input size?", href: "/learn/running-time" };
+  if (!hasProgress("agocode.progress.chapter-1.big-o")) return { label: "Book Track", title: "Give growth a language", description: "Use Big O to compare common growth classes and reason about worst-case scaling.", href: "/learn/big-o" };
+  if (!hasProgress("agocode.progress.chapter-1.tsp")) return { label: "Book Track", title: "See factorial growth explode", description: "Finish the chapter story with the brute-force Traveling Salesperson search space.", href: "/learn/traveling-salesperson" };
+  if (!hasProgress("agocode.progress.chapter-1.recap")) return { label: "Recall", title: "Reconstruct Chapter 1", description: "Answer cumulative questions before rereading the lessons and connect search, growth, Big O, and factorial explosion.", href: "/learn/chapter-1-recap" };
+  if (!hasProgress("agocode.progress.binary-search.transfer-01")) return { label: "Transfer", title: "Insertion boundary", description: "Apply the invariant to a nearby problem where the target may be absent.", href: "/practice/binary-search" };
+  if (!hasProgress("agocode.progress.binary-search.transfer-02")) return { label: "Transfer", title: "First occurrence boundary", description: "Change what equality means and keep searching until the left boundary is proven.", href: "/practice/binary-search/boundary" };
+  if (!hasProgress("agocode.progress.binary-search.transfer-03")) return { label: "Pattern transfer", title: "Rotated ordered array", description: "Recognize the discard-region idea after global sorted order has been disrupted.", href: "/practice/binary-search/rotated" };
+  if (!hasProgress("agocode.progress.binary-search.transfer-04")) return { label: "Mixed transfer", title: "Search the answer space", description: "Use monotonic feasibility when the sorted candidates are possible answers rather than input positions.", href: "/practice/binary-search/answer-space" };
+  if (!hasProgress("agocode.progress.binary-search.rebuild-blank")) return { label: "Delayed recall", title: "Rebuild without the reminder", description: "Start from only the function signature and recover the complete binary-search control flow from memory.", href: "/practice/binary-search/rebuild" };
+  if (!hasProgress("agocode.progress.binary-search.bug-repair")) return { label: "Debugging recall", title: "Repair a boundary bug", description: "Use failing edge cases and the candidate-interval invariant to locate a one-character loop-condition bug.", href: "/practice/binary-search/bug-repair" };
+  if (!hasProgress("agocode.progress.chapter-2.memory")) return { label: "Chapter 02", title: "Build the memory model", description: "Make addresses, contiguous storage, and relocation concrete before comparing data structures.", href: "/learn/memory" };
+  if (!hasProgress("agocode.progress.chapter-2.arrays-lists")) return { label: "Chapter 02", title: "Compare arrays and linked lists", description: "Connect physical layout to random reads, traversal, insertion, and deletion costs.", href: "/learn/arrays-linked-lists" };
+  if (!hasProgress("agocode.progress.selection-sort.rebuild")) return { label: "Chapter 02", title: "Trace and rebuild Selection Sort", description: "Predict each selected minimum, see the quadratic scan pattern, then write the algorithm yourself.", href: "/learn/selection-sort" };
+  if (!hasProgress("agocode.progress.chapter-2.recap")) return { label: "Recall", title: "Reconstruct Chapter 2", description: "Connect memory layout, structure trade-offs, repeated selection, and O(n²) without rereading first.", href: "/learn/chapter-2-recap" };
+  if (!hasProgress("agocode.progress.recursion.factorial-rebuild")) return { label: "Chapter 03", title: "Make recursion visible", description: "Compare explicit work with recursive calls, identify base/recursive cases, then watch the call stack grow and unwind.", href: "/learn/recursion" };
 
   return {
     label: "Next chapter",
-    title: "Preview Recursion",
-    description: "The next Book Track slice will introduce recursive cases, base cases, the stack, and recursive call-stack behavior.",
+    title: "Preview Divide & Conquer",
+    description: "You now have the recursion and call-stack model needed to begin Chapter 4 and understand Quicksort structurally.",
     href: "/roadmap",
   };
 }
@@ -93,6 +62,7 @@ function countDueReviews(now: number) {
     ["agocode.progress.binary-search.bug-repair", 9],
     ["agocode.progress.selection-sort.rebuild", 3],
     ["agocode.progress.chapter-2.recap", 7],
+    ["agocode.progress.recursion.factorial-rebuild", 3],
   ] as const;
 
   return schedule.reduce((count, [key, days]) => {
@@ -120,6 +90,7 @@ function evidenceCount() {
     "agocode.progress.chapter-2.arrays-lists",
     "agocode.progress.selection-sort.rebuild",
     "agocode.progress.chapter-2.recap",
+    "agocode.progress.recursion.factorial-rebuild",
   ];
   return keys.filter(hasProgress).length;
 }

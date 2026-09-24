@@ -2,6 +2,16 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { buildFactorialTrace } from "../lib/algorithms/factorialTrace.ts";
 
+test("factorial one hits the base case and completes", () => {
+  const frames = buildFactorialTrace(1);
+  assert.equal(frames.length, 2);
+  assert.equal(frames[0].event.type, "BASE");
+  assert.equal(frames[0].result, 1);
+  assert.equal(frames.at(-1)?.event.type, "COMPLETE");
+  assert.equal(frames.at(-1)?.result, 1);
+  assert.deepEqual(frames.at(-1)?.stack, []);
+});
+
 test("factorial trace reaches the expected final result", () => {
   const frames = buildFactorialTrace(5);
   const finalFrame = frames.at(-1);
@@ -15,6 +25,7 @@ test("recursive calls grow the stack until the base case", () => {
   const frames = buildFactorialTrace(4);
   const base = frames.find((frame) => frame.event.type === "BASE");
   assert.ok(base);
+  assert.equal(base.stack.length, 4);
   assert.deepEqual(base.stack.map((item) => item.n), [4, 3, 2, 1]);
 });
 

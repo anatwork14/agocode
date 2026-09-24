@@ -20,6 +20,19 @@ export function SetCoverLab() {
   const covered = new Set(visible.flatMap((item) => item.newlyCovered));
   const current = result.steps[step];
 
+  function advance() {
+    setStep((value) => {
+      const nextStep = Math.min(result.steps.length, value + 1);
+      if (nextStep === result.steps.length) {
+        localStorage.setItem(
+          "agocode.progress.greedy.set-cover",
+          JSON.stringify({ completedAt: new Date().toISOString(), exerciseId: "greedy-set-cover" }),
+        );
+      }
+      return nextStep;
+    });
+  }
+
   return (
     <div className="set-cover-lab">
       <div className="greedy-lab__header">
@@ -59,7 +72,7 @@ export function SetCoverLab() {
 
       <div className="lab-toolbar">
         <button className="button" type="button" onClick={() => setStep((value) => Math.max(0, value - 1))} disabled={step === 0}>← Back</button>
-        <button className="button button--primary" type="button" onClick={() => setStep((value) => Math.min(result.steps.length, value + 1))} disabled={step === result.steps.length}>
+        <button className="button button--primary" type="button" onClick={advance} disabled={step === result.steps.length}>
           {step === result.steps.length ? "All states covered" : "Choose best station →"}
         </button>
         <button className="button button--quiet" type="button" onClick={() => setStep(0)}>Reset</button>

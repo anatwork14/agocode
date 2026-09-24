@@ -19,6 +19,7 @@ import "./chapter-seven.css";
 import "./chapter-eight.css";
 import "./chapter-nine.css";
 import "./chapter-ten.css";
+import "./chapter-eleven.css";
 import "./review.css";
 
 const editorial = Fraunces({ subsets: ["latin"], variable: "--font-editorial", display: "swap" });

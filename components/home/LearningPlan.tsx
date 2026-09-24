@@ -52,6 +52,8 @@ const learningSteps: readonly PlanStep[] = [
   { key: "agocode.progress.knn.classification", label: "Chapter 10", title: "Classify by neighborhood", description: "Predict before revealing the nearest labeled points, then watch distance turn a feature space into a classification decision.", href: "/learn/k-nearest-neighbors#classify" },
   { key: "agocode.progress.knn.rebuild", label: "Chapter 10", title: "Rebuild KNN classification", description: "Recover the feature → distance → nearest neighbors → vote pipeline in Python.", href: "/learn/k-nearest-neighbors#rebuild" },
   { key: "agocode.progress.chapter-10.recap", label: "Recall", title: "Reconstruct K-nearest neighbors", description: "Retrieve classification, regression, feature extraction, distance, k, and feature quality without rereading first.", href: "/learn/chapter-10-recap" },
+  { key: "agocode.progress.chapter-11.explore", label: "Chapter 11", title: "Choose where to go next", description: "Explore trees, indexes, transforms, distributed computation, probabilistic structures, hashing families, and optimization, then choose a branch to deepen.", href: "/learn/where-to-go-next#choose" },
+  { key: "agocode.progress.chapter-11.recap", label: "Book Track finale", title: "Reconstruct the advanced-topic map", description: "Connect each Chapter 11 pointer to the problem class it is designed to address.", href: "/learn/chapter-11-recap" },
 ];
 
 const reviewSchedule = [
@@ -85,6 +87,7 @@ const reviewSchedule = [
   ["agocode.progress.chapter-9.recap", 7],
   ["agocode.progress.knn.rebuild", 3],
   ["agocode.progress.chapter-10.recap", 7],
+  ["agocode.progress.chapter-11.recap", 10],
 ] as const;
 
 const extraEvidenceKeys = [
@@ -108,10 +111,10 @@ function chooseNextStep(): Omit<PlanStep, "key"> {
   const next = learningSteps.find((step) => !hasProgress(step.key));
   if (next) return next;
   return {
-    label: "Book finale",
-    title: "Explore where to go next",
-    description: "Chapter 11 broadens the map beyond the core sequence: trees, search indexes, transforms, parallel and distributed algorithms, probabilistic structures, and more.",
-    href: "/roadmap",
+    label: "Transfer Track",
+    title: "Move from chapter knowledge to mixed problem recognition",
+    description: "The Book Track is complete. The next frontier is interleaved practice that forces you to recognize the right algorithm or pattern without a chapter label giving away the answer.",
+    href: "/practice",
   };
 }
 

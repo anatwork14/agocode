@@ -21,6 +21,9 @@ const liveTopics: Record<number, readonly (readonly [string, string])[]> = {
     ["Recursion", "/learn/recursion"],
     ["Chapter 3 Recap", "/learn/chapter-3-recap"],
   ],
+  4: [
+    ["Divide & Conquer", "/learn/divide-and-conquer"],
+  ],
 };
 
 export default function LearnIndexPage() {

@@ -40,6 +40,7 @@ function chooseNextStep(): PlanStep {
   if (!hasProgress("agocode.progress.selection-sort.rebuild")) return { label: "Chapter 02", title: "Trace and rebuild Selection Sort", description: "Predict each selected minimum, see the quadratic scan pattern, then write the algorithm yourself.", href: "/learn/selection-sort" };
   if (!hasProgress("agocode.progress.chapter-2.recap")) return { label: "Recall", title: "Reconstruct Chapter 2", description: "Connect memory layout, structure trade-offs, repeated selection, and O(n²) without rereading first.", href: "/learn/chapter-2-recap" };
   if (!hasProgress("agocode.progress.recursion.factorial-rebuild")) return { label: "Chapter 03", title: "Make recursion visible", description: "Compare explicit work with recursive calls, identify base/recursive cases, then watch the call stack grow and unwind.", href: "/learn/recursion" };
+  if (!hasProgress("agocode.progress.chapter-3.recap")) return { label: "Recall", title: "Reconstruct Recursion", description: "Retrieve the base case, progress rule, paused-caller model, and stack unwinding before moving into divide and conquer.", href: "/learn/chapter-3-recap" };
 
   return {
     label: "Next chapter",
@@ -63,6 +64,7 @@ function countDueReviews(now: number) {
     ["agocode.progress.selection-sort.rebuild", 3],
     ["agocode.progress.chapter-2.recap", 7],
     ["agocode.progress.recursion.factorial-rebuild", 3],
+    ["agocode.progress.chapter-3.recap", 7],
   ] as const;
 
   return schedule.reduce((count, [key, days]) => {
@@ -91,6 +93,7 @@ function evidenceCount() {
     "agocode.progress.selection-sort.rebuild",
     "agocode.progress.chapter-2.recap",
     "agocode.progress.recursion.factorial-rebuild",
+    "agocode.progress.chapter-3.recap",
   ];
   return keys.filter(hasProgress).length;
 }

@@ -87,6 +87,11 @@ function buildReviewItems() {
     description: "Reconnect memory addresses, arrays, linked lists, and Selection Sort before opening Chapter 3.",
     href: "/learn/chapter-2-recap",
   });
+  addScheduledReview(items, "agocode.progress.recursion.factorial-rebuild", 3, {
+    title: "Recursive factorial recall",
+    description: "Rebuild the base case and recursive case, then explain what values remain suspended while the call stack grows.",
+    href: "/learn/recursion#rebuild",
+  });
 
   return items;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { educationalHash } from "@/lib/algorithms/hashTable";
 
 const produce = [
@@ -34,7 +34,7 @@ export function PriceLookupLab() {
   const [target, setTarget] = useState<(typeof produce)[number]["key"]>("avocado");
   const selected = produce.find((item) => item.key === target) ?? produce[0];
   const simpleChecks = produce.findIndex((item) => item.key === target) + 1;
-  const binaryChecks = useMemo(() => binarySearchChecks(target), [target]);
+  const binaryChecks = binarySearchChecks(target);
   const hashIndex = educationalHash(target, 11);
   const maxChecks = Math.max(simpleChecks, binaryChecks, 1);
 

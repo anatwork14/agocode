@@ -28,6 +28,7 @@ const liveTopics: Record<number, readonly (readonly [string, string])[]> = {
   ],
   5: [
     ["Hash Tables", "/learn/hash-tables"],
+    ["Chapter 5 Recap", "/learn/chapter-5-recap"],
   ],
 };
 

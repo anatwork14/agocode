@@ -3,6 +3,8 @@ import { BfsRebuild } from "@/components/bfs/BfsRebuild";
 import { BfsTrace } from "@/components/bfs/BfsTrace";
 import { GraphBasicsLab } from "@/components/bfs/GraphBasicsLab";
 import { QueueFifoLab } from "@/components/bfs/QueueFifoLab";
+import { ShortestLayerLab } from "@/components/bfs/ShortestLayerLab";
+import { TopologicalOrderCheck } from "@/components/bfs/TopologicalOrderCheck";
 import { MarginNote } from "@/components/ui/MarginNote";
 
 export const metadata = { title: "Breadth-First Search" };
@@ -20,7 +22,8 @@ export default function BreadthFirstSearchPage() {
             <a href="#trace">05 · Trace</a>
             <a href="#visited">06 · Visited</a>
             <a href="#runtime">07 · Runtime</a>
-            <a href="#rebuild">08 · Rebuild</a>
+            <a href="#dependencies">08 · Dependencies</a>
+            <a href="#rebuild">09 · Rebuild</a>
           </nav>
 
           <article className="reading-column">
@@ -58,16 +61,15 @@ export default function BreadthFirstSearchPage() {
               <section id="shortest">
                 <h2>The search radiates outward one degree at a time.</h2>
                 <p>
-                  If a target exists among your immediate neighbors, there is no reason to inspect a friend-of-a-friend
-                  first. Breadth-first search preserves this layer order, so the first time it reaches a target, no
-                  shorter unweighted route can still be waiting deeper in the graph.
+                  Before thinking about code, ask the same question the chapter asks in its transit example: can the
+                  destination be reached in one step? If not, can it be reached in two? Breadth-first search automates
+                  exactly that expanding-layer process.
                 </p>
-                <div className="bfs-layer-strip" aria-label="Breadth first layers">
-                  <div><span>degree 0</span><strong>start</strong></div>
-                  <div><span>degree 1</span><strong>neighbors</strong></div>
-                  <div><span>degree 2</span><strong>neighbors of neighbors</strong></div>
-                  <div><span>degree 3+</span><strong>keep expanding</strong></div>
-                </div>
+                <ShortestLayerLab />
+                <p>
+                  The first time the destination appears, every shallower layer has already been exhausted. That is why
+                  BFS finds a shortest path by edge count in an unweighted graph.
+                </p>
               </section>
 
               <section id="queue">
@@ -84,8 +86,9 @@ export default function BreadthFirstSearchPage() {
                 <h2>Now connect the graph, queue, visited state, and shortest path.</h2>
                 <p>
                   Step through the complete search. AgoCode marks a node discovered when it is first enqueued so the
-                  same node is not added repeatedly. This serves the same purpose as keeping a searched list: avoid
-                  duplicate work and prevent cycles from making the search loop forever.
+                  same node is not added repeatedly. This is a slightly earlier bookkeeping point than the chapter&apos;s
+                  searched-list presentation, but it protects the same invariant: a node should not become fresh search
+                  work again after it has already entered the frontier.
                 </p>
                 <BfsTrace />
               </section>
@@ -114,6 +117,16 @@ export default function BreadthFirstSearchPage() {
                   <div><span>vertices</span><strong className="mono">V</strong><p>Each node becomes visited at most once.</p></div>
                   <div><span>edges</span><strong className="mono">E</strong><p>Each adjacency relationship is examined during expansion.</p></div>
                 </div>
+              </section>
+
+              <section id="dependencies">
+                <h2>Graphs can also encode dependency order.</h2>
+                <p>
+                  A directed edge can mean “this must happen before that.” The chapter briefly introduces topological
+                  sorting through task dependencies. More than one order can be valid as long as every prerequisite
+                  appears before the task that depends on it.
+                </p>
+                <TopologicalOrderCheck />
               </section>
 
               <section id="rebuild">

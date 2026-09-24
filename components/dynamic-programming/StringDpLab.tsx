@@ -5,6 +5,7 @@ import { buildSequenceGrid, type SequenceDpMode } from "@/lib/algorithms/dynamic
 
 const wordA = "plane";
 const wordB = "panel";
+const storageKey = "agocode.progress.dynamic-programming.sequence-grid";
 
 function sourceLabel(source: "diagonal" | "up" | "left" | "reset") {
   if (source === "diagonal") return "↖ +1";
@@ -13,9 +14,20 @@ function sourceLabel(source: "diagonal" | "up" | "left" | "reset") {
   return "0";
 }
 
+function markComplete() {
+  try {
+    const existing = localStorage.getItem(storageKey);
+    if (existing) return;
+    localStorage.setItem(storageKey, JSON.stringify({ completedAt: new Date().toISOString(), exerciseId: "sequence-grid-comparison" }));
+  } catch {
+    // The lab remains usable when browser storage is unavailable.
+  }
+}
+
 export function StringDpLab() {
   const [mode, setMode] = useState<SequenceDpMode>("substring");
   const [step, setStep] = useState(0);
+  const [completedModes, setCompletedModes] = useState<SequenceDpMode[]>([]);
   const result = buildSequenceGrid(wordA, wordB, mode);
   const total = wordA.length * wordB.length;
   const currentRow = step < total ? Math.floor(step / wordB.length) : null;
@@ -27,6 +39,16 @@ export function StringDpLab() {
     setStep(0);
   }
 
+  function advance() {
+    const nextStep = Math.min(total, step + 1);
+    setStep(nextStep);
+    if (nextStep !== total) return;
+
+    const nextCompleted = completedModes.includes(mode) ? completedModes : [...completedModes, mode];
+    setCompletedModes(nextCompleted);
+    if (nextCompleted.length === 2) markComplete();
+  }
+
   return (
     <div className="dp-string-lab">
       <div className="dp-lab__header">
@@ -34,12 +56,12 @@ export function StringDpLab() {
           <div className="eyebrow">Sequence grid</div>
           <h3>Same grid shape, different mismatch rule.</h3>
         </div>
-        <span className="mono">{mode === "substring" ? "contiguous" : "ordered"}</span>
+        <span className="mono">{completedModes.length}/2 explored</span>
       </div>
 
       <div className="dp-mode-switch" role="group" aria-label="Sequence dynamic programming mode">
-        <button className={`button ${mode === "substring" ? "button--primary" : ""}`} type="button" onClick={() => switchMode("substring")}>Longest common substring</button>
-        <button className={`button ${mode === "subsequence" ? "button--primary" : ""}`} type="button" onClick={() => switchMode("subsequence")}>Longest common subsequence</button>
+        <button className={`button ${mode === "substring" ? "button--primary" : ""}`} type="button" onClick={() => switchMode("substring")}>Longest common substring{completedModes.includes("substring") ? " ✓" : ""}</button>
+        <button className={`button ${mode === "subsequence" ? "button--primary" : ""}`} type="button" onClick={() => switchMode("subsequence")}>Longest common subsequence{completedModes.includes("subsequence") ? " ✓" : ""}</button>
       </div>
 
       <div className="dp-string-formula">
@@ -73,8 +95,8 @@ export function StringDpLab() {
         <strong>{finished ? "Result:" : "Cell rule:"}</strong>{" "}
         {finished
           ? mode === "substring"
-            ? `The largest cell can be anywhere in the grid. Here the longest contiguous match is “${result.bestValue}” with length ${result.bestLength}.`
-            : `The bottom-right cell summarizes the full prefixes. One longest ordered subsequence is “${result.bestValue}” with length ${result.bestLength}.`
+            ? `The largest cell can be anywhere in the grid. Here the longest contiguous match is “${result.bestValue}” with length ${result.bestLength}. Now compare the subsequence rule.`
+            : `The bottom-right cell summarizes the full prefixes. One longest ordered subsequence is “${result.bestValue}” with length ${result.bestLength}. Compare that with the substring result.`
           : currentRow !== null && currentColumn !== null
             ? wordA[currentRow] === wordB[currentColumn]
               ? `${wordA[currentRow]} matches ${wordB[currentColumn]}, so extend the diagonal subproblem by one.`
@@ -86,7 +108,7 @@ export function StringDpLab() {
 
       <div className="lab-toolbar">
         <button className="button" type="button" onClick={() => setStep((value) => Math.max(0, value - 1))} disabled={step === 0}>← Back</button>
-        <button className="button button--primary" type="button" onClick={() => setStep((value) => Math.min(total, value + 1))} disabled={finished}>{finished ? "Grid complete" : "Fill next cell →"}</button>
+        <button className="button button--primary" type="button" onClick={advance} disabled={finished}>{finished ? "Grid complete" : "Fill next cell →"}</button>
         <button className="button button--quiet" type="button" onClick={() => setStep(0)}>Reset</button>
       </div>
     </div>

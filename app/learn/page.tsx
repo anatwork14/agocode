@@ -19,6 +19,7 @@ const liveTopics: Record<number, readonly (readonly [string, string])[]> = {
   ],
   3: [
     ["Recursion", "/learn/recursion"],
+    ["Chapter 3 Recap", "/learn/chapter-3-recap"],
   ],
 };
 

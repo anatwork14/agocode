@@ -8,40 +8,36 @@ The canonical learning backbone follows the pedagogical progression of *Grokking
 
 > Understand → Predict → Trace → Rebuild → Explain → Transfer → Recall
 
-AgoCode is intentionally not another static textbook, animation gallery, or problem dump. Every lesson must make the learner actively reason about algorithm state and eventually write the algorithm again without copying a finished solution.
+AgoCode is intentionally not another static textbook, animation gallery, or problem dump. Every lesson should make the learner actively reason about algorithm state and eventually reproduce the algorithm without copying a finished solution.
 
 ## Implementation status
 
-**Chapter 1 is now an end-to-end interactive chapter**, and Binary Search has a working learning/transfer loop across Read, Lab, Practice, and Review modes.
+**Chapter 1 is an end-to-end interactive chapter, and Chapter 2 now has its first complete Book Track slice.** Binary Search also has a four-rung transfer ladder plus delayed-recall drills.
 
 Currently implemented:
 
 - Next.js + React + TypeScript application scaffold
 - canonical paper/ink/red design system and SVG-first AgoCode brand
 - responsive Book / Roadmap / Lab / Practice / Review routes
-- Binary Search intuition, number guessing, halving, sorted-input counterexample, code trace, reconstruction, explanation, and recap
-- deterministic semantic Binary Search trace generator with synchronized array state and Python code
-- prediction gates before branch updates and prediction-safe timeline scrubbing through visited states
-- editable sorted-array / target scenarios in the full Lab
+- Binary Search intuition, guessing, halving, sorted-input counterexample, code trace, prediction gates, reconstruction, explanation, and recap
+- deterministic Binary Search trace generator with reusable visited-timeline reducer
+- editable sorted-array / target scenarios in Lab mode
 - in-browser Python execution isolated in a Web Worker with timeout protection, stdout/stderr, tests, progressive hints, and Python-friendly indentation
-- transfer rung 01: insertion-position search
-- transfer rung 02: first-occurrence boundary search
-- transfer rung 03: rotated-array pattern recognition with the technique hidden from the problem framing
-- Running Time lesson with interactive linear-vs-logarithmic growth comparison
-- Big O lesson with common growth classes and worst-case reasoning
-- Traveling Salesperson factorial-growth scene with an original SVG route visualization
-- Chapter 1 cumulative retrieval check
-- local completion evidence and a spaced-review queue
-- deterministic Binary Search trace tests using Node's native test runner
+- Binary Search transfer ladder: insertion boundary → first occurrence → rotated array → monotonic answer space
+- blank Binary Search rebuild and boundary bug-repair recall drills
+- richer local learning evidence with attempt history, best test performance, and hint-use tracking
+- Chapter 1 Running Time, Big O, factorial-growth/TSP lesson, and cumulative retrieval
+- Chapter 2 memory-slot model, arrays-vs-linked-lists trade-off lab, Selection Sort trace, Python rebuild, and cumulative recap
+- deterministic unit tests for Binary Search, Selection Sort, learning evidence, and the shared timeline reducer
 - CI gates for typecheck, tests, lint, and production build
 
 Next implementation priorities:
 
-1. search-on-answer transfer rung to complete the first Binary Search ladder,
-2. richer mastery evidence and review scheduling rather than simple completion flags,
-3. a fully blank implementation mode and stronger code-editor ergonomics,
-4. Chapter 2: memory model, arrays vs. linked lists, and Selection Sort,
-5. reusable visualization reducers/primitives and broader deterministic tests before graph/DP chapters.
+1. strengthen mastery aggregation from recorded attempt evidence,
+2. add prediction-attempt persistence and review rescheduling after successful/failed recall,
+3. polish Chapter 2 interactions and add a dedicated Selection Sort transfer task,
+4. begin Chapter 3 Recursion with stack/call-stack visualization primitives,
+5. continue extracting reusable visualization primitives before graph and DP chapters.
 
 ## Local development
 
@@ -84,7 +80,7 @@ pnpm build
 10. K-Nearest Neighbors
 11. Where to Go Next
 
-Interview-specific techniques such as two pointers, sliding window, monotonic stack, binary search on answer, and advanced graph/DP patterns belong to an **Extension Track** after the book-faithful foundation.
+Interview-specific techniques such as two pointers, sliding window, monotonic stack, binary search on answer, and advanced graph/DP patterns belong to an **Extension Track** around the book-faithful foundation.
 
 ## Core product modes
 
@@ -95,4 +91,4 @@ Interview-specific techniques such as two pointers, sliding window, monotonic st
 
 ## Reference milestone
 
-The first milestone is successful when a learner can return after a delay, implement Binary Search from scratch, explain its invariant and logarithmic behavior, and recognize the discard-region idea inside a problem that is not presented as an exact Binary Search exercise.
+A learning slice is successful when a learner can leave, return after a delay, rebuild the mechanism, explain why it works, diagnose a plausible bug, and recognize the same idea after the problem framing changes.

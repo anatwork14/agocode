@@ -38,6 +38,10 @@ const liveTopics: Record<number, readonly (readonly [string, string])[]> = {
     ["Dijkstra's Algorithm", "/learn/dijkstra"],
     ["Chapter 7 Recap", "/learn/chapter-7-recap"],
   ],
+  8: [
+    ["Greedy Algorithms", "/learn/greedy"],
+    ["Chapter 8 Recap", "/learn/chapter-8-recap"],
+  ],
 };
 
 export default function LearnIndexPage() {

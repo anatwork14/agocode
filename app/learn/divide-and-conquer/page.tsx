@@ -40,11 +40,11 @@ export default function DivideAndConquerPage() {
               </section>
 
               <section id="reduce">
-                <h2>Make the reduction visible before writing code.</h2>
+                <h2>Make the chapter&apos;s farm reduction visible before writing code.</h2>
                 <p>
-                  Consider covering a rectangle with the largest possible equal square tiles. Once several full squares
-                  are removed, the unresolved remainder is another rectangle with the exact same question—only smaller.
-                  Eventually one side divides the other exactly, which gives a natural stopping case.
+                  Start with a 1680 × 640 rectangle. Remove the largest square plots that fit, then focus only on the
+                  leftover rectangle. The remainder is the same kind of problem at a smaller size. Continue until one
+                  side divides the other exactly and the largest square is forced.
                 </p>
                 <DivideConquerTilingLab />
               </section>
@@ -68,16 +68,17 @@ export default function DivideAndConquerPage() {
                 <RecursiveSumRebuild />
                 <div className="action-row">
                   <Link className="button" href="/learn/chapter-3-recap">← Chapter 3 recap</Link>
-                  <Link className="button button--primary" href="/roadmap">Next: Quicksort →</Link>
+                  <Link className="button button--primary" href="/learn/quicksort">Next: Quicksort →</Link>
                 </div>
               </section>
             </div>
           </article>
 
           <aside className="margin-column" aria-label="Divide and conquer notes">
-            <MarginNote label="Mindset">D&C is a problem-solving strategy, not one fixed algorithm.</MarginNote>
+            <MarginNote label="Mindset">D&amp;C is a problem-solving strategy, not one fixed algorithm.</MarginNote>
             <MarginNote label="Progress">A recursive call should receive a problem that is measurably closer to the base case.</MarginNote>
-            <MarginNote label="Connection">Chapter 3 gave you the call-stack model. D&C now uses that model to solve successively smaller subproblems.</MarginNote>
+            <MarginNote label="Farm example">The rectangle reduction is an instance of Euclid&apos;s algorithm: solving the remainder preserves the greatest common square size.</MarginNote>
+            <MarginNote label="Connection">Chapter 3 gave you the call-stack model. D&amp;C now uses that model to solve successively smaller subproblems.</MarginNote>
           </aside>
         </div>
       </div>

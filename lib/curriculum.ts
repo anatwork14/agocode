@@ -12,7 +12,7 @@ export const chapters: Chapter[] = [
   { number: 4, title: "Quicksort", topics: ["Divide & conquer", "Quicksort", "Average vs. worst case"], status: "active" },
   { number: 5, title: "Hash tables", topics: ["Hash functions", "Lookups", "Duplicate filtering", "Caching", "Collisions", "Load factor"], status: "active" },
   { number: 6, title: "Breadth-first search", topics: ["Graphs", "Directed vs. undirected", "Queues", "Shortest unweighted path", "Visited state", "O(V + E)"], status: "active" },
-  { number: 7, title: "Dijkstra’s algorithm", topics: ["Weighted graphs", "Relaxation", "Negative edges", "Implementation"], status: "planned" },
+  { number: 7, title: "Dijkstra’s algorithm", topics: ["Weighted graphs", "Cheapest node", "Relaxation", "Parents", "Negative edges", "Implementation"], status: "active" },
   { number: 8, title: "Greedy algorithms", topics: ["Scheduling", "Knapsack intuition", "Set cover", "Approximation"], status: "planned" },
   { number: 9, title: "Dynamic programming", topics: ["Knapsack", "DP grid", "Subproblems", "Sequence problems"], status: "planned" },
   { number: 10, title: "K-nearest neighbors", topics: ["Classification", "Features", "Regression", "Distance"], status: "planned" },

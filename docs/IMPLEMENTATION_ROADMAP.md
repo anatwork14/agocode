@@ -2,31 +2,30 @@
 
 ## 1. Delivery strategy
 
-AgoCode is built as a sequence of complete vertical slices, not as a large collection of half-finished pages.
+AgoCode is built as complete learning slices, not as a large collection of half-finished pages.
 
-The reference learning loop is:
+The reference loop is:
 
 ```text
 understand → predict → trace → implement → explain → transfer → recall
 ```
 
-Binary Search is the reference slice. Chapter breadth should only expand when this loop remains coherent and testable.
+The Book Track follows the chapter progression of *Grokking Algorithms*. Every chapter should preserve the book's concrete-before-formal teaching order while adding original interactive visuals, execution, retrieval, and transfer.
 
-## 2. Phase 0 — Repository and product foundations
+## 2. Product / repository foundation
 
-### Deliverables
-- [x] Next.js + TypeScript app scaffold
-- [x] Tailwind configuration
-- [ ] dedicated design-token module (tokens currently live in `app/globals.css`)
-- [x] editorial + mono font setup
-- [x] base route structure
-- [ ] content directory / schema extraction from page components
-- [x] lint / typecheck / deterministic unit-test setup
-- [x] CI build check
-- [x] accessibility baseline
+- [x] Next.js + TypeScript application
+- [x] canonical paper / ink / AgoCode-red visual language
+- [x] editorial, reading, and monospace typography roles
+- [x] SVG-first AgoCode brand system
+- [x] responsive Book / Roadmap / Lab / Practice / Review routes
+- [x] Python execution in an isolated Web Worker
+- [x] typecheck / lint / tests / production build in CI
+- [x] reduced-motion and keyboard-access baseline
+- [ ] extract design tokens from `app/globals.css` into a dedicated token module
+- [ ] extract lesson content into a structured content schema where page-level JSX is becoming repetitive
 
-### Quality gate
-CI currently runs:
+CI currently gates:
 
 ```text
 pnpm typecheck
@@ -35,146 +34,80 @@ pnpm lint
 pnpm build
 ```
 
-The first deterministic tests cover Binary Search event/trace generation and interval behavior.
+## 3. Shared learning runtime
 
-## 3. Phase 1 — Design foundation
-
-- [x] page shell
-- [x] chapter navigation
-- [x] editorial heading system
-- [x] prose system
-- [x] margin-note component
-- [x] buttons / inputs
-- [x] exercise surface
-- [x] code surface
-- [x] responsive reading layout
-- [x] Home / Continue learning screen
-- [x] Roadmap
-- [x] Binary Search Read mode
-- [x] Binary Search Lab mode
-- [x] Binary Search Practice mode
-
-The design should continue to pass the “Interactive Algorithm Notebook” test: editorial hierarchy, original explanatory visuals, restrained red, no generic SaaS dashboard language.
-
-## 4. Phase 2 — Visualization runtime
-
-### Core primitives
-- [x] array renderer
-- [x] pointer labels
-- [x] range highlight / discarded state
-- [x] comparison annotation
-- [x] state inspector
-- [x] visited-history timeline scrubbing
-
-### Engine
-- [x] semantic event types
-- [x] deterministic trace model
-- [x] forward/backward stepping
-- [x] prediction gates that prevent skipping unreasoned transitions
-- [x] reduced-motion baseline
-- [ ] shared deterministic reducer abstraction
-- [ ] play/pause autoplay
-- [ ] topic-independent timeline controller
-
-### Acceptance criteria
-A learner can step forward/backward, scrub through already-unlocked states, identify `low/mid/high`, see discarded regions, and read a textual explanation of every transition.
-
-## 5. Phase 3 — Binary Search interactive lesson
-
-### Intuition and mental model
-- [x] original ordered-search illustration
-- [x] one-by-one vs. midpoint number guessing
-- [x] remaining-candidate visualization
-- [x] halving / logarithm intuition
-- [x] sorted-input counterexample
-
-### Code connection
-- [x] Python 3 reference implementation
-- [x] current-line highlighting
-- [x] variable-to-visual synchronization
-- [x] prediction before important branch updates
-- [x] custom sorted-array / target scenarios
-- [x] visited-step timeline
+### Visualization
+- [x] semantic Binary Search event model
+- [x] deterministic trace generation
+- [x] forward / backward stepping
+- [x] visited-history scrubbing
+- [x] prediction gates before important transitions
+- [x] shared deterministic timeline reducer
+- [x] reusable timeline reducer tests
+- [ ] topic-independent autoplay controller
 - [ ] stable semantic code-line IDs independent of displayed source formatting
+- [ ] reusable renderer contracts for array / linked-node / stack / queue / graph / table views
 
-### Embedded reasoning
-- [x] maximum-step question
-- [x] doubled-input reasoning (continued in Running Time)
-- [x] invariant explanation check
-- [x] sorted-input explanation check
-- [x] complexity explanation check
-
-## 6. Phase 4 — Code execution and reconstruction
-
-### Runtime
-- [x] Pyodide isolated in a Web Worker
-- [x] stdout/stderr capture
-- [x] timeout / worker restart
+### Python exercises
+- [x] Pyodide worker
+- [x] stdout / stderr capture
+- [x] timeout + worker restart
 - [x] visible tests
-- [x] result summary
 - [x] progressive hint ladder
 - [x] Python-friendly Tab indentation
+- [x] guided reconstruction
+- [x] blank Binary Search reconstruction
+- [x] Binary Search bug-repair mode
 - [ ] hidden-test separation
-- [ ] richer editor / Monaco decision after the learning UX is stable
+- [ ] decide whether Monaco materially improves learning UX before adding its weight
 
-### Learning tasks
-- [x] minimally scaffolded rebuild
-- [ ] missing-line completion mode
-- [ ] completely blank implementation mode
-- [ ] bug-repair mode
-
-## 7. Phase 5 — Mastery and review
-
-### Evidence already captured
-- [x] rebuild completion
-- [x] explanation / invariant completion
-- [x] insertion-position transfer completion
-- [x] first-occurrence transfer completion
-- [x] Chapter 1 cumulative recap completion
-- [x] local spaced-review queue derived from completion evidence
-
-### Still needed
-- [ ] persistent attempt history, not only completion flags
-- [ ] explicit mastery dimensions with confidence/evidence strength
-- [ ] hint-usage weighting
-- [ ] prediction accuracy persistence
+### Learning evidence
+- [x] backward-compatible completion records
+- [x] attempt-history persistence for Python exercises
+- [x] best passed-test count
+- [x] hint-count capture
+- [x] first successful completion time preserved across later attempts
+- [x] bounded local history
+- [ ] persistent prediction accuracy
+- [ ] explicit mastery dimensions: Understand / Trace / Implement / Analyze / Recognize / Transfer
+- [ ] evidence-strength weighting
 - [ ] review success/failure rescheduling
-- [ ] due-review section on the Home page
-- [ ] bug-repair recall tasks
+- [ ] cross-device persistence/account layer
 
-The future mastery model should distinguish Understand, Trace, Implement, Analyze, Recognize, and Transfer instead of collapsing everything into one progress percentage.
+## 4. Chapter 1 — Introduction to Algorithms
 
-## 8. Phase 6 — Binary Search transfer ladder
+### Binary Search
+- [x] concrete ordered-search intuition
+- [x] one-by-one vs. midpoint guessing
+- [x] remaining-candidate visualization
+- [x] logarithmic halving intuition
+- [x] sorted-input counterexample
+- [x] synchronized Python trace
+- [x] custom sorted-array scenarios
+- [x] prediction gates
+- [x] invariant / sorted-input / complexity explanation check
+- [x] guided reconstruction
+- [x] blank reconstruction
+- [x] boundary bug repair
 
+### Transfer ladder
 - [x] insertion position — direct transfer
-- [x] first-occurrence boundary — variant transfer
-- [x] rotated sorted array — pattern transfer with the technique hidden from the problem framing
-- [ ] binary search on answer — mixed/abstract transfer
+- [x] first occurrence — boundary variant
+- [x] rotated sorted array — structural pattern recognition
+- [x] monotonic answer space — abstract/mixed transfer
 
-### UX
-- [x] record the learner's first hypothesis before coding
-- [x] give reasoning feedback rather than only accepted/rejected output
-- [x] remove explicit Binary Search wording from later problem framing
-- [ ] compare the learner's initial hypothesis with final solution evidence
-
-Once search-on-answer is implemented, this first ladder will cover exact → boundary → structural-recognition → abstract-answer-space transfer.
-
-## 9. Phase 7 — Chapter 1 completion
-
-- [x] Binary Search
-- [x] Running Time lesson
-- [x] interactive linear-vs-logarithmic growth visualization
-- [x] Big O lesson
-- [x] common complexity-class comparison
-- [x] worst-case reasoning checkpoint
-- [x] Traveling Salesperson factorial-growth scene
-- [x] original SVG route visualization
-- [x] Chapter 1 recap
+### Running time / Big O / TSP
+- [x] linear-vs-logarithmic growth interaction
+- [x] doubled-input reasoning
+- [x] Big O notation lesson
+- [x] common growth classes
+- [x] worst-case reasoning
+- [x] factorial-growth / Traveling Salesperson scene
+- [x] original route visualization
 - [x] Chapter 1 cumulative retrieval check
-- [x] chapter-level review evidence
+- [x] Chapter 1 review evidence
 
-### Acceptance criteria
-Chapter 1 now forms one narrative:
+Chapter 1 now forms one connected narrative:
 
 ```text
 algorithm idea
@@ -185,62 +118,100 @@ algorithm idea
 → cumulative retrieval
 ```
 
-Further work here is polish/evidence quality rather than missing core lesson coverage.
+## 5. Chapter 2 — Memory, Arrays, Linked Lists, Selection Sort
 
-## 10. Phase 8 — Chapter 2: Memory, Arrays, Lists, Selection Sort
+This chapter follows the book's sequence closely: memory locations first, then arrays/lists and their trade-offs, then a first sorting algorithm.
 
-### New visualization capabilities
-- [ ] memory-slot view
-- [ ] linked-node / pointer renderer
-- [ ] insertion/deletion animations
-- [ ] physical swap animation
+### Memory model
+- [x] addressed-slot visualization
+- [x] single-value storage scene
+- [x] contiguous array allocation scene
+- [x] blocked-adjacent-slot / relocation scene
+- [x] lesson completion evidence
+
+### Arrays and linked lists
+- [x] contiguous array representation
+- [x] scattered linked-node representation
+- [x] direct-index read comparison
+- [x] middle insertion comparison
+- [x] deletion comparison
+- [x] explicit caveat that linked-list O(1) insert/delete assumes the relevant node/location is already known
+- [x] lesson completion evidence
+- [ ] richer pointer-rewiring animation rather than static state emphasis
+- [ ] dedicated exercise that asks the learner to choose a structure from workload characteristics
+
+### Selection Sort
+- [x] deterministic semantic trace generator
+- [x] repeated-smallest selection visualization
+- [x] prediction at the start of each pass
+- [x] shrinking unsorted list + growing sorted output
+- [x] O(n²) scan-length explanation
+- [x] Python reconstruction exercise
+- [x] deterministic unit tests
+- [x] Chapter 2 cumulative recap
+- [x] review scheduling for Selection Sort / Chapter 2
+- [ ] dedicated transfer problem beyond reproducing the sorting routine
+- [ ] optional physical move animation for selected values
+
+## 6. Review and Home guidance
+
+- [x] Home chooses the next learning action from local evidence
+- [x] Home surfaces due-review count
+- [x] Review queue for Binary Search learning / transfer evidence
+- [x] blank-rebuild and bug-repair reviews
+- [x] Selection Sort and Chapter 2 review items
+- [ ] review attempts should reschedule based on recall success, not only original completion date
+- [ ] Home should eventually surface the weakest mastery dimension, not only the next unfinished item
+
+## 7. Chapter 3 — Recursion (next Book Track slice)
+
+### Required visual primitives
+- [ ] stack renderer
+- [ ] call-frame renderer
+- [ ] call-stack push/pop motion
+- [ ] recursion-tree view
+- [ ] synchronized function source + current call state
 
 ### Lessons
-- [ ] memory model
-- [ ] arrays vs. linked lists
-- [ ] operation trade-offs
-- [ ] selection sort
-- [ ] Chapter 2 recap and recall
-
-### Acceptance criteria
-Learners should explain both how Selection Sort works and why data-structure trade-offs matter before implementation details are memorized.
-
-## 11. Phase 9 — Recursion
-
-### New primitives
-- [ ] call-stack renderer
-- [ ] recursion-tree renderer
-
-### Lessons
-- [ ] base case
+- [ ] concrete recursion analogy
 - [ ] recursive case
-- [ ] stack
-- [ ] call stack
+- [ ] base case
+- [ ] stack model
+- [ ] ordinary call stack
 - [ ] recursive call stack
+- [ ] trace prediction
+- [ ] implementation reconstruction
+- [ ] Chapter 3 recap / delayed recall
 
-## 12. Phase 10 — Quicksort / Divide & Conquer
+Acceptance criterion: a learner can predict stack growth and unwinding, identify the base case, and independently write a small recursive function rather than merely recognizing recursive syntax.
 
-- [ ] partition visualization
-- [ ] recursive subproblem view
+## 8. Chapter 4 — Quicksort / Divide & Conquer
+
+- [ ] divide-and-conquer mental model
+- [ ] recursive subproblem visualization
+- [ ] partition / pivot visualization
+- [ ] Quicksort implementation
 - [ ] average vs. worst-case comparison
 - [ ] merge-sort comparison where pedagogically useful
 
-## 13. Phase 11 — Hash Tables
+## 9. Chapter 5 — Hash Tables
 
 - [ ] key → bucket visualization
 - [ ] hash-function intuition
-- [ ] collisions
-- [ ] load factor
+- [ ] collision visualization
 - [ ] lookup / duplicate / cache examples
+- [ ] load factor
+- [ ] resize scene
 
-## 14. Phase 12 — Graph foundation / BFS
+## 10. Chapter 6 — Breadth-First Search
 
 - [ ] graph renderer
 - [ ] queue renderer
 - [ ] visited-state visualization
 - [ ] shortest-path level reasoning
+- [ ] synchronized graph / queue / code trace
 
-## 15. Phase 13 — Dijkstra
+## 11. Chapter 7 — Dijkstra
 
 - [ ] weighted graph
 - [ ] priority queue
@@ -248,35 +219,36 @@ Learners should explain both how Selection Sort works and why data-structure tra
 - [ ] relaxation history
 - [ ] negative-edge counterexample
 
-## 16. Phase 14 — Greedy
+## 12. Chapter 8 — Greedy Algorithms
 
 - [ ] local-decision visualization
 - [ ] successful greedy example
 - [ ] greedy-failure counterexample
 - [ ] approximation intuition
-- [ ] NP-complete recognition framing from the Book Track
+- [ ] NP-complete recognition framing
 
-## 17. Phase 15 — Dynamic Programming
+## 13. Chapter 9 — Dynamic Programming
 
-- [ ] table/grid dependency renderer
-- [ ] state definition before recurrence
+- [ ] table / grid renderer
+- [ ] state-definition-first lesson flow
 - [ ] dependency arrows
 - [ ] incremental filling
 - [ ] reconstruction where relevant
 
-## 18. Phase 16 — KNN and Chapter 11
+## 14. Chapter 10 — KNN
 
-KNN:
 - [ ] 2D feature plot
 - [ ] distance visualization
 - [ ] neighborhood selection
 - [ ] classification vs. regression
 
-Chapter 11 can use lighter interactions because its role is exploration and further reading rather than the same depth as the core chapters.
+## 15. Chapter 11 — Where to Go Next
 
-## 19. Phase 17 — Extension Track
+This chapter is exploratory and can use lighter interactions than the core algorithm chapters while preserving the book's role as a map toward further study.
 
-Only after the Book Track foundation is stable:
+## 16. Extension Track
+
+Only after the Book Track foundation is stable enough to support transfer:
 
 - [ ] two pointers
 - [ ] sliding window
@@ -285,7 +257,7 @@ Only after the Book Track foundation is stable:
 - [ ] fast/slow pointers
 - [x] binary-search boundary variants
 - [x] rotated-array binary-search pattern
-- [ ] binary search on answer
+- [x] binary search on answer
 - [ ] tree patterns
 - [ ] heap
 - [ ] trie
@@ -295,9 +267,9 @@ Only after the Book Track foundation is stable:
 - [ ] intervals
 - [ ] advanced DP
 
-## 20. Phase 18 — AI tutor
+## 17. AI tutor
 
-AI remains intentionally late.
+AI remains intentionally late. The deterministic learning loop must remain useful without it.
 
 First acceptable AI capabilities:
 - [ ] classify misconception from a failed attempt
@@ -308,29 +280,22 @@ First acceptable AI capabilities:
 
 Do not ship a default “solve this for me” interaction.
 
-## 21. Current quality gates
+## 18. Quality gate for every new topic
 
-A topic should not enter the primary learning path unless:
+A topic should not enter the primary Book Track unless:
 
-1. the mental model is clear,
+1. the mental model is clear before formal notation,
 2. interaction works without developer explanation,
-3. visualization and code stay synchronized where appropriate,
+3. visual state and code remain synchronized when code is relevant,
 4. mobile layout is usable,
 5. keyboard access is preserved,
 6. reduced-motion behavior exists,
 7. exercises test reasoning rather than trivia,
 8. implementation recall is possible when appropriate,
 9. content and illustrations are original,
-10. there is at least one transfer or delayed-recall task.
+10. there is at least one delayed-recall or transfer task,
+11. deterministic logic is covered by tests where practical.
 
-## 22. Next milestone
+## 19. Next milestone
 
-Before Chapter 2 becomes the main implementation focus, finish:
-
-1. search-on-answer transfer,
-2. stronger mastery/attempt evidence,
-3. due-review guidance on Home,
-4. blank implementation / bug-repair modes,
-5. visualization reducer/tests extraction where reuse will matter in Chapter 2.
-
-Then Chapter 2 should be implemented as the next complete Book Track slice rather than as isolated pages.
+Before expanding beyond Chapter 2 polish, the next substantial slice is **Chapter 3: Recursion**. Build the stack/call-stack visual grammar first, then use it for the chapter's concrete examples, trace prediction, reconstruction, and recall.

@@ -35,6 +35,9 @@ const reviewDefinitions: ReviewDefinition[] = [
   { key: "agocode.progress.greedy.scheduling", delayDays: 3, title: "Greedy interval scheduling recall", description: "Recover why earliest compatible finish is the local rule and replay the selected non-overlapping schedule without rereading the explanation.", href: "/learn/greedy#schedule" },
   { key: "agocode.progress.greedy.set-cover", delayDays: 4, title: "Set-cover approximation recall", description: "Rebuild the rule that only newly covered requirements count when choosing the next station.", href: "/learn/greedy#set-cover" },
   { key: "agocode.progress.chapter-8.recap", delayDays: 7, title: "Chapter 8 cumulative recall", description: "Reconnect greedy choice, counterexamples, approximation, set cover, and hard combinatorial search before dynamic programming.", href: "/learn/chapter-8-recap" },
+  { key: "agocode.progress.dynamic-programming.knapsack-rebuild", delayDays: 3, title: "0/1 knapsack recurrence recall", description: "Rebuild the grid from the meaning of one cell: best value using the items seen so far under a fixed capacity.", href: "/learn/dynamic-programming#rebuild" },
+  { key: "agocode.progress.dynamic-programming.sequence-grid", delayDays: 4, title: "Substring vs. subsequence recall", description: "Recover why a mismatch resets a contiguous substring but preserves max(up, left) for an ordered subsequence.", href: "/learn/dynamic-programming#strings" },
+  { key: "agocode.progress.chapter-9.recap", delayDays: 7, title: "Chapter 9 cumulative recall", description: "Reconnect constrained optimization, grid state, the knapsack include/exclude recurrence, model boundaries, and sequence DP.", href: "/learn/chapter-9-recap" },
 ];
 
 function completedAt(key: string) {

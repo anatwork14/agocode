@@ -50,7 +50,7 @@ export default function DpBudgetPracticePage() {
         <div className="action-row">
           <Link className="button" href="/practice/greedy-schedule">← Greedy scheduling</Link>
           <Link className="button" href="/practice">Transfer Track</Link>
-          <Link className="button button--primary" href="/practice/mixed">Finish with mixed recognition →</Link>
+          <Link className="button button--primary" href="/practice/knn-classify">Next: similarity-based prediction →</Link>
         </div>
       </div>
     </main>

@@ -9,6 +9,8 @@ const directChallenges = [
   ["03", "Cheapest courier route", "Dijkstra", "/practice/dijkstra-route", "Switch from edge count to accumulated non-negative path cost."],
   ["04", "Maximum studio schedule", "Greedy", "/practice/greedy-schedule", "Choose the local finish-time rule that preserves the most future room."],
   ["05", "Fixed study budget", "Dynamic programming", "/practice/dp-budget", "Define reusable constrained subproblems when a local ratio rule can fail."],
+  ["06", "Classify a new plant", "K-nearest neighbors", "/practice/knn-classify", "Turn feature similarity into a local vote instead of searching for an exact rule."],
+  ["07", "Total nested folder size", "Recursion", "/practice/recursion-folder-size", "Solve the same smaller folder problem until the base case is reached."],
 ] as const;
 
 const binarySearchLadder = [
@@ -56,7 +58,7 @@ export default function PracticePage() {
               <Link className="button button--primary" href="/practice/mixed">Start mixed recognition →</Link>
             </article>
             <article className="practice-domain-card">
-              <div className="practice-domain-card__meta"><span>5 challenges</span><span>code gated</span></div>
+              <div className="practice-domain-card__meta"><span>7 challenges</span><span>code gated</span></div>
               <h3>Cross-chapter coding transfer</h3>
               <p>Each editor stays locked until you identify the technique from the problem structure. Tests then expose whether the implementation preserves the invariant.</p>
               <Link className="button" href="/practice/hash-membership">Start direct transfer →</Link>

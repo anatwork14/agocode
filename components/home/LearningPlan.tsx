@@ -54,6 +54,14 @@ const learningSteps: readonly PlanStep[] = [
   { key: "agocode.progress.chapter-10.recap", label: "Recall", title: "Reconstruct K-nearest neighbors", description: "Retrieve classification, regression, feature extraction, distance, k, and feature quality without rereading first.", href: "/learn/chapter-10-recap" },
   { key: "agocode.progress.chapter-11.explore", label: "Chapter 11", title: "Choose where to go next", description: "Explore trees, indexes, transforms, distributed computation, probabilistic structures, hashing families, and optimization, then choose a branch to deepen.", href: "/learn/where-to-go-next#choose" },
   { key: "agocode.progress.chapter-11.recap", label: "Book Track finale", title: "Reconstruct the advanced-topic map", description: "Connect each Chapter 11 pointer to the problem class it is designed to address.", href: "/learn/chapter-11-recap" },
+  { key: "agocode.progress.transfer.hash-membership", label: "Transfer 01", title: "Recognize direct membership", description: "Preserve encounter order while using hash-backed membership to find the first repeated key.", href: "/practice/hash-membership" },
+  { key: "agocode.progress.transfer.bfs-handoffs", label: "Transfer 02", title: "Recognize shortest unweighted paths", description: "Use FIFO layer order when every edge contributes the same one-step cost.", href: "/practice/bfs-handoffs" },
+  { key: "agocode.progress.transfer.dijkstra-route", label: "Transfer 03", title: "Recognize weighted shortest paths", description: "Switch from fewest edges to minimum accumulated non-negative path cost.", href: "/practice/dijkstra-route" },
+  { key: "agocode.progress.transfer.greedy-schedule", label: "Transfer 04", title: "Recognize a valid greedy rule", description: "Choose the local rule that preserves the most future room in interval scheduling.", href: "/practice/greedy-schedule" },
+  { key: "agocode.progress.transfer.dp-budget", label: "Transfer 05", title: "Recognize reusable constrained states", description: "Use dynamic programming when local score-per-cost choices can miss a better combination.", href: "/practice/dp-budget" },
+  { key: "agocode.progress.transfer.knn-classify", label: "Transfer 06", title: "Recognize similarity-based prediction", description: "Turn feature-space distance and local neighbors into a classification decision.", href: "/practice/knn-classify" },
+  { key: "agocode.progress.transfer.recursion-folder-size", label: "Transfer 07", title: "Recognize self-similar structure", description: "Rebuild a recursive traversal where every nested folder is the same smaller problem.", href: "/practice/recursion-folder-size" },
+  { key: "agocode.progress.transfer.mixed-recognition", label: "Transfer finale", title: "Remove the chapter labels", description: "Interleave techniques and identify the right invariant from constraints before any topic hint gives the answer away.", href: "/practice/mixed" },
 ];
 
 const reviewSchedule = [
@@ -88,6 +96,14 @@ const reviewSchedule = [
   ["agocode.progress.knn.rebuild", 3],
   ["agocode.progress.chapter-10.recap", 7],
   ["agocode.progress.chapter-11.recap", 10],
+  ["agocode.progress.transfer.hash-membership", 3],
+  ["agocode.progress.transfer.bfs-handoffs", 3],
+  ["agocode.progress.transfer.dijkstra-route", 4],
+  ["agocode.progress.transfer.greedy-schedule", 4],
+  ["agocode.progress.transfer.dp-budget", 5],
+  ["agocode.progress.transfer.knn-classify", 5],
+  ["agocode.progress.transfer.recursion-folder-size", 5],
+  ["agocode.progress.transfer.mixed-recognition", 7],
 ] as const;
 
 const extraEvidenceKeys = [
@@ -111,10 +127,10 @@ function chooseNextStep(): Omit<PlanStep, "key"> {
   const next = learningSteps.find((step) => !hasProgress(step.key));
   if (next) return next;
   return {
-    label: "Transfer Track",
-    title: "Move from chapter knowledge to mixed problem recognition",
-    description: "The Book Track is complete. The next frontier is interleaved practice that forces you to recognize the right algorithm or pattern without a chapter label giving away the answer.",
-    href: "/practice",
+    label: "Independent transfer",
+    title: "Cycle between mixed recognition and delayed review",
+    description: "The guided Book and Transfer baselines are complete. Revisit weak patterns after spacing, debug from failed evidence, and add new ladders only when they force genuinely different reasoning.",
+    href: "/review",
   };
 }
 

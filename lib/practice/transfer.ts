@@ -184,4 +184,6 @@ export const transferChallengeKeys = [
   "agocode.progress.transfer.dijkstra-route",
   "agocode.progress.transfer.greedy-schedule",
   "agocode.progress.transfer.dp-budget",
+  "agocode.progress.transfer.knn-classify",
+  "agocode.progress.transfer.recursion-folder-size",
 ] as const;

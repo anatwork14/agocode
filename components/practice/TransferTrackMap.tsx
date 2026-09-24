@@ -41,8 +41,22 @@ const steps = [
     href: "/practice/dp-budget",
   },
   {
-    key: "agocode.progress.transfer.mixed-recognition",
+    key: "agocode.progress.transfer.knn-classify",
     number: "06",
+    title: "Classification from nearby examples",
+    technique: "K-nearest neighbors",
+    href: "/practice/knn-classify",
+  },
+  {
+    key: "agocode.progress.transfer.recursion-folder-size",
+    number: "07",
+    title: "Aggregate a nested folder tree",
+    technique: "Recursion",
+    href: "/practice/recursion-folder-size",
+  },
+  {
+    key: "agocode.progress.transfer.mixed-recognition",
+    number: "08",
     title: "No-label mixed recognition",
     technique: "Interleaved",
     href: "/practice/mixed",
@@ -99,7 +113,7 @@ export function TransferTrackMap() {
 
       {loaded && nextStep ? (
         <div className="transfer-track-map__next">
-          <span>Next evidence target</span>
+          <span>{completedCount === steps.length ? "Transfer baseline complete" : "Next evidence target"}</span>
           <Link href={nextStep.href}>{nextStep.title} →</Link>
         </div>
       ) : null}

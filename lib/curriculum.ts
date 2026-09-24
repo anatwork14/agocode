@@ -14,7 +14,7 @@ export const chapters: Chapter[] = [
   { number: 6, title: "Breadth-first search", topics: ["Graphs", "Directed vs. undirected", "Queues", "Shortest unweighted path", "Visited state", "O(V + E)"], status: "active" },
   { number: 7, title: "Dijkstra’s algorithm", topics: ["Weighted graphs", "Cheapest node", "Relaxation", "Parents", "Negative edges", "Implementation"], status: "active" },
   { number: 8, title: "Greedy algorithms", topics: ["Interval scheduling", "Local choice", "Knapsack counterexample", "Set cover", "Approximation", "Hard combinatorial search"], status: "active" },
-  { number: 9, title: "Dynamic programming", topics: ["Knapsack", "DP grid", "Subproblems", "Sequence problems"], status: "planned" },
+  { number: 9, title: "Dynamic programming", topics: ["Knapsack", "DP grid", "Subproblems", "Grid granularity", "Longest common substring", "Longest common subsequence"], status: "active" },
   { number: 10, title: "K-nearest neighbors", topics: ["Classification", "Features", "Regression", "Distance"], status: "planned" },
   { number: 11, title: "Where to go next", topics: ["Trees", "Inverted indexes", "MapReduce", "Bloom filters", "Linear programming"], status: "planned" },
 ];

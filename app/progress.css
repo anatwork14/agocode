@@ -234,6 +234,73 @@
   line-height: 1.55;
 }
 
+.progress-diagnosis {
+  margin-top: 24px;
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--border);
+  padding: 20px 0;
+}
+
+.progress-diagnosis__heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: end;
+  padding-bottom: 14px;
+}
+
+.progress-diagnosis__heading h3 {
+  margin: 7px 0 0;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 1.35rem;
+}
+
+.progress-diagnosis__heading > span {
+  color: var(--muted);
+  font-size: .67rem;
+}
+
+.progress-diagnosis__rows {
+  display: grid;
+}
+
+.progress-diagnosis__row {
+  display: grid;
+  grid-template-columns: minmax(170px, .8fr) minmax(140px, 1.2fr) 52px;
+  gap: 18px;
+  align-items: center;
+  min-height: 58px;
+  border-top: 1px solid var(--border);
+}
+
+.progress-diagnosis__row > div:first-child {
+  display: grid;
+  gap: 2px;
+}
+
+.progress-diagnosis__row > div:first-child span {
+  color: var(--muted);
+  font-size: .72rem;
+}
+
+.progress-diagnosis__row > .mono {
+  color: var(--muted);
+  font-size: .7rem;
+  text-align: right;
+}
+
+.progress-diagnosis__bar {
+  height: 5px;
+  background: var(--note);
+  overflow: hidden;
+}
+
+.progress-diagnosis__bar span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
 .progress-next {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -275,10 +342,13 @@
   .progress-context { grid-template-columns: 1fr; gap: 16px; }
   .progress-ledger-row { grid-template-columns: 42px minmax(0, 1fr); }
   .progress-ledger-row__heading,
-  .progress-ledger-row__action { display: grid; gap: 6px; }
+  .progress-ledger-row__action,
+  .progress-diagnosis__heading { display: grid; gap: 6px; }
   .progress-ledger-row__status { justify-self: start; }
   .progress-transfer-row { grid-template-columns: 34px minmax(0, 1fr); padding: 10px 0; }
   .progress-transfer-row__state { grid-column: 2; }
+  .progress-diagnosis__row { grid-template-columns: 1fr 48px; gap: 8px 12px; padding: 10px 0; }
+  .progress-diagnosis__bar { grid-row: 2; grid-column: 1 / -1; }
 }
 
 @media (prefers-reduced-motion: reduce) {

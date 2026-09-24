@@ -3,6 +3,7 @@ import { CollisionLoadFactorLab } from "@/components/hash-tables/CollisionLoadFa
 import { DuplicateFilterExercise } from "@/components/hash-tables/DuplicateFilterExercise";
 import { HashFunctionLab } from "@/components/hash-tables/HashFunctionLab";
 import { HashUseCasesLab } from "@/components/hash-tables/HashUseCasesLab";
+import { PriceLookupLab } from "@/components/hash-tables/PriceLookupLab";
 import { MarginNote } from "@/components/ui/MarginNote";
 
 export const metadata = { title: "Hash Tables" };
@@ -34,10 +35,11 @@ export default function HashTablesPage() {
               <section id="lookup">
                 <h2>What if the key itself could tell you where to look?</h2>
                 <p>
-                  Imagine a market counter with a large list of item prices. A linear search checks entries one by one;
-                  a sorted list enables binary search. A hash table takes a different route: transform the item name into
-                  the location where its price is stored, then go directly to that location.
+                  Start at the grocery counter. A linear price list may require simple search; a sorted list enables
+                  binary search. A hash table takes a different route: transform the produce name into the location where
+                  its price is stored, then go directly to that location.
                 </p>
+                <PriceLookupLab />
                 <div className="hash-mental-model" aria-label="Hash table mental model">
                   <span className="hash-mental-model__key">meaningful key</span>
                   <span aria-hidden="true">→</span>
@@ -96,6 +98,7 @@ export default function HashTablesPage() {
                   <div><span>pathological collisions</span><strong className="mono">worst O(n)</strong><p>One long chain can resemble a plain list.</p></div>
                 </div>
                 <p>
+                  The chapter uses a load factor above <span className="mono">0.7</span> as a practical resize signal.
                   When capacity changes, existing keys must be hashed again because valid bucket indexes depend on the
                   size of the underlying array. Resizing is expensive at that moment, but spreading entries across more
                   slots can restore short chains and strong average behavior.

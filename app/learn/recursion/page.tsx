@@ -82,7 +82,7 @@ export default function RecursionPage() {
                 <FactorialRebuild />
                 <div className="action-row">
                   <Link className="button" href="/learn/chapter-2-recap">← Chapter 2 recap</Link>
-                  <Link className="button button--primary" href="/roadmap">Chapter 3 progress →</Link>
+                  <Link className="button button--primary" href="/learn/chapter-3-recap">Chapter 3 recap →</Link>
                 </div>
               </section>
             </div>

@@ -5,6 +5,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import "./globals.css";
 import "./home.css";
 import "./learning.css";
+import "./practice-transfer.css";
 import "./timeline.css";
 import "./explain.css";
 import "./complexity.css";

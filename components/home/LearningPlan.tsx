@@ -40,6 +40,8 @@ const learningSteps: readonly PlanStep[] = [
   { key: "agocode.progress.chapter-5.recap", label: "Recall", title: "Reconstruct Hash Tables", description: "Connect key→bucket mapping, collisions, use cases, and average-case performance without reopening the lesson.", href: "/learn/chapter-5-recap" },
   { key: "agocode.progress.bfs.rebuild", label: "Chapter 06", title: "Search a graph by layers", description: "Model relationships as a graph, make FIFO queue order visible, trace a shortest unweighted path, and rebuild BFS yourself.", href: "/learn/breadth-first-search" },
   { key: "agocode.progress.chapter-6.recap", label: "Recall", title: "Reconstruct Breadth-First Search", description: "Recover graph modeling, FIFO layer order, visited-state protection, shortest-path reasoning, and O(V + E).", href: "/learn/chapter-6-recap" },
+  { key: "agocode.progress.dijkstra.rebuild", label: "Chapter 07", title: "Minimize weighted path cost", description: "Compare BFS with weighted paths, trace cheapest-node selection and edge relaxation, then rebuild Dijkstra from cost and parent tables.", href: "/learn/dijkstra" },
+  { key: "agocode.progress.chapter-7.recap", label: "Recall", title: "Reconstruct Dijkstra", description: "Recover weighted-graph reasoning, relaxation, parent reconstruction, and the negative-weight boundary.", href: "/learn/chapter-7-recap" },
 ];
 
 const reviewSchedule = [
@@ -63,6 +65,8 @@ const reviewSchedule = [
   ["agocode.progress.chapter-5.recap", 7],
   ["agocode.progress.bfs.rebuild", 3],
   ["agocode.progress.chapter-6.recap", 7],
+  ["agocode.progress.dijkstra.rebuild", 3],
+  ["agocode.progress.chapter-7.recap", 7],
 ] as const;
 
 const extraEvidenceKeys = [
@@ -87,8 +91,8 @@ function chooseNextStep(): Omit<PlanStep, "key"> {
   if (next) return next;
   return {
     label: "Next chapter",
-    title: "Preview weighted shortest paths",
-    description: "Chapter 7 keeps the graph model but gives edges different costs, so fewest edges and cheapest route are no longer the same question.",
+    title: "Preview Greedy Algorithms",
+    description: "Chapter 8 studies locally optimal choices, when they produce global answers, and when approximation is the practical goal.",
     href: "/roadmap",
   };
 }

@@ -50,6 +50,10 @@ const liveTopics: Record<number, readonly (readonly [string, string])[]> = {
     ["K-nearest neighbors", "/learn/k-nearest-neighbors"],
     ["Chapter 10 Recap", "/learn/chapter-10-recap"],
   ],
+  11: [
+    ["Where to go next", "/learn/where-to-go-next"],
+    ["Chapter 11 Recap", "/learn/chapter-11-recap"],
+  ],
 };
 
 export default function LearnIndexPage() {

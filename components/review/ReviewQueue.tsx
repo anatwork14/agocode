@@ -32,6 +32,9 @@ const reviewDefinitions: ReviewDefinition[] = [
   { key: "agocode.progress.chapter-6.recap", delayDays: 7, title: "Chapter 6 cumulative recall", description: "Reconnect graph modeling, FIFO layer order, visited state, shortest paths, and O(V + E) before moving to weighted graphs.", href: "/learn/chapter-6-recap" },
   { key: "agocode.progress.dijkstra.rebuild", delayDays: 3, title: "Rebuild Dijkstra's Algorithm", description: "Recover the cheapest-unprocessed-node rule, edge relaxation, parent updates, and processed-node invariant without reopening the trace.", href: "/learn/dijkstra#rebuild" },
   { key: "agocode.progress.chapter-7.recap", delayDays: 7, title: "Chapter 7 cumulative recall", description: "Reconnect weighted paths, relaxation, parent reconstruction, and the negative-weight limitation.", href: "/learn/chapter-7-recap" },
+  { key: "agocode.progress.greedy.scheduling", delayDays: 3, title: "Greedy interval scheduling recall", description: "Recover why earliest compatible finish is the local rule and replay the selected non-overlapping schedule without rereading the explanation.", href: "/learn/greedy#schedule" },
+  { key: "agocode.progress.greedy.set-cover", delayDays: 4, title: "Set-cover approximation recall", description: "Rebuild the rule that only newly covered requirements count when choosing the next station.", href: "/learn/greedy#set-cover" },
+  { key: "agocode.progress.chapter-8.recap", delayDays: 7, title: "Chapter 8 cumulative recall", description: "Reconnect greedy choice, counterexamples, approximation, set cover, and hard combinatorial search before dynamic programming.", href: "/learn/chapter-8-recap" },
 ];
 
 function completedAt(key: string) {

@@ -10,9 +10,20 @@ const items: KnapsackItem[] = [
 ];
 
 const result = buildKnapsackGrid(items, 4);
+const storageKey = "agocode.progress.dynamic-programming.knapsack-grid";
 
 function money(value: number) {
   return `$${value.toLocaleString("en-US")}`;
+}
+
+function markComplete() {
+  try {
+    const existing = localStorage.getItem(storageKey);
+    if (existing) return;
+    localStorage.setItem(storageKey, JSON.stringify({ completedAt: new Date().toISOString(), exerciseId: "knapsack-grid" }));
+  } catch {
+    // The lab remains usable when browser storage is unavailable.
+  }
 }
 
 export function KnapsackGridLab() {
@@ -22,17 +33,22 @@ export function KnapsackGridLab() {
   const lastFrame = step > 0 ? result.frames[step - 1] : null;
   const finished = step === result.frames.length;
 
+  function moveForward() {
+    const nextStep = Math.min(result.frames.length, step + 1);
+    setStep(nextStep);
+    setFeedback(null);
+    if (nextStep === result.frames.length) markComplete();
+  }
+
   function advance() {
     if (!nextFrame) return;
-    setFeedback(null);
-    setStep((value) => Math.min(result.frames.length, value + 1));
+    moveForward();
   }
 
   function predict(decision: "carry" | "take") {
     if (!nextFrame) return;
     if (decision === nextFrame.cell.decision) {
-      setFeedback("Correct. That is the better value for this subproblem.");
-      setStep((value) => Math.min(result.frames.length, value + 1));
+      moveForward();
     } else {
       setFeedback(
         nextFrame.cell.withItem === null

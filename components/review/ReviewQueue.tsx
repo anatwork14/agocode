@@ -38,6 +38,8 @@ const reviewDefinitions: ReviewDefinition[] = [
   { key: "agocode.progress.dynamic-programming.knapsack-rebuild", delayDays: 3, title: "0/1 knapsack recurrence recall", description: "Rebuild the grid from the meaning of one cell: best value using the items seen so far under a fixed capacity.", href: "/learn/dynamic-programming#rebuild" },
   { key: "agocode.progress.dynamic-programming.sequence-grid", delayDays: 4, title: "Substring vs. subsequence recall", description: "Recover why a mismatch resets a contiguous substring but preserves max(up, left) for an ordered subsequence.", href: "/learn/dynamic-programming#strings" },
   { key: "agocode.progress.chapter-9.recap", delayDays: 7, title: "Chapter 9 cumulative recall", description: "Reconnect constrained optimization, grid state, the knapsack include/exclude recurrence, model boundaries, and sequence DP.", href: "/learn/chapter-9-recap" },
+  { key: "agocode.progress.knn.rebuild", delayDays: 3, title: "KNN classifier recall", description: "Rebuild feature-vector distance, nearest-neighbor selection, and majority voting without reopening the finished solution.", href: "/learn/k-nearest-neighbors#rebuild" },
+  { key: "agocode.progress.chapter-10.recap", delayDays: 7, title: "Chapter 10 cumulative recall", description: "Reconnect classification, regression, feature extraction, Euclidean distance, neighborhood size, and feature quality.", href: "/learn/chapter-10-recap" },
 ];
 
 function completedAt(key: string) {

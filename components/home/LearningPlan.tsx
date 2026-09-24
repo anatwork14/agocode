@@ -45,6 +45,10 @@ const learningSteps: readonly PlanStep[] = [
   { key: "agocode.progress.greedy.scheduling", label: "Chapter 08", title: "Choose the earliest finish", description: "Trace interval scheduling and see why one local rule can produce an optimal non-overlapping schedule.", href: "/learn/greedy#schedule" },
   { key: "agocode.progress.greedy.set-cover", label: "Chapter 08", title: "Approximate set cover", description: "Choose the option that covers the most still-uncovered requirements and watch a hard exact search become a practical approximation.", href: "/learn/greedy#set-cover" },
   { key: "agocode.progress.chapter-8.recap", label: "Recall", title: "Reconstruct Greedy Algorithms", description: "Separate proven greedy optimality from approximation, counterexamples, and hard combinatorial search.", href: "/learn/chapter-8-recap" },
+  { key: "agocode.progress.dynamic-programming.knapsack-grid", label: "Chapter 09", title: "Build the knapsack grid", description: "Give every cell a subproblem meaning, then fill the table by comparing carry-forward and include-item choices.", href: "/learn/dynamic-programming#cell" },
+  { key: "agocode.progress.dynamic-programming.knapsack-rebuild", label: "Chapter 09", title: "Rebuild the knapsack recurrence", description: "Write 0/1 knapsack from the cell invariant instead of copying a memorized nested loop.", href: "/learn/dynamic-programming#rebuild" },
+  { key: "agocode.progress.dynamic-programming.sequence-grid", label: "Chapter 09", title: "Compare substring and subsequence", description: "Use the same two-word grid to see why mismatch means reset for substrings but max(up, left) for subsequences.", href: "/learn/dynamic-programming#strings" },
+  { key: "agocode.progress.chapter-9.recap", label: "Recall", title: "Reconstruct Dynamic Programming", description: "Recover state meaning, grid axes, knapsack recurrence, model boundaries, and sequence-grid rules.", href: "/learn/chapter-9-recap" },
 ];
 
 const reviewSchedule = [
@@ -73,6 +77,9 @@ const reviewSchedule = [
   ["agocode.progress.greedy.scheduling", 3],
   ["agocode.progress.greedy.set-cover", 4],
   ["agocode.progress.chapter-8.recap", 7],
+  ["agocode.progress.dynamic-programming.knapsack-rebuild", 3],
+  ["agocode.progress.dynamic-programming.sequence-grid", 4],
+  ["agocode.progress.chapter-9.recap", 7],
 ] as const;
 
 const extraEvidenceKeys = [
@@ -97,8 +104,8 @@ function chooseNextStep(): Omit<PlanStep, "key"> {
   if (next) return next;
   return {
     label: "Next chapter",
-    title: "Preview Dynamic Programming",
-    description: "Chapter 9 returns to knapsack and replaces a merely plausible greedy shortcut with a systematic subproblem table that can recover the optimal value.",
+    title: "Preview K-nearest neighbors",
+    description: "Chapter 10 shifts from exact algorithmic search to classification and regression using similarity, features, distance, and nearby examples.",
     href: "/roadmap",
   };
 }

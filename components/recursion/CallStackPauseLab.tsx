@@ -1,24 +1,25 @@
 "use client";
 
 import { useState } from "react";
+import { StackRenderer } from "@/components/visualization/StackRenderer";
 
 const steps = [
   {
     label: "Call welcome('Ada')",
-    stack: [{ name: "welcome", local: "name = 'Ada'", state: "active" }],
+    stack: [{ id: "welcome", title: "welcome()", detail: "name = 'Ada'", state: "active" as const }],
     note: "A new call frame stores the local value for welcome.",
   },
   {
     label: "welcome calls emphasize(name)",
     stack: [
-      { name: "welcome", local: "name = 'Ada'", state: "paused" },
-      { name: "emphasize", local: "name = 'Ada'", state: "active" },
+      { id: "welcome", title: "welcome()", detail: "name = 'Ada'", state: "paused" as const },
+      { id: "emphasize", title: "emphasize()", detail: "name = 'Ada'", state: "active" as const },
     ],
     note: "The caller is not finished. Its frame stays in memory while the child function runs.",
   },
   {
     label: "emphasize returns",
-    stack: [{ name: "welcome", local: "name = 'Ada'", state: "active" }],
+    stack: [{ id: "welcome", title: "welcome()", detail: "name = 'Ada'", state: "active" as const }],
     note: "The top frame is popped. welcome resumes exactly after the function call that paused it.",
   },
   {
@@ -48,14 +49,7 @@ export function CallStackPauseLab() {
         </section>
         <section>
           <div className="eyebrow">Stack · top first</div>
-          <div className="factorial-stack">
-            {step.stack.length ? [...step.stack].reverse().map((frame) => (
-              <div className={`factorial-frame factorial-frame--${frame.state}`} key={frame.name}>
-                <div><span className="mono">{frame.name}()</span><strong>{frame.state}</strong></div>
-                <span className="factorial-frame__local">{frame.local}</span>
-              </div>
-            )) : <div className="selection-empty">stack empty</div>}
-          </div>
+          <StackRenderer items={step.stack} ariaLabel="Function call stack" />
         </section>
       </div>
 

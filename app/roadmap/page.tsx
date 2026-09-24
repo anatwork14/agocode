@@ -14,6 +14,7 @@ const activeRoutes: Record<number, string> = {
   8: "/learn/greedy",
   9: "/learn/dynamic-programming",
   10: "/learn/k-nearest-neighbors",
+  11: "/learn/where-to-go-next",
 };
 
 export default function RoadmapPage() {
@@ -33,16 +34,16 @@ export default function RoadmapPage() {
         <section className="section">
           <div className="roadmap-grid">
             <aside className="roadmap-side">
-              <div className="eyebrow">Current frontier</div>
+              <div className="eyebrow">Book Track frontier</div>
               <h2 style={{ fontFamily: "var(--font-editorial)", fontSize: "2rem", margin: "14px 0 8px" }}>
                 Chapter {String(current.number).padStart(2, "0")}
               </h2>
               <p>
-                {current.title}. Chapters before this frontier already have live Book Track slices; later chapters remain
-                visible so the dependency chain stays understandable.
+                {current.title}. The canonical chapter sequence is now live through the book&apos;s final survey chapter.
+                The next product frontier is mixed transfer practice and deeper algorithm branches.
               </p>
               <Link className="button button--primary" href={activeRoutes[current.number] ?? "/learn"}>
-                Continue current chapter →
+                Open final Book Track chapter →
               </Link>
             </aside>
 

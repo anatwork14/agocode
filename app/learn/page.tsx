@@ -3,13 +3,21 @@ import { chapters } from "@/lib/curriculum";
 
 export const metadata = { title: "Book" };
 
-const chapterOneTopics = [
-  ["Binary Search", "/learn/binary-search", "Live"],
-  ["Running Time", "/learn/running-time", "Live"],
-  ["Big O", "/learn/big-o", "Live"],
-  ["Traveling Salesperson", "/learn/traveling-salesperson", "Live"],
-  ["Chapter 1 Recap", "/learn/chapter-1-recap", "Live"],
-] as const;
+const liveTopics: Record<number, readonly (readonly [string, string])[]> = {
+  1: [
+    ["Binary Search", "/learn/binary-search"],
+    ["Running Time", "/learn/running-time"],
+    ["Big O", "/learn/big-o"],
+    ["Traveling Salesperson", "/learn/traveling-salesperson"],
+    ["Chapter 1 Recap", "/learn/chapter-1-recap"],
+  ],
+  2: [
+    ["How Memory Works", "/learn/memory"],
+    ["Arrays & Linked Lists", "/learn/arrays-linked-lists"],
+    ["Selection Sort", "/learn/selection-sort"],
+    ["Chapter 2 Recap", "/learn/chapter-2-recap"],
+  ],
+};
 
 export default function LearnIndexPage() {
   return (
@@ -25,15 +33,16 @@ export default function LearnIndexPage() {
         <section className="section">
           <div className="chapter-list">
             {chapters.map((chapter) => {
-              if (chapter.number === 1) {
+              const topics = liveTopics[chapter.number];
+              if (topics) {
                 return (
                   <div className="chapter-row chapter-row--expanded" key={chapter.number}>
-                    <div className="chapter-row__number">01</div>
+                    <div className="chapter-row__number">{String(chapter.number).padStart(2, "0")}</div>
                     <div>
                       <h3>{chapter.title}</h3>
                       <p>{chapter.topics.join(" · ")}</p>
                       <div className="action-row" style={{ marginTop: 16 }}>
-                        {chapterOneTopics.map(([title, href]) => (
+                        {topics.map(([title, href]) => (
                           <Link className="button" href={href} key={title}>
                             {title}
                           </Link>

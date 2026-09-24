@@ -16,7 +16,7 @@ export const chapters: Chapter[] = [
     number: 2,
     title: "Selection sort",
     topics: ["Memory", "Arrays and linked lists", "Selection sort"],
-    status: "planned",
+    status: "active",
   },
   {
     number: 3,

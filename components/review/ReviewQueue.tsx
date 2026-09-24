@@ -30,6 +30,8 @@ const reviewDefinitions: ReviewDefinition[] = [
   { key: "agocode.progress.chapter-5.recap", delayDays: 7, title: "Chapter 5 cumulative recall", description: "Reconnect hash function, array buckets, use cases, collisions, load factor, resizing, and average-case performance.", href: "/learn/chapter-5-recap" },
   { key: "agocode.progress.bfs.rebuild", delayDays: 3, title: "Rebuild Breadth-First Search", description: "Recover the FIFO queue, visited/discovered state, and path information that make shortest unweighted search work.", href: "/learn/breadth-first-search#rebuild" },
   { key: "agocode.progress.chapter-6.recap", delayDays: 7, title: "Chapter 6 cumulative recall", description: "Reconnect graph modeling, FIFO layer order, visited state, shortest paths, and O(V + E) before moving to weighted graphs.", href: "/learn/chapter-6-recap" },
+  { key: "agocode.progress.dijkstra.rebuild", delayDays: 3, title: "Rebuild Dijkstra's Algorithm", description: "Recover the cheapest-unprocessed-node rule, edge relaxation, parent updates, and processed-node invariant without reopening the trace.", href: "/learn/dijkstra#rebuild" },
+  { key: "agocode.progress.chapter-7.recap", delayDays: 7, title: "Chapter 7 cumulative recall", description: "Reconnect weighted paths, relaxation, parent reconstruction, and the negative-weight limitation.", href: "/learn/chapter-7-recap" },
 ];
 
 function completedAt(key: string) {

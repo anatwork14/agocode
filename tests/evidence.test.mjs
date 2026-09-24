@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { readLearningEvidence, recordLearningAttempt } from "../lib/learning/evidence.ts";
+import { readLearningEvidence, recordLearningAttempt, recordRecognitionCompletion } from "../lib/learning/evidence.ts";
 
 function makeStorage(initial = {}) {
   const values = new Map(Object.entries(initial));
@@ -24,6 +24,24 @@ test("legacy completion records remain readable", () => {
   assert.equal(evidence.completedAt, "2026-09-20T00:00:00.000Z");
   assert.equal(evidence.exerciseId, "binary-search");
   assert.deepEqual(evidence.attempts, []);
+});
+
+test("early mixed-recognition records migrate score into structured evidence", () => {
+  const storage = makeStorage({
+    mixed: JSON.stringify({
+      completedAt: "2026-09-21T00:00:00.000Z",
+      exerciseId: "mixed-pattern-recognition",
+      score: 7,
+      total: 10,
+    }),
+  });
+
+  const evidence = readLearningEvidence(storage, "mixed");
+  assert.ok(evidence?.recognition);
+  assert.equal(evidence.recognition.sessions, 1);
+  assert.equal(evidence.recognition.bestFirstTryCorrect, 7);
+  assert.equal(evidence.recognition.lastFirstTryCorrect, 7);
+  assert.equal(evidence.recognition.totalScenarios, 10);
 });
 
 test("attempt history records failures and first successful completion", () => {
@@ -80,6 +98,42 @@ test("later successful attempts do not reset the original completion time", () =
 
   assert.equal(later.completedAt, "2026-09-20T00:00:00.000Z");
   assert.equal(later.lowestHintCountOnPass, 0);
+});
+
+test("recognition sessions preserve the first completion and best first-try score", () => {
+  const storage = makeStorage();
+
+  recordRecognitionCompletion(storage, "mixed", {
+    exerciseId: "mixed-pattern-recognition",
+    completedAt: "2026-09-20T00:00:00.000Z",
+    firstTryCorrect: 6,
+    totalScenarios: 10,
+  });
+
+  const later = recordRecognitionCompletion(storage, "mixed", {
+    exerciseId: "mixed-pattern-recognition",
+    completedAt: "2026-09-27T00:00:00.000Z",
+    firstTryCorrect: 9,
+    totalScenarios: 10,
+  });
+
+  assert.equal(later.completedAt, "2026-09-20T00:00:00.000Z");
+  assert.ok(later.recognition);
+  assert.equal(later.recognition.sessions, 2);
+  assert.equal(later.recognition.lastFirstTryCorrect, 9);
+  assert.equal(later.recognition.bestFirstTryCorrect, 9);
+  assert.equal(later.recognition.totalScenarios, 10);
+});
+
+test("recognition score is clamped to the scenario count", () => {
+  const storage = makeStorage();
+  const evidence = recordRecognitionCompletion(storage, "mixed", {
+    exerciseId: "mixed-pattern-recognition",
+    firstTryCorrect: 15,
+    totalScenarios: 10,
+  });
+
+  assert.equal(evidence.recognition?.lastFirstTryCorrect, 10);
 });
 
 test("attempt history is bounded", () => {

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { recordRecognitionCompletion } from "@/lib/learning/evidence";
 import { recognitionScenarios, transferTechniques, type TransferTechniqueId } from "@/lib/practice/transfer";
 
 const storageKey = "agocode.progress.transfer.mixed-recognition";
@@ -13,19 +14,11 @@ type AnswerRecord = {
 };
 
 function saveCompletion(score: number, total: number) {
-  try {
-    localStorage.setItem(
-      storageKey,
-      JSON.stringify({
-        completedAt: new Date().toISOString(),
-        exerciseId: "mixed-pattern-recognition",
-        score,
-        total,
-      }),
-    );
-  } catch {
-    // The drill stays usable even if browser storage is unavailable.
-  }
+  recordRecognitionCompletion(localStorage, storageKey, {
+    exerciseId: "mixed-pattern-recognition",
+    firstTryCorrect: score,
+    totalScenarios: total,
+  });
 }
 
 export function PatternRecognitionDrill() {
@@ -148,7 +141,7 @@ export function PatternRecognitionDrill() {
           <span className="eyebrow">Mixed set complete</span>
           <h3>{score}/{recognitionScenarios.length} recognized on the first attempt.</h3>
           <p>
-            The first-try score matters because transfer means identifying a technique before feedback tells you what chapter you are in. Revisit misses after a delay rather than immediately memorizing the labels.
+            The first-try score matters because transfer means identifying a technique before feedback tells you what chapter you are in. This score is now kept as learning evidence so later sessions can measure whether recognition improves after spacing.
           </p>
         </div>
       ) : null}

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { readLearningEvidence } from "@/lib/learning/evidence";
 
+const mixedKey = "agocode.progress.transfer.mixed-recognition";
+
 const steps = [
   {
     key: "agocode.progress.transfer.hash-membership",
@@ -55,7 +57,7 @@ const steps = [
     href: "/practice/recursion-folder-size",
   },
   {
-    key: "agocode.progress.transfer.mixed-recognition",
+    key: mixedKey,
     number: "08",
     title: "No-label mixed recognition",
     technique: "Interleaved",
@@ -65,6 +67,7 @@ const steps = [
 
 export function TransferTrackMap() {
   const [completed, setCompleted] = useState<Record<string, boolean>>({});
+  const [mixedBest, setMixedBest] = useState<{ score: number; total: number; sessions: number } | null>(null);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -72,6 +75,14 @@ export function TransferTrackMap() {
       const next: Record<string, boolean> = {};
       for (const step of steps) {
         next[step.key] = Boolean(readLearningEvidence(localStorage, step.key)?.completedAt);
+      }
+      const mixed = readLearningEvidence(localStorage, mixedKey);
+      if (mixed?.recognition) {
+        setMixedBest({
+          score: mixed.recognition.bestFirstTryCorrect,
+          total: mixed.recognition.totalScenarios,
+          sessions: mixed.recognition.sessions,
+        });
       }
       setCompleted(next);
       setLoaded(true);
@@ -91,7 +102,10 @@ export function TransferTrackMap() {
         </div>
         <div className="transfer-track-map__metric">
           <strong>{loaded ? completedCount : "—"}/{steps.length}</strong>
-          <span>evidence items complete</span>
+          <span>
+            evidence items complete
+            {mixedBest ? ` · mixed best ${mixedBest.score}/${mixedBest.total} across ${mixedBest.sessions} session${mixedBest.sessions === 1 ? "" : "s"}` : ""}
+          </span>
         </div>
       </div>
 

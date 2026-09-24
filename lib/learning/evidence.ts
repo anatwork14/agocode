@@ -12,6 +12,13 @@ export type LearningAttempt = {
   runtimeError: boolean;
 };
 
+export type RecognitionEvidence = {
+  sessions: number;
+  lastFirstTryCorrect: number;
+  bestFirstTryCorrect: number;
+  totalScenarios: number;
+};
+
 export type LearningEvidence = {
   version: 1;
   exerciseId: string;
@@ -20,11 +27,19 @@ export type LearningEvidence = {
   bestPassedCount: number;
   totalTests: number;
   lowestHintCountOnPass?: number;
+  recognition?: RecognitionEvidence;
 };
 
 type RecordAttemptInput = Omit<LearningAttempt, "attemptedAt"> & {
   exerciseId: string;
   attemptedAt?: string;
+};
+
+type RecordRecognitionInput = {
+  exerciseId: string;
+  firstTryCorrect: number;
+  totalScenarios: number;
+  completedAt?: string;
 };
 
 const MAX_ATTEMPTS = 50;
@@ -40,6 +55,36 @@ function isAttempt(value: unknown): value is LearningAttempt {
     typeof attempt.hintCount === "number" &&
     typeof attempt.runtimeError === "boolean"
   );
+}
+
+function parseRecognition(value: unknown): RecognitionEvidence | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const recognition = value as Partial<RecognitionEvidence>;
+  if (
+    typeof recognition.sessions !== "number" ||
+    typeof recognition.lastFirstTryCorrect !== "number" ||
+    typeof recognition.bestFirstTryCorrect !== "number" ||
+    typeof recognition.totalScenarios !== "number"
+  ) {
+    return undefined;
+  }
+
+  return {
+    sessions: Math.max(0, recognition.sessions),
+    lastFirstTryCorrect: Math.max(0, recognition.lastFirstTryCorrect),
+    bestFirstTryCorrect: Math.max(0, recognition.bestFirstTryCorrect),
+    totalScenarios: Math.max(0, recognition.totalScenarios),
+  };
+}
+
+function legacyRecognition(parsed: Record<string, unknown>): RecognitionEvidence | undefined {
+  if (typeof parsed.score !== "number" || typeof parsed.total !== "number") return undefined;
+  return {
+    sessions: 1,
+    lastFirstTryCorrect: Math.max(0, parsed.score),
+    bestFirstTryCorrect: Math.max(0, parsed.score),
+    totalScenarios: Math.max(0, parsed.total),
+  };
 }
 
 export function readLearningEvidence(
@@ -65,10 +110,11 @@ export function readLearningEvidence(
         totalTests: typeof parsed.totalTests === "number" ? parsed.totalTests : 0,
         lowestHintCountOnPass:
           typeof parsed.lowestHintCountOnPass === "number" ? parsed.lowestHintCountOnPass : undefined,
+        recognition: parseRecognition(parsed.recognition) ?? legacyRecognition(parsed),
       };
     }
 
-    // Backward compatibility with the original completion-only record.
+    // Backward compatibility with completion-only and early recognition records.
     if (typeof parsed.completedAt === "string") {
       return {
         version: 1,
@@ -77,6 +123,7 @@ export function readLearningEvidence(
         attempts: [],
         bestPassedCount: 0,
         totalTests: 0,
+        recognition: legacyRecognition(parsed),
       };
     }
   } catch {
@@ -117,12 +164,49 @@ export function recordLearningAttempt(
     bestPassedCount: Math.max(previous?.bestPassedCount ?? 0, input.passedCount),
     totalTests: Math.max(previous?.totalTests ?? 0, input.totalTests),
     lowestHintCountOnPass,
+    recognition: previous?.recognition,
   };
 
   try {
     storage.setItem(key, JSON.stringify(evidence));
   } catch {
     // Learning should still work if browser storage is unavailable or full.
+  }
+
+  return evidence;
+}
+
+export function recordRecognitionCompletion(
+  storage: StorageLike,
+  key: string,
+  input: RecordRecognitionInput,
+): LearningEvidence {
+  const completedAt = input.completedAt ?? new Date().toISOString();
+  const previous = readLearningEvidence(storage, key, input.exerciseId);
+  const firstTryCorrect = Math.max(0, Math.min(input.firstTryCorrect, input.totalScenarios));
+  const totalScenarios = Math.max(0, input.totalScenarios);
+  const priorRecognition = previous?.recognition;
+
+  const evidence: LearningEvidence = {
+    version: 1,
+    exerciseId: input.exerciseId,
+    completedAt: previous?.completedAt ?? completedAt,
+    attempts: previous?.attempts ?? [],
+    bestPassedCount: previous?.bestPassedCount ?? 0,
+    totalTests: previous?.totalTests ?? 0,
+    lowestHintCountOnPass: previous?.lowestHintCountOnPass,
+    recognition: {
+      sessions: (priorRecognition?.sessions ?? 0) + 1,
+      lastFirstTryCorrect: firstTryCorrect,
+      bestFirstTryCorrect: Math.max(priorRecognition?.bestFirstTryCorrect ?? 0, firstTryCorrect),
+      totalScenarios: Math.max(priorRecognition?.totalScenarios ?? 0, totalScenarios),
+    },
+  };
+
+  try {
+    storage.setItem(key, JSON.stringify(evidence));
+  } catch {
+    // Recognition practice should remain usable without persistent storage.
   }
 
   return evidence;

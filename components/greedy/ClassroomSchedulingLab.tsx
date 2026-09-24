@@ -25,6 +25,19 @@ export function ClassroomSchedulingLab() {
   const rejected = new Set(visibleDecisions.filter((item) => !item.accepted).map((item) => item.interval.id));
   const next = result.decisions[step];
 
+  function advance() {
+    setStep((value) => {
+      const nextStep = Math.min(result.decisions.length, value + 1);
+      if (nextStep === result.decisions.length) {
+        localStorage.setItem(
+          "agocode.progress.greedy.scheduling",
+          JSON.stringify({ completedAt: new Date().toISOString(), exerciseId: "greedy-interval-scheduling" }),
+        );
+      }
+      return nextStep;
+    });
+  }
+
   return (
     <div className="greedy-schedule-lab">
       <div className="greedy-lab__header">
@@ -70,7 +83,7 @@ export function ClassroomSchedulingLab() {
 
       <div className="lab-toolbar">
         <button className="button" type="button" onClick={() => setStep((value) => Math.max(0, value - 1))} disabled={step === 0}>← Back</button>
-        <button className="button button--primary" type="button" onClick={() => setStep((value) => Math.min(result.decisions.length, value + 1))} disabled={step === result.decisions.length}>
+        <button className="button button--primary" type="button" onClick={advance} disabled={step === result.decisions.length}>
           {step === result.decisions.length ? "Schedule complete" : "Evaluate next →"}
         </button>
         <button className="button button--quiet" type="button" onClick={() => setStep(0)}>Reset</button>

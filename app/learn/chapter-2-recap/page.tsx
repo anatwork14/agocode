@@ -24,10 +24,7 @@ export default function ChapterTwoRecapPage() {
           {sequence.map(([number, title, description, href]) => (
             <Link href={href} className="chapter-recap-map__row" key={number}>
               <span className="chapter-recap-map__number mono">{number}</span>
-              <div>
-                <strong>{title}</strong>
-                <p>{description}</p>
-              </div>
+              <div><strong>{title}</strong><p>{description}</p></div>
               <span aria-hidden="true">→</span>
             </Link>
           ))}
@@ -37,7 +34,7 @@ export default function ChapterTwoRecapPage() {
           <ChapterTwoRecapCheck />
           <div className="action-row">
             <Link className="button" href="/learn/selection-sort">← Selection Sort</Link>
-            <Link className="button button--primary" href="/roadmap">Preview Chapter 3 →</Link>
+            <Link className="button button--primary" href="/learn/recursion">Continue to Recursion →</Link>
           </div>
         </section>
       </div>

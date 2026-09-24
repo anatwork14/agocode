@@ -10,6 +10,7 @@ import "./explain.css";
 import "./complexity.css";
 import "./chapter-one.css";
 import "./chapter-two.css";
+import "./chapter-three.css";
 import "./review.css";
 
 const editorial = Fraunces({ subsets: ["latin"], variable: "--font-editorial", display: "swap" });

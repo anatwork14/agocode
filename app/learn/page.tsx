@@ -17,6 +17,9 @@ const liveTopics: Record<number, readonly (readonly [string, string])[]> = {
     ["Selection Sort", "/learn/selection-sort"],
     ["Chapter 2 Recap", "/learn/chapter-2-recap"],
   ],
+  3: [
+    ["Recursion", "/learn/recursion"],
+  ],
 };
 
 export default function LearnIndexPage() {
@@ -43,9 +46,7 @@ export default function LearnIndexPage() {
                       <p>{chapter.topics.join(" · ")}</p>
                       <div className="action-row" style={{ marginTop: 16 }}>
                         {topics.map(([title, href]) => (
-                          <Link className="button" href={href} key={title}>
-                            {title}
-                          </Link>
+                          <Link className="button" href={href} key={title}>{title}</Link>
                         ))}
                       </div>
                     </div>

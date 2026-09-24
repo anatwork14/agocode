@@ -13,6 +13,7 @@ const activeRoutes: Record<number, string> = {
   7: "/learn/dijkstra",
   8: "/learn/greedy",
   9: "/learn/dynamic-programming",
+  10: "/learn/k-nearest-neighbors",
 };
 
 export default function RoadmapPage() {

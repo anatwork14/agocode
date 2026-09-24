@@ -14,23 +14,41 @@ export type HashTableSnapshot<T = string> = {
   longestChain: number;
 };
 
-export function educationalHash(key: string, capacity: number): number {
+export type HashStep = {
+  character: string;
+  codePoint: number;
+  previous: number;
+  next: number;
+};
+
+function assertCapacity(capacity: number) {
   if (!Number.isInteger(capacity) || capacity <= 0) {
     throw new Error("capacity must be a positive integer");
   }
+}
 
+export function traceEducationalHash(key: string, capacity: number): HashStep[] {
+  assertCapacity(capacity);
+  const steps: HashStep[] = [];
   let hash = 0;
+
   for (const character of key.toLowerCase()) {
-    hash = (hash * 31 + character.codePointAt(0)!) % capacity;
+    const codePoint = character.codePointAt(0)!;
+    const previous = hash;
+    hash = (hash * 31 + codePoint) % capacity;
+    steps.push({ character, codePoint, previous, next: hash });
   }
-  return hash;
+
+  return steps;
+}
+
+export function educationalHash(key: string, capacity: number): number {
+  const steps = traceEducationalHash(key, capacity);
+  return steps.at(-1)?.next ?? 0;
 }
 
 export function buildHashTable<T>(entries: readonly HashEntry<T>[], capacity: number): HashTableSnapshot<T> {
-  if (!Number.isInteger(capacity) || capacity <= 0) {
-    throw new Error("capacity must be a positive integer");
-  }
-
+  assertCapacity(capacity);
   const buckets: HashBucket<T>[] = Array.from({ length: capacity }, () => []);
   let collisions = 0;
 

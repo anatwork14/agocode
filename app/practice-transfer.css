@@ -1,0 +1,425 @@
+.transfer-track-map {
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--border);
+  padding: 22px 0 8px;
+}
+
+.transfer-track-map__summary {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 20px;
+}
+
+.transfer-track-map__summary h2,
+.recognition-drill__header h2 {
+  margin: 7px 0 0;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 1.8rem;
+  letter-spacing: -.02em;
+}
+
+.transfer-track-map__metric {
+  min-width: 150px;
+  text-align: right;
+}
+
+.transfer-track-map__metric strong {
+  display: block;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 2rem;
+}
+
+.transfer-track-map__metric span {
+  color: var(--muted);
+  font-size: .72rem;
+}
+
+.transfer-track-steps {
+  border-top: 1px solid var(--border);
+}
+
+.transfer-track-step {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  min-height: 70px;
+  border-bottom: 1px solid var(--border);
+}
+
+.transfer-track-step__number {
+  color: var(--accent);
+  font-size: .72rem;
+}
+
+.transfer-track-step > div {
+  display: grid;
+  gap: 3px;
+}
+
+.transfer-track-step > div span {
+  color: var(--muted);
+  font-size: .78rem;
+}
+
+.transfer-track-step__state {
+  color: var(--muted);
+  font-size: .65rem;
+  text-transform: uppercase;
+}
+
+.transfer-track-step--done .transfer-track-step__state {
+  color: var(--state-success);
+}
+
+.transfer-track-step--done > div strong::after {
+  content: "  ✓";
+  color: var(--state-success);
+}
+
+.transfer-track-map__next {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 14px 0 6px;
+  color: var(--muted);
+  font-size: .78rem;
+}
+
+.transfer-track-map__next a {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.transfer-constraints,
+.recognition-constraints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 15px;
+}
+
+.transfer-constraints span,
+.recognition-constraints span {
+  border: 1px solid var(--border);
+  background: var(--paper);
+  padding: 5px 8px;
+  color: var(--ink-secondary);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: .65rem;
+}
+
+.hypothesis-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.hypothesis-option {
+  display: grid;
+  gap: 6px;
+  min-height: 100px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 14px;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.hypothesis-option:hover {
+  border-color: var(--ink);
+}
+
+.hypothesis-option strong {
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 1.05rem;
+}
+
+.hypothesis-option span {
+  color: var(--ink-secondary);
+  font-size: .78rem;
+  line-height: 1.45;
+}
+
+.hypothesis-option--correct {
+  border-color: var(--state-success);
+  background: color-mix(in srgb, var(--state-success) 7%, var(--surface));
+}
+
+.hypothesis-option--wrong {
+  border-color: var(--state-warning);
+  background: color-mix(in srgb, var(--state-warning) 6%, var(--surface));
+}
+
+.hypothesis-confirmed {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+  border-left: 3px solid var(--state-success);
+  background: color-mix(in srgb, var(--state-success) 5%, var(--paper));
+  padding: 14px 16px;
+}
+
+.hypothesis-confirmed strong {
+  color: var(--ink-secondary);
+  line-height: 1.55;
+}
+
+.hypothesis-confirmed .button {
+  justify-self: start;
+}
+
+.recognition-drill {
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--border);
+  padding: 24px 0;
+}
+
+.recognition-drill__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.recognition-drill__header > span {
+  color: var(--muted);
+  font-size: .7rem;
+}
+
+.recognition-problem {
+  max-width: 820px;
+  margin-top: 22px;
+  border-left: 3px solid var(--ink);
+  padding: 2px 0 2px 18px;
+}
+
+.recognition-problem p {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 1.35rem;
+  line-height: 1.45;
+}
+
+.recognition-question {
+  margin-top: 24px;
+}
+
+.recognition-question__prompt {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.recognition-techniques {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.recognition-technique {
+  display: grid;
+  gap: 6px;
+  min-height: 112px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 15px;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.recognition-technique:not(:disabled):hover {
+  border-color: var(--ink);
+}
+
+.recognition-technique strong {
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 1.02rem;
+}
+
+.recognition-technique span {
+  color: var(--ink-secondary);
+  font-size: .76rem;
+  line-height: 1.5;
+}
+
+.recognition-technique--correct {
+  border-color: var(--state-success);
+  background: color-mix(in srgb, var(--state-success) 7%, var(--surface));
+}
+
+.recognition-technique--wrong {
+  border-color: var(--state-warning);
+  background: color-mix(in srgb, var(--state-warning) 6%, var(--surface));
+}
+
+.recognition-feedback {
+  margin-top: 16px;
+  border-left: 3px solid var(--state-warning);
+  background: var(--paper);
+  padding: 15px 17px;
+}
+
+.recognition-feedback--correct {
+  border-left-color: var(--state-success);
+}
+
+.recognition-feedback h3 {
+  margin: 5px 0 8px;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 1.35rem;
+}
+
+.recognition-feedback p {
+  margin: 8px 0;
+  color: var(--ink-secondary);
+  line-height: 1.55;
+}
+
+.recognition-invariant {
+  display: grid;
+  gap: 5px;
+  margin: 12px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 11px 0;
+}
+
+.recognition-invariant span {
+  color: var(--accent);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: .65rem;
+  text-transform: uppercase;
+}
+
+.recognition-invariant strong {
+  font-size: .86rem;
+  line-height: 1.5;
+}
+
+.recognition-trap {
+  font-size: .82rem;
+}
+
+.recognition-progress {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 20px;
+}
+
+.recognition-progress__dot {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: .65rem;
+  cursor: pointer;
+}
+
+.recognition-progress__dot--current {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.recognition-progress__dot--done {
+  border-color: var(--state-success);
+  color: var(--state-success);
+}
+
+.recognition-complete {
+  margin-top: 22px;
+  border-top: 1px solid var(--ink);
+  padding-top: 18px;
+}
+
+.recognition-complete h3 {
+  margin: 6px 0;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 1.45rem;
+}
+
+.recognition-complete p {
+  max-width: 760px;
+  color: var(--ink-secondary);
+  line-height: 1.6;
+}
+
+.practice-domain-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  border: 1px solid var(--border);
+  background: var(--border);
+}
+
+.practice-domain-card {
+  min-height: 180px;
+  background: var(--surface);
+  padding: 20px;
+}
+
+.practice-domain-card__meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: .65rem;
+  text-transform: uppercase;
+}
+
+.practice-domain-card h3 {
+  margin: 14px 0 8px;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 1.25rem;
+}
+
+.practice-domain-card p {
+  margin: 0;
+  color: var(--ink-secondary);
+  line-height: 1.55;
+}
+
+.practice-domain-card .button {
+  margin-top: 16px;
+}
+
+@media (max-width: 760px) {
+  .transfer-track-map__summary,
+  .recognition-drill__header {
+    display: grid;
+  }
+
+  .transfer-track-map__metric {
+    text-align: left;
+  }
+
+  .hypothesis-options,
+  .recognition-techniques,
+  .practice-domain-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .transfer-track-step {
+    grid-template-columns: 36px minmax(0, 1fr);
+    padding: 10px 0;
+  }
+
+  .transfer-track-step__state {
+    grid-column: 2;
+  }
+
+  .transfer-track-map__next {
+    display: grid;
+  }
+}

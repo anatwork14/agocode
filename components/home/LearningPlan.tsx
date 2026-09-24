@@ -49,6 +49,9 @@ const learningSteps: readonly PlanStep[] = [
   { key: "agocode.progress.dynamic-programming.knapsack-rebuild", label: "Chapter 09", title: "Rebuild the knapsack recurrence", description: "Write 0/1 knapsack from the cell invariant instead of copying a memorized nested loop.", href: "/learn/dynamic-programming#rebuild" },
   { key: "agocode.progress.dynamic-programming.sequence-grid", label: "Chapter 09", title: "Compare substring and subsequence", description: "Use the same two-word grid to see why mismatch means reset for substrings but max(up, left) for subsequences.", href: "/learn/dynamic-programming#strings" },
   { key: "agocode.progress.chapter-9.recap", label: "Recall", title: "Reconstruct Dynamic Programming", description: "Recover state meaning, grid axes, knapsack recurrence, model boundaries, and sequence-grid rules.", href: "/learn/chapter-9-recap" },
+  { key: "agocode.progress.knn.classification", label: "Chapter 10", title: "Classify by neighborhood", description: "Predict before revealing the nearest labeled points, then watch distance turn a feature space into a classification decision.", href: "/learn/k-nearest-neighbors#classify" },
+  { key: "agocode.progress.knn.rebuild", label: "Chapter 10", title: "Rebuild KNN classification", description: "Recover the feature → distance → nearest neighbors → vote pipeline in Python.", href: "/learn/k-nearest-neighbors#rebuild" },
+  { key: "agocode.progress.chapter-10.recap", label: "Recall", title: "Reconstruct K-nearest neighbors", description: "Retrieve classification, regression, feature extraction, distance, k, and feature quality without rereading first.", href: "/learn/chapter-10-recap" },
 ];
 
 const reviewSchedule = [
@@ -80,6 +83,8 @@ const reviewSchedule = [
   ["agocode.progress.dynamic-programming.knapsack-rebuild", 3],
   ["agocode.progress.dynamic-programming.sequence-grid", 4],
   ["agocode.progress.chapter-9.recap", 7],
+  ["agocode.progress.knn.rebuild", 3],
+  ["agocode.progress.chapter-10.recap", 7],
 ] as const;
 
 const extraEvidenceKeys = [
@@ -103,9 +108,9 @@ function chooseNextStep(): Omit<PlanStep, "key"> {
   const next = learningSteps.find((step) => !hasProgress(step.key));
   if (next) return next;
   return {
-    label: "Next chapter",
-    title: "Preview K-nearest neighbors",
-    description: "Chapter 10 shifts from exact algorithmic search to classification and regression using similarity, features, distance, and nearby examples.",
+    label: "Book finale",
+    title: "Explore where to go next",
+    description: "Chapter 11 broadens the map beyond the core sequence: trees, search indexes, transforms, parallel and distributed algorithms, probabilistic structures, and more.",
     href: "/roadmap",
   };
 }

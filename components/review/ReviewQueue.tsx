@@ -28,6 +28,8 @@ const reviewDefinitions: ReviewDefinition[] = [
   { key: "agocode.progress.chapter-4.recap", delayDays: 7, title: "Chapter 4 cumulative recall", description: "Reconnect divide and conquer, partitioning, recursive combine, and balanced-versus-lopsided runtime behavior.", href: "/learn/chapter-4-recap" },
   { key: "agocode.progress.hash-tables.duplicate-filter", delayDays: 3, title: "Hash-backed membership recall", description: "Rebuild the duplicate-filter task and explain why a set or dictionary changes repeated membership checking into key lookup.", href: "/learn/hash-tables#apply" },
   { key: "agocode.progress.chapter-5.recap", delayDays: 7, title: "Chapter 5 cumulative recall", description: "Reconnect hash function, array buckets, use cases, collisions, load factor, resizing, and average-case performance.", href: "/learn/chapter-5-recap" },
+  { key: "agocode.progress.bfs.rebuild", delayDays: 3, title: "Rebuild Breadth-First Search", description: "Recover the FIFO queue, visited/discovered state, and path information that make shortest unweighted search work.", href: "/learn/breadth-first-search#rebuild" },
+  { key: "agocode.progress.chapter-6.recap", delayDays: 7, title: "Chapter 6 cumulative recall", description: "Reconnect graph modeling, FIFO layer order, visited state, shortest paths, and O(V + E) before moving to weighted graphs.", href: "/learn/chapter-6-recap" },
 ];
 
 function completedAt(key: string) {

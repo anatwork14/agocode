@@ -16,5 +16,5 @@ export const chapters: Chapter[] = [
   { number: 8, title: "Greedy algorithms", topics: ["Interval scheduling", "Local choice", "Knapsack counterexample", "Set cover", "Approximation", "Hard combinatorial search"], status: "active" },
   { number: 9, title: "Dynamic programming", topics: ["Knapsack", "DP grid", "Subproblems", "Grid granularity", "Longest common substring", "Longest common subsequence"], status: "active" },
   { number: 10, title: "K-nearest neighbors", topics: ["Classification", "Feature extraction", "Euclidean distance", "Regression", "Choosing k", "Feature quality"], status: "active" },
-  { number: 11, title: "Where to go next", topics: ["Trees", "Inverted indexes", "Fourier transform", "Parallel algorithms", "MapReduce", "Bloom filters", "Linear programming"], status: "planned" },
+  { number: 11, title: "Where to go next", topics: ["Trees", "Inverted indexes", "Fourier transform", "Parallel algorithms", "MapReduce", "Bloom filters", "Hash families", "Linear programming"], status: "active" },
 ];

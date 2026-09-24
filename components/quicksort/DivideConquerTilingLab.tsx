@@ -10,8 +10,8 @@ type ReductionStep = {
 };
 
 const scenarios = [
+  { id: "farm", label: "1680 × 640 farm", width: 1680, height: 640 },
   { id: "studio", label: "84 × 36", width: 84, height: 36 },
-  { id: "poster", label: "55 × 34", width: 55, height: 34 },
   { id: "floor", label: "96 × 40", width: 96, height: 40 },
 ] as const;
 
@@ -33,7 +33,7 @@ function buildReductions(width: number, height: number) {
 }
 
 export function DivideConquerTilingLab() {
-  const [scenarioId, setScenarioId] = useState<(typeof scenarios)[number]["id"]>("studio");
+  const [scenarioId, setScenarioId] = useState<(typeof scenarios)[number]["id"]>("farm");
   const [stepIndex, setStepIndex] = useState(0);
   const scenario = scenarios.find((item) => item.id === scenarioId) ?? scenarios[0];
   const steps = useMemo(() => buildReductions(scenario.width, scenario.height), [scenario]);
@@ -52,7 +52,7 @@ export function DivideConquerTilingLab() {
     <div className="divide-lab">
       <div className="divide-lab__header">
         <div>
-          <div className="eyebrow">Concrete D&C model</div>
+          <div className="eyebrow">Concrete D&amp;C model</div>
           <h3>Reduce a rectangle until the largest square becomes obvious.</h3>
         </div>
         <span className="mono">answer = {largestSquare} × {largestSquare}</span>
@@ -110,6 +110,11 @@ export function DivideConquerTilingLab() {
             <div><dt>short side</dt><dd>{step.shortSide}</dd></div>
             <div><dt>remainder</dt><dd>{step.remainder}</dd></div>
           </dl>
+          {scenarioId === "farm" ? (
+            <p className="divide-source-note">
+              Follow the chapter&apos;s farm reduction from 1680 × 640 down to an 80 × 80 base square, rendered as an original AgoCode interaction.
+            </p>
+          ) : null}
         </section>
       </div>
 

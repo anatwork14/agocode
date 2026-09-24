@@ -32,7 +32,9 @@
 }
 
 .divide-lab,
-.recursive-sum-lab {
+.recursive-sum-lab,
+.quicksort-lab,
+.pivot-balance-lab {
   margin: 28px 0 8px;
   border: 1px solid var(--border);
   background: var(--surface);
@@ -40,7 +42,9 @@
 }
 
 .divide-lab__header,
-.recursive-sum-lab__header {
+.recursive-sum-lab__header,
+.quicksort-lab__header,
+.pivot-balance-lab__header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -48,21 +52,36 @@
 }
 
 .divide-lab__header h3,
-.recursive-sum-lab__header h3 {
+.recursive-sum-lab__header h3,
+.quicksort-lab__header h3,
+.pivot-balance-lab__header h3 {
   margin: 4px 0 0;
   font-family: var(--font-editorial), Georgia, serif;
   font-size: 1.35rem;
 }
 
-.divide-scenarios {
+.divide-scenarios,
+.pivot-size-controls,
+.pivot-strategy {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 20px;
 }
 
+.pivot-strategy {
+  align-items: center;
+}
+
+.pivot-strategy > span {
+  margin-right: 4px;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
 .divide-lab__grid,
-.recursive-sum-lab__grid {
+.recursive-sum-lab__grid,
+.quicksort-lab__grid {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
   gap: 20px;
@@ -100,26 +119,176 @@
   font-size: 0.78rem;
 }
 
+.quicksort-base-cases {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin: 22px 0;
+  border: 1px solid var(--border);
+  background: var(--border);
+}
+
+.quicksort-base-cases > div {
+  display: grid;
+  gap: 8px;
+  background: var(--surface);
+  padding: 18px;
+}
+
+.quicksort-base-cases span {
+  font-size: 1.15rem;
+}
+
+.quicksort-base-cases strong {
+  color: var(--success);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.quicksort-current-array {
+  min-height: 52px;
+  border: 1px solid var(--border);
+  background: var(--paper);
+  padding: 15px;
+  font-size: 0.92rem;
+}
+
+.partition-board {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.partition-group {
+  display: grid;
+  align-content: center;
+  gap: 6px;
+  min-height: 92px;
+  border: 1px solid var(--border);
+  background: var(--paper);
+  padding: 12px;
+}
+
+.partition-group span,
+.partition-result span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.partition-group--pivot {
+  min-width: 88px;
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  text-align: center;
+}
+
+.partition-result {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+  border: 1px solid var(--success);
+  background: rgba(66, 106, 74, 0.08);
+  padding: 14px;
+}
+
+.quicksort-combine-equation {
+  margin: 20px 0;
+  border-left: 3px solid var(--accent);
+  background: var(--note);
+  padding: 18px;
+  font-size: 0.88rem;
+}
+
+.pivot-comparison {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 22px;
+}
+
+.pivot-case {
+  border: 1px solid var(--border);
+  background: var(--paper);
+  padding: 18px;
+}
+
+.pivot-case strong {
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 1.08rem;
+}
+
+.pivot-case p {
+  margin: 8px 0 0;
+  color: var(--ink-secondary);
+}
+
+.pivot-depth-track {
+  height: 12px;
+  margin: 18px 0 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.pivot-depth-bar {
+  height: 100%;
+  min-width: 2px;
+  background: var(--accent);
+  transition: width 180ms ease;
+}
+
+.pivot-caveat {
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
 @media (max-width: 760px) {
   .dc-principles,
   .divide-lab__grid,
-  .recursive-sum-lab__grid {
+  .recursive-sum-lab__grid,
+  .quicksort-lab__grid,
+  .pivot-comparison,
+  .quicksort-base-cases {
     grid-template-columns: 1fr;
+  }
+
+  .partition-board {
+    grid-template-columns: 1fr;
+  }
+
+  .partition-group--pivot {
+    min-width: 0;
+    text-align: left;
   }
 }
 
 @media (max-width: 480px) {
   .divide-lab,
-  .recursive-sum-lab {
+  .recursive-sum-lab,
+  .quicksort-lab,
+  .pivot-balance-lab {
     padding: 16px;
   }
 
   .divide-lab__header,
-  .recursive-sum-lab__header {
+  .recursive-sum-lab__header,
+  .quicksort-lab__header,
+  .pivot-balance-lab__header {
     flex-direction: column;
   }
 
   .divide-rectangle {
     min-height: 104px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pivot-depth-bar {
+    transition: none;
   }
 }

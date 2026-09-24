@@ -178,6 +178,63 @@
   font-size: 0.8rem;
 }
 
+.hash-load-badge {
+  border: 1px solid var(--border);
+  padding: 6px 9px;
+}
+
+.hash-load-badge--warn {
+  border-color: var(--warning);
+  color: var(--warning);
+}
+
+.hash-load-meter {
+  margin-top: 18px;
+}
+
+.hash-load-meter__track {
+  height: 14px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--note);
+}
+
+.hash-load-meter__track span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 180ms ease;
+}
+
+.hash-load-meter__labels {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: .68rem;
+}
+
+.hash-load-meter__threshold {
+  position: absolute;
+  left: 70%;
+  transform: translateX(-50%);
+  color: var(--warning);
+}
+
+.hash-resize-guidance {
+  margin-top: 14px;
+  border-left: 3px solid var(--success);
+  background: var(--paper);
+  padding: 11px 13px;
+  color: var(--ink-secondary);
+  font-size: .8rem;
+}
+
+.hash-resize-guidance--warn {
+  border-left-color: var(--warning);
+}
+
 .hash-use-panel {
   margin-top: 18px;
   border-top: 1px solid var(--border);
@@ -453,5 +510,11 @@
 
   .hash-table-metrics {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hash-load-meter__track span {
+    transition: none;
   }
 }

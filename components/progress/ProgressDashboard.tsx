@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { readLearningEvidence, type LearningEvidence } from "@/lib/learning/evidence";
 import { bookProgressChapters, progressEvidenceKeys, transferProgressItems } from "@/lib/learning/progressCatalog";
+import { transferTechniques } from "@/lib/practice/transfer";
 
 type EvidenceMap = Record<string, LearningEvidence | null>;
 
@@ -91,6 +92,21 @@ export function ProgressDashboard() {
     if (!snapshot) return null;
     return snapshot.evidence["agocode.progress.transfer.mixed-recognition"]?.recognition ?? null;
   }, [snapshot]);
+
+  const recognitionDiagnosis = useMemo(() => {
+    const byTechnique = mixedRecognition?.byTechnique;
+    if (!byTechnique) return [];
+
+    return Object.entries(byTechnique)
+      .map(([id, evidence]) => ({
+        id,
+        label: transferTechniques.find((item) => item.id === id)?.label ?? id,
+        totalSeen: evidence.totalSeen,
+        firstTryCorrect: evidence.firstTryCorrect,
+        accuracy: evidence.totalSeen ? evidence.firstTryCorrect / evidence.totalSeen : 0,
+      }))
+      .sort((a, b) => a.accuracy - b.accuracy || b.totalSeen - a.totalSeen);
+  }, [mixedRecognition]);
 
   if (!snapshot) {
     return <div className="progress-loading">Reading learning evidence from this browser…</div>;
@@ -218,24 +234,51 @@ export function ProgressDashboard() {
             </div>
             <p>
               Latest session: {mixedRecognition.lastFirstTryCorrect}/{mixedRecognition.totalScenarios} · {mixedRecognition.sessions} session{mixedRecognition.sessions === 1 ? "" : "s"} recorded.
-              A later checkpoint will use this evidence to prioritize weak techniques instead of only showing a single aggregate score.
+              {mixedRecognition.recentMissedScenarioIds?.length
+                ? ` The next mixed session will begin with ${mixedRecognition.recentMissedScenarioIds.length} scenario${mixedRecognition.recentMissedScenarioIds.length === 1 ? "" : "s"} missed on the latest first attempt.`
+                : " The latest session has no first-try misses to prioritize."}
             </p>
             <Link className="button button--quiet" href="/practice/mixed">Run mixed recognition →</Link>
+          </div>
+        ) : null}
+
+        {recognitionDiagnosis.length ? (
+          <div className="progress-diagnosis">
+            <div className="progress-diagnosis__heading">
+              <div>
+                <span className="eyebrow">Technique diagnosis</span>
+                <h3>First-try recognition across sessions</h3>
+              </div>
+              <span className="mono">weakest evidence first</span>
+            </div>
+            <div className="progress-diagnosis__rows">
+              {recognitionDiagnosis.map((item) => {
+                const percentage = Math.round(item.accuracy * 100);
+                return (
+                  <div className="progress-diagnosis__row" key={item.id}>
+                    <div><strong>{item.label}</strong><span>{item.firstTryCorrect}/{item.totalSeen} first-try</span></div>
+                    <div className="progress-diagnosis__bar" aria-label={`${percentage}% first-try recognition`}><span style={{ width: `${percentage}%` }} /></div>
+                    <span className="mono">{percentage}%</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         ) : null}
       </section>
 
       <section className="progress-section progress-next">
         <div>
-          <span className="eyebrow">Next checkpoint</span>
-          <h2>Progress should become diagnostic, not merely descriptive.</h2>
+          <span className="eyebrow">Adaptive retrieval</span>
+          <h2>Previous misses now change the next session.</h2>
           <p>
-            The next implementation step will retain technique-level misses from mixed recognition and use them to build an adaptive retry set after spacing.
+            Mixed recognition stores the latest missed scenarios and cumulative technique-level first-try evidence. When you return,
+            those missed scenarios move to the front while the chapter labels stay hidden.
           </p>
         </div>
         <div className="action-row">
           <Link className="button" href="/review">Open spaced review</Link>
-          <Link className="button button--primary" href="/practice">Continue Transfer Track →</Link>
+          <Link className="button button--primary" href="/practice/mixed">Retry weak patterns →</Link>
         </div>
       </section>
     </div>

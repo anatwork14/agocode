@@ -12,11 +12,18 @@ export type LearningAttempt = {
   runtimeError: boolean;
 };
 
+export type RecognitionTechniqueEvidence = {
+  totalSeen: number;
+  firstTryCorrect: number;
+};
+
 export type RecognitionEvidence = {
   sessions: number;
   lastFirstTryCorrect: number;
   bestFirstTryCorrect: number;
   totalScenarios: number;
+  byTechnique?: Record<string, RecognitionTechniqueEvidence>;
+  recentMissedScenarioIds?: string[];
 };
 
 export type LearningEvidence = {
@@ -40,6 +47,8 @@ type RecordRecognitionInput = {
   firstTryCorrect: number;
   totalScenarios: number;
   completedAt?: string;
+  techniqueResults?: Record<string, { totalScenarios: number; firstTryCorrect: number }>;
+  missedScenarioIds?: string[];
 };
 
 const MAX_ATTEMPTS = 50;
@@ -57,6 +66,24 @@ function isAttempt(value: unknown): value is LearningAttempt {
   );
 }
 
+function parseTechniqueEvidence(value: unknown): Record<string, RecognitionTechniqueEvidence> | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  const parsed: Record<string, RecognitionTechniqueEvidence> = {};
+
+  for (const [key, raw] of Object.entries(value as Record<string, unknown>)) {
+    if (!raw || typeof raw !== "object") continue;
+    const item = raw as Partial<RecognitionTechniqueEvidence>;
+    if (typeof item.totalSeen !== "number" || typeof item.firstTryCorrect !== "number") continue;
+    const totalSeen = Math.max(0, item.totalSeen);
+    parsed[key] = {
+      totalSeen,
+      firstTryCorrect: Math.max(0, Math.min(item.firstTryCorrect, totalSeen)),
+    };
+  }
+
+  return Object.keys(parsed).length ? parsed : undefined;
+}
+
 function parseRecognition(value: unknown): RecognitionEvidence | undefined {
   if (!value || typeof value !== "object") return undefined;
   const recognition = value as Partial<RecognitionEvidence>;
@@ -69,21 +96,30 @@ function parseRecognition(value: unknown): RecognitionEvidence | undefined {
     return undefined;
   }
 
+  const totalScenarios = Math.max(0, recognition.totalScenarios);
+  const recentMissedScenarioIds = Array.isArray(recognition.recentMissedScenarioIds)
+    ? recognition.recentMissedScenarioIds.filter((item): item is string => typeof item === "string")
+    : undefined;
+
   return {
     sessions: Math.max(0, recognition.sessions),
-    lastFirstTryCorrect: Math.max(0, recognition.lastFirstTryCorrect),
-    bestFirstTryCorrect: Math.max(0, recognition.bestFirstTryCorrect),
-    totalScenarios: Math.max(0, recognition.totalScenarios),
+    lastFirstTryCorrect: Math.max(0, Math.min(recognition.lastFirstTryCorrect, totalScenarios)),
+    bestFirstTryCorrect: Math.max(0, Math.min(recognition.bestFirstTryCorrect, totalScenarios)),
+    totalScenarios,
+    byTechnique: parseTechniqueEvidence(recognition.byTechnique),
+    recentMissedScenarioIds,
   };
 }
 
 function legacyRecognition(parsed: Record<string, unknown>): RecognitionEvidence | undefined {
   if (typeof parsed.score !== "number" || typeof parsed.total !== "number") return undefined;
+  const totalScenarios = Math.max(0, parsed.total);
+  const score = Math.max(0, Math.min(parsed.score, totalScenarios));
   return {
     sessions: 1,
-    lastFirstTryCorrect: Math.max(0, parsed.score),
-    bestFirstTryCorrect: Math.max(0, parsed.score),
-    totalScenarios: Math.max(0, parsed.total),
+    lastFirstTryCorrect: score,
+    bestFirstTryCorrect: score,
+    totalScenarios,
   };
 }
 
@@ -183,9 +219,26 @@ export function recordRecognitionCompletion(
 ): LearningEvidence {
   const completedAt = input.completedAt ?? new Date().toISOString();
   const previous = readLearningEvidence(storage, key, input.exerciseId);
-  const firstTryCorrect = Math.max(0, Math.min(input.firstTryCorrect, input.totalScenarios));
   const totalScenarios = Math.max(0, input.totalScenarios);
+  const firstTryCorrect = Math.max(0, Math.min(input.firstTryCorrect, totalScenarios));
   const priorRecognition = previous?.recognition;
+  const byTechnique: Record<string, RecognitionTechniqueEvidence> = {
+    ...(priorRecognition?.byTechnique ?? {}),
+  };
+
+  for (const [technique, result] of Object.entries(input.techniqueResults ?? {})) {
+    const sessionTotal = Math.max(0, result.totalScenarios);
+    const sessionCorrect = Math.max(0, Math.min(result.firstTryCorrect, sessionTotal));
+    const prior = byTechnique[technique] ?? { totalSeen: 0, firstTryCorrect: 0 };
+    byTechnique[technique] = {
+      totalSeen: prior.totalSeen + sessionTotal,
+      firstTryCorrect: prior.firstTryCorrect + sessionCorrect,
+    };
+  }
+
+  const recentMissedScenarioIds = input.missedScenarioIds === undefined
+    ? priorRecognition?.recentMissedScenarioIds
+    : Array.from(new Set(input.missedScenarioIds.filter((item) => typeof item === "string")));
 
   const evidence: LearningEvidence = {
     version: 1,
@@ -200,6 +253,8 @@ export function recordRecognitionCompletion(
       lastFirstTryCorrect: firstTryCorrect,
       bestFirstTryCorrect: Math.max(priorRecognition?.bestFirstTryCorrect ?? 0, firstTryCorrect),
       totalScenarios: Math.max(priorRecognition?.totalScenarios ?? 0, totalScenarios),
+      byTechnique: Object.keys(byTechnique).length ? byTechnique : undefined,
+      recentMissedScenarioIds,
     },
   };
 

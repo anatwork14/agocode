@@ -125,6 +125,42 @@ test("recognition sessions preserve the first completion and best first-try scor
   assert.equal(later.recognition.totalScenarios, 10);
 });
 
+test("recognition evidence accumulates technique results and replaces the recent miss set", () => {
+  const storage = makeStorage();
+
+  recordRecognitionCompletion(storage, "mixed", {
+    exerciseId: "mixed-pattern-recognition",
+    firstTryCorrect: 7,
+    totalScenarios: 10,
+    techniqueResults: {
+      "binary-search": { totalScenarios: 2, firstTryCorrect: 1 },
+      bfs: { totalScenarios: 1, firstTryCorrect: 0 },
+    },
+    missedScenarioIds: ["server-capacity", "fewest-handoffs"],
+  });
+
+  const later = recordRecognitionCompletion(storage, "mixed", {
+    exerciseId: "mixed-pattern-recognition",
+    firstTryCorrect: 9,
+    totalScenarios: 10,
+    techniqueResults: {
+      "binary-search": { totalScenarios: 2, firstTryCorrect: 2 },
+      bfs: { totalScenarios: 1, firstTryCorrect: 1 },
+    },
+    missedScenarioIds: ["directory-threshold"],
+  });
+
+  assert.deepEqual(later.recognition?.byTechnique?.["binary-search"], {
+    totalSeen: 4,
+    firstTryCorrect: 3,
+  });
+  assert.deepEqual(later.recognition?.byTechnique?.bfs, {
+    totalSeen: 2,
+    firstTryCorrect: 1,
+  });
+  assert.deepEqual(later.recognition?.recentMissedScenarioIds, ["directory-threshold"]);
+});
+
 test("recognition score is clamped to the scenario count", () => {
   const storage = makeStorage();
   const evidence = recordRecognitionCompletion(storage, "mixed", {

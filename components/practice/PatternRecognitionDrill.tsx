@@ -1,9 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { recordRecognitionCompletion } from "@/lib/learning/evidence";
-import { recognitionScenarios, transferTechniques, type TransferTechniqueId } from "@/lib/practice/transfer";
+import { useEffect, useMemo, useState } from "react";
+import { readLearningEvidence, recordRecognitionCompletion } from "@/lib/learning/evidence";
+import {
+  recognitionScenarios,
+  transferTechniques,
+  type RecognitionScenario,
+  type TransferTechniqueId,
+} from "@/lib/practice/transfer";
 
 const storageKey = "agocode.progress.transfer.mixed-recognition";
 
@@ -13,44 +18,88 @@ type AnswerRecord = {
   firstTry: boolean;
 };
 
-function saveCompletion(score: number, total: number) {
+function saveCompletion(answers: Record<string, AnswerRecord>) {
+  const techniqueResults: Record<string, { totalScenarios: number; firstTryCorrect: number }> = {};
+  const missedScenarioIds: string[] = [];
+  let firstTryCorrect = 0;
+
+  for (const scenario of recognitionScenarios) {
+    const answer = answers[scenario.id];
+    if (!answer?.correct) continue;
+
+    const technique = techniqueResults[scenario.answer] ?? { totalScenarios: 0, firstTryCorrect: 0 };
+    technique.totalScenarios += 1;
+    if (answer.firstTry) {
+      technique.firstTryCorrect += 1;
+      firstTryCorrect += 1;
+    } else {
+      missedScenarioIds.push(scenario.id);
+    }
+    techniqueResults[scenario.answer] = technique;
+  }
+
   recordRecognitionCompletion(localStorage, storageKey, {
     exerciseId: "mixed-pattern-recognition",
-    firstTryCorrect: score,
-    totalScenarios: total,
+    firstTryCorrect,
+    totalScenarios: recognitionScenarios.length,
+    techniqueResults,
+    missedScenarioIds,
   });
 }
 
+function reorderForPriorMisses(missedIds: string[]): RecognitionScenario[] {
+  if (!missedIds.length) return [...recognitionScenarios];
+  const missed = new Set(missedIds);
+  return [
+    ...recognitionScenarios.filter((scenario) => missed.has(scenario.id)),
+    ...recognitionScenarios.filter((scenario) => !missed.has(scenario.id)),
+  ];
+}
+
 export function PatternRecognitionDrill() {
+  const [scenarios, setScenarios] = useState<RecognitionScenario[]>(() => [...recognitionScenarios]);
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, AnswerRecord>>({});
   const [attempted, setAttempted] = useState<Record<string, boolean>>({});
-  const scenario = recognitionScenarios[index];
+  const [priorMissCount, setPriorMissCount] = useState(0);
+  const scenario = scenarios[index];
   const answer = answers[scenario.id];
   const technique = transferTechniques.find((item) => item.id === scenario.answer);
   const score = useMemo(
-    () => recognitionScenarios.filter((item) => answers[item.id]?.correct && answers[item.id]?.firstTry).length,
+    () => Object.values(answers).filter((item) => item.correct && item.firstTry).length,
     [answers],
   );
-  const completedCount = recognitionScenarios.filter((item) => answers[item.id]?.correct).length;
+  const completedCount = Object.values(answers).filter((item) => item.correct).length;
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      const evidence = readLearningEvidence(localStorage, storageKey);
+      const misses = evidence?.recognition?.recentMissedScenarioIds ?? [];
+      if (misses.length) {
+        setScenarios(reorderForPriorMisses(misses));
+        setPriorMissCount(misses.length);
+      }
+    }, 0);
+    return () => window.clearTimeout(timeout);
+  }, []);
 
   function choose(selected: TransferTechniqueId) {
     if (answer?.correct) return;
     const correct = selected === scenario.answer;
     const firstTry = !attempted[scenario.id];
-    setAttempted((current) => ({ ...current, [scenario.id]: true }));
-    setAnswers((current) => ({
-      ...current,
-      [scenario.id]: { selected, correct, firstTry: correct ? firstTry : false },
-    }));
+    const nextRecord: AnswerRecord = { selected, correct, firstTry: correct ? firstTry : false };
+    const nextAnswers = { ...answers, [scenario.id]: nextRecord };
 
-    if (correct && completedCount + 1 === recognitionScenarios.length) {
-      saveCompletion(score + (firstTry ? 1 : 0), recognitionScenarios.length);
+    setAttempted((current) => ({ ...current, [scenario.id]: true }));
+    setAnswers(nextAnswers);
+
+    if (correct && completedCount + 1 === scenarios.length) {
+      saveCompletion(nextAnswers);
     }
   }
 
   function goTo(next: number) {
-    setIndex(Math.max(0, Math.min(recognitionScenarios.length - 1, next)));
+    setIndex(Math.max(0, Math.min(scenarios.length - 1, next)));
   }
 
   return (
@@ -60,8 +109,21 @@ export function PatternRecognitionDrill() {
           <div className="eyebrow">Mixed recognition · no chapter label</div>
           <h2>{scenario.title}</h2>
         </div>
-        <span className="mono">{index + 1}/{recognitionScenarios.length} · first-try {score}</span>
+        <span className="mono">
+          {index + 1}/{scenarios.length} · first-try {score}
+          {priorMissCount > 0 ? ` · ${priorMissCount} prior miss${priorMissCount === 1 ? "" : "es"} first` : ""}
+        </span>
       </div>
+
+      {priorMissCount > 0 && index === 0 ? (
+        <div className="recognition-adaptive-note">
+          <span className="eyebrow">Adaptive retry</span>
+          <p>
+            Your previous session missed {priorMissCount} scenario{priorMissCount === 1 ? "" : "s"}. Those scenarios are
+            placed first this time, while their technique labels remain hidden.
+          </p>
+        </div>
+      ) : null}
 
       <div className="recognition-problem">
         <p>{scenario.prompt}</p>
@@ -118,7 +180,7 @@ export function PatternRecognitionDrill() {
       ) : null}
 
       <div className="recognition-progress" aria-label="Recognition drill progress">
-        {recognitionScenarios.map((item, itemIndex) => (
+        {scenarios.map((item, itemIndex) => (
           <button
             className={`recognition-progress__dot ${itemIndex === index ? "recognition-progress__dot--current" : ""} ${answers[item.id]?.correct ? "recognition-progress__dot--done" : ""}`}
             type="button"
@@ -133,16 +195,18 @@ export function PatternRecognitionDrill() {
 
       <div className="lab-toolbar">
         <button className="button" type="button" onClick={() => goTo(index - 1)} disabled={index === 0}>← Previous</button>
-        <button className="button button--primary" type="button" onClick={() => goTo(index + 1)} disabled={!answer?.correct || index === recognitionScenarios.length - 1}>Next scenario →</button>
+        <button className="button button--primary" type="button" onClick={() => goTo(index + 1)} disabled={!answer?.correct || index === scenarios.length - 1}>Next scenario →</button>
       </div>
 
-      {completedCount === recognitionScenarios.length ? (
+      {completedCount === scenarios.length ? (
         <div className="recognition-complete">
           <span className="eyebrow">Mixed set complete</span>
-          <h3>{score}/{recognitionScenarios.length} recognized on the first attempt.</h3>
+          <h3>{score}/{scenarios.length} recognized on the first attempt.</h3>
           <p>
-            The first-try score matters because transfer means identifying a technique before feedback tells you what chapter you are in. This score is now kept as learning evidence so later sessions can measure whether recognition improves after spacing.
+            AgoCode now keeps both the aggregate score and technique-level evidence. On your next session, scenarios missed
+            this time will move to the front so retrieval pressure follows the gaps instead of repeating a fixed order.
           </p>
+          <Link className="button button--quiet" href="/progress">Inspect recognition evidence →</Link>
         </div>
       ) : null}
     </div>

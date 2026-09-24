@@ -25,7 +25,7 @@ The Book Track follows the chapter progression of *Grokking Algorithms*. Every c
 - [ ] extract design tokens from `app/globals.css` into a dedicated token module
 - [ ] extract lesson content into a structured content schema where page-level JSX is becoming repetitive
 
-CI currently gates:
+CI gates:
 
 ```text
 pnpm typecheck
@@ -38,15 +38,17 @@ pnpm build
 
 ### Visualization
 - [x] semantic Binary Search event model
-- [x] deterministic trace generation
+- [x] deterministic trace generation across multiple algorithms
 - [x] forward / backward stepping
 - [x] visited-history scrubbing
 - [x] prediction gates before important transitions
 - [x] shared deterministic timeline reducer
 - [x] reusable timeline reducer tests
+- [x] reusable stack / call-frame renderer
 - [ ] topic-independent autoplay controller
 - [ ] stable semantic code-line IDs independent of displayed source formatting
-- [ ] reusable renderer contracts for array / linked-node / stack / queue / graph / table views
+- [ ] reusable renderer contracts for array / linked-node / queue / graph / table views
+- [ ] purposeful push/pop motion for stack transitions; reduced-motion fallback must remain explicit
 
 ### Python exercises
 - [x] Pyodide worker
@@ -58,6 +60,10 @@ pnpm build
 - [x] guided reconstruction
 - [x] blank Binary Search reconstruction
 - [x] Binary Search bug-repair mode
+- [x] Selection Sort reconstruction
+- [x] recursive factorial reconstruction
+- [x] divide-and-conquer recursive-sum reconstruction
+- [x] Quicksort reconstruction
 - [ ] hidden-test separation
 - [ ] decide whether Monaco materially improves learning UX before adding its weight
 
@@ -68,6 +74,8 @@ pnpm build
 - [x] hint-count capture
 - [x] first successful completion time preserved across later attempts
 - [x] bounded local history
+- [x] Home next-step routing through Chapters 1–4
+- [x] delayed review entries through Chapter 4
 - [ ] persistent prediction accuracy
 - [ ] explicit mastery dimensions: Understand / Trace / Implement / Analyze / Recognize / Transfer
 - [ ] evidence-strength weighting
@@ -107,7 +115,7 @@ pnpm build
 - [x] Chapter 1 cumulative retrieval check
 - [x] Chapter 1 review evidence
 
-Chapter 1 now forms one connected narrative:
+Chapter 1 forms one connected narrative:
 
 ```text
 algorithm idea
@@ -120,7 +128,7 @@ algorithm idea
 
 ## 5. Chapter 2 — Memory, Arrays, Linked Lists, Selection Sort
 
-This chapter follows the book's sequence closely: memory locations first, then arrays/lists and their trade-offs, then a first sorting algorithm.
+The chapter follows the book's sequence closely: memory locations first, then arrays/lists and their trade-offs, then a first sorting algorithm.
 
 ### Memory model
 - [x] addressed-slot visualization
@@ -153,55 +161,94 @@ This chapter follows the book's sequence closely: memory locations first, then a
 - [ ] dedicated transfer problem beyond reproducing the sorting routine
 - [ ] optional physical move animation for selected values
 
-## 6. Review and Home guidance
+## 6. Chapter 3 — Recursion
+
+The chapter follows the book's conceptual sequence: recursion as a clearer way to express nested work, base and recursive cases, ordinary call stacks, then recursive call-stack behavior.
+
+### Visual/runtime primitives
+- [x] reusable stack renderer
+- [x] reusable call-frame renderer
+- [x] ordinary function-call stack visualization
+- [x] recursive call-stack visualization
+- [x] visited-history timeline on recursive execution
+- [x] trace prediction before recursive execution advances
+- [ ] explicit push/pop spatial motion
+- [ ] recursion-tree view for algorithms where branching is the core mental model
+- [ ] fully synchronized source-line highlighting for recursive calls
+
+### Lessons and recall
+- [x] concrete nested-search analogy
+- [x] loop/work-stack vs. recursive-call comparison
+- [x] base case
+- [x] recursive case and progress toward the base case
+- [x] ordinary call stack / paused caller state
+- [x] recursive factorial stack growth and unwinding
+- [x] factorial Python reconstruction
+- [x] deterministic factorial trace tests
+- [x] Chapter 3 cumulative recap
+- [x] Chapter 3 delayed review entry
+
+Acceptance criterion: a learner can predict stack growth and unwinding, identify the base case, explain why every recursive call must make progress, and independently write a small recursive function rather than merely recognizing recursive syntax.
+
+## 7. Chapter 4 — Divide & Conquer / Quicksort
+
+This chapter builds directly on Chapter 3. It first makes the D&C reduction rule explicit, then uses Quicksort to show recursive partitioning and the effect of recursion shape on running time.
+
+### Divide & Conquer
+- [x] two-question D&C mental model: base case + smaller same problem
+- [x] original rectangle / square reduction interaction
+- [x] recursive-sum call-stack visualization
+- [x] editable recursive-sum scenarios
+- [x] recursive-sum Python reconstruction
+- [x] deterministic recursive-sum tests
+- [x] delayed recall entry
+
+### Quicksort
+- [x] base case for 0/1-item arrays
+- [x] deterministic recursive trace generator
+- [x] pivot + less/greater partition visualization
+- [x] prediction gate on partition membership
+- [x] recursive stack visualization
+- [x] sorted-left + pivot + sorted-right combine explanation
+- [x] editable input scenarios
+- [x] first-item vs. middle-item pivot comparison on sorted input
+- [x] balanced vs. lopsided recursion-depth visualization
+- [x] O(n log n) average / O(n²) worst-case reasoning
+- [x] Python reconstruction
+- [x] deterministic Quicksort tests
+- [x] Chapter 4 cumulative recap
+- [x] Chapter 4 review scheduling
+- [ ] optional recursion-tree view to complement the call-stack view
+- [ ] merge-sort comparison if it adds learning value without interrupting the book-first sequence
+
+## 8. Review and Home guidance
 
 - [x] Home chooses the next learning action from local evidence
 - [x] Home surfaces due-review count
-- [x] Review queue for Binary Search learning / transfer evidence
+- [x] Review queue through Chapter 4
 - [x] blank-rebuild and bug-repair reviews
-- [x] Selection Sort and Chapter 2 review items
+- [x] cumulative chapter recalls for Chapters 1–4
 - [ ] review attempts should reschedule based on recall success, not only original completion date
-- [ ] Home should eventually surface the weakest mastery dimension, not only the next unfinished item
+- [ ] Home should surface the weakest mastery dimension, not only the next unfinished item
 
-## 7. Chapter 3 — Recursion (next Book Track slice)
+## 9. Chapter 5 — Hash Tables (next Book Track milestone)
 
-### Required visual primitives
-- [ ] stack renderer
-- [ ] call-frame renderer
-- [ ] call-stack push/pop motion
-- [ ] recursion-tree view
-- [ ] synchronized function source + current call state
+Follow the book's order: hash-function intuition and useful applications first, then collisions/performance/load factor internals.
 
-### Lessons
-- [ ] concrete recursion analogy
-- [ ] recursive case
-- [ ] base case
-- [ ] stack model
-- [ ] ordinary call stack
-- [ ] recursive call stack
-- [ ] trace prediction
-- [ ] implementation reconstruction
-- [ ] Chapter 3 recap / delayed recall
-
-Acceptance criterion: a learner can predict stack growth and unwinding, identify the base case, and independently write a small recursive function rather than merely recognizing recursive syntax.
-
-## 8. Chapter 4 — Quicksort / Divide & Conquer
-
-- [ ] divide-and-conquer mental model
-- [ ] recursive subproblem visualization
-- [ ] partition / pivot visualization
-- [ ] Quicksort implementation
-- [ ] average vs. worst-case comparison
-- [ ] merge-sort comparison where pedagogically useful
-
-## 9. Chapter 5 — Hash Tables
-
+### Planned learning slice
 - [ ] key → bucket visualization
-- [ ] hash-function intuition
+- [ ] consistency / deterministic hash-function exercise
+- [ ] lookup example
+- [ ] duplicate-prevention example
+- [ ] cache example
 - [ ] collision visualization
-- [ ] lookup / duplicate / cache examples
-- [ ] load factor
-- [ ] resize scene
+- [ ] average vs. worst-case performance comparison
+- [ ] load-factor interaction
+- [ ] resize / rehash scene
+- [ ] good-distribution intuition
+- [ ] Chapter 5 cumulative recap / delayed recall
+
+Acceptance criterion: a learner can explain why a hash table supports fast average-case lookup, identify the role of a deterministic hash function, explain collisions and load factor, and recognize lookup / duplicate-filtering / cache use cases.
 
 ## 10. Chapter 6 — Breadth-First Search
 
@@ -298,4 +345,4 @@ A topic should not enter the primary Book Track unless:
 
 ## 19. Next milestone
 
-Before expanding beyond Chapter 2 polish, the next substantial slice is **Chapter 3: Recursion**. Build the stack/call-stack visual grammar first, then use it for the chapter's concrete examples, trace prediction, reconstruction, and recall.
+The next substantial Book Track slice is **Chapter 5: Hash Tables**. Start with key→bucket and real use cases before exposing collisions, load factor, and resizing. In parallel, strengthen the learning engine by persisting prediction evidence and making review intervals respond to actual recall outcomes.

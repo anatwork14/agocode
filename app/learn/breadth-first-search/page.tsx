@@ -125,7 +125,7 @@ export default function BreadthFirstSearchPage() {
                 <BfsRebuild />
                 <div className="action-row">
                   <Link className="button" href="/learn/chapter-5-recap">← Chapter 5 recap</Link>
-                  <Link className="button button--primary" href="/roadmap">Chapter 6 recap coming next →</Link>
+                  <Link className="button button--primary" href="/learn/chapter-6-recap">Chapter 6 recap →</Link>
                 </div>
               </section>
             </div>

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { recordLearningAttempt } from "@/lib/learning/evidence";
 
 type LessonCompleteLinkProps = {
   storageKey: string;
@@ -23,10 +24,14 @@ export function LessonCompleteLink({
       className={className}
       href={href}
       onClick={() => {
-        localStorage.setItem(
-          storageKey,
-          JSON.stringify({ completedAt: new Date().toISOString(), exerciseId: lessonId }),
-        );
+        recordLearningAttempt(localStorage, storageKey, {
+          exerciseId: lessonId,
+          passed: true,
+          passedCount: 1,
+          totalTests: 1,
+          hintCount: 0,
+          runtimeError: false,
+        });
       }}
     >
       {children}

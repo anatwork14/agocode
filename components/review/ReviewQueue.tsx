@@ -40,6 +40,7 @@ const reviewDefinitions: ReviewDefinition[] = [
   { key: "agocode.progress.chapter-9.recap", delayDays: 7, title: "Chapter 9 cumulative recall", description: "Reconnect constrained optimization, grid state, the knapsack include/exclude recurrence, model boundaries, and sequence DP.", href: "/learn/chapter-9-recap" },
   { key: "agocode.progress.knn.rebuild", delayDays: 3, title: "KNN classifier recall", description: "Rebuild feature-vector distance, nearest-neighbor selection, and majority voting without reopening the finished solution.", href: "/learn/k-nearest-neighbors#rebuild" },
   { key: "agocode.progress.chapter-10.recap", delayDays: 7, title: "Chapter 10 cumulative recall", description: "Reconnect classification, regression, feature extraction, Euclidean distance, neighborhood size, and feature quality.", href: "/learn/chapter-10-recap" },
+  { key: "agocode.progress.chapter-11.recap", delayDays: 10, title: "Book Track map recall", description: "Reconnect advanced data structures, search indexes, representation changes, parallelism, probabilistic structures, and general optimization after some distance from the finale.", href: "/learn/chapter-11-recap" },
 ];
 
 function completedAt(key: string) {

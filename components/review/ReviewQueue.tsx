@@ -97,6 +97,11 @@ function buildReviewItems() {
     description: "Recover the stopping case, progress rule, LIFO call-stack model, and recursive unwinding before starting divide and conquer.",
     href: "/learn/chapter-3-recap",
   });
+  addScheduledReview(items, "agocode.progress.divide-conquer.sum-rebuild", 3, {
+    title: "Divide & Conquer reduction recall",
+    description: "State the base case and the smaller subproblem before rebuilding recursive sum from memory.",
+    href: "/learn/divide-and-conquer#rebuild",
+  });
 
   return items;
 }

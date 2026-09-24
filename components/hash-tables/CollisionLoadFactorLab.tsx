@@ -11,6 +11,7 @@ const initialEntries: HashEntry<string>[] = [
 ];
 
 const suggestions = ["rice", "tea", "pear", "kiwi", "plum", "corn"] as const;
+const RESIZE_GUIDE = 0.7;
 
 export function CollisionLoadFactorLab() {
   const [entries, setEntries] = useState<HashEntry<string>[]>(initialEntries);
@@ -18,6 +19,7 @@ export function CollisionLoadFactorLab() {
   const [keyDraft, setKeyDraft] = useState("rice");
   const [error, setError] = useState("");
   const snapshot = useMemo(() => buildHashTable(entries, capacity), [entries, capacity]);
+  const resizeRecommended = snapshot.loadFactor > RESIZE_GUIDE;
 
   function insert(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -57,7 +59,9 @@ export function CollisionLoadFactorLab() {
           <div className="eyebrow">Collisions + load factor</div>
           <h3>Two keys can land in one slot. The bucket then has more work to do.</h3>
         </div>
-        <span className="mono">α = {snapshot.loadFactor.toFixed(2)}</span>
+        <span className={`mono hash-load-badge ${resizeRecommended ? "hash-load-badge--warn" : ""}`}>
+          α = {snapshot.loadFactor.toFixed(2)}
+        </span>
       </div>
 
       <form className="scenario-builder" onSubmit={insert}>
@@ -76,6 +80,11 @@ export function CollisionLoadFactorLab() {
             {key} → {educationalHash(key, capacity)}
           </button>
         ))}
+      </div>
+
+      <div className="hash-load-meter" aria-label={`Load factor ${snapshot.loadFactor.toFixed(2)}`}>
+        <div className="hash-load-meter__track"><span style={{ width: `${Math.min(100, snapshot.loadFactor * 100)}%` }} /></div>
+        <div className="hash-load-meter__labels"><span>0</span><span className="hash-load-meter__threshold">0.7 resize guide</span><span>1.0+</span></div>
       </div>
 
       <div className="bucket-table" aria-label={`Hash buckets with capacity ${capacity}`}>
@@ -102,6 +111,12 @@ export function CollisionLoadFactorLab() {
         <div><dt>longest chain</dt><dd>{snapshot.longestChain}</dd></div>
       </dl>
 
+      <div className={`hash-resize-guidance ${resizeRecommended ? "hash-resize-guidance--warn" : ""}`} aria-live="polite">
+        {resizeRecommended
+          ? "The load factor is above 0.7. This is the chapter's rule-of-thumb point to grow the backing array and rehash every key."
+          : "The table is below the chapter's 0.7 resize guide. Keep inserting and watch crowding increase."}
+      </div>
+
       <div className="collision-explanation">
         <p>
           A collision does not mean the key is lost. This lab uses separate chaining: entries sharing a slot form a small list. Looking up that bucket is still direct, but a long chain adds local search work.
@@ -112,7 +127,7 @@ export function CollisionLoadFactorLab() {
       </div>
 
       <div className="lab-toolbar">
-        <button className="button button--primary" type="button" onClick={resize}>Double slots + rehash</button>
+        <button className="button button--primary" type="button" onClick={resize} disabled={!resizeRecommended}>Double slots + rehash</button>
         <button className="button button--quiet" type="button" onClick={reset}>Reset</button>
       </div>
     </div>

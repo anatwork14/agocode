@@ -9,6 +9,7 @@ export type GraphRendererEdge = {
   from: string;
   to: string;
   directed?: boolean;
+  label?: string | number;
 };
 
 type GraphRendererProps = {
@@ -20,6 +21,7 @@ type GraphRendererProps = {
   queuedIds?: readonly string[];
   visitedIds?: readonly string[];
   pathIds?: readonly string[];
+  activeEdgeKeys?: readonly string[];
 };
 
 export function GraphRenderer({
@@ -31,12 +33,14 @@ export function GraphRenderer({
   queuedIds = [],
   visitedIds = [],
   pathIds = [],
+  activeEdgeKeys = [],
 }: GraphRendererProps) {
   const byId = new Map(nodes.map((node) => [node.id, node]));
   const queued = new Set(queuedIds);
   const visited = new Set(visitedIds);
   const path = new Set(pathIds);
   const pathEdges = new Set(pathIds.slice(0, -1).map((nodeId, index) => `${nodeId}->${pathIds[index + 1]}`));
+  const activeEdges = new Set(activeEdgeKeys);
 
   return (
     <svg className="graph-renderer" viewBox="0 0 640 360" role="img" aria-label={ariaLabel}>
@@ -51,17 +55,27 @@ export function GraphRenderer({
           const from = byId.get(edge.from);
           const to = byId.get(edge.to);
           if (!from || !to) return null;
-          const active = pathEdges.has(`${edge.from}->${edge.to}`) || pathEdges.has(`${edge.to}->${edge.from}`);
+          const edgeKey = `${edge.from}->${edge.to}`;
+          const active = pathEdges.has(edgeKey) || pathEdges.has(`${edge.to}->${edge.from}`) || activeEdges.has(edgeKey);
+          const midX = (from.x + to.x) / 2;
+          const midY = (from.y + to.y) / 2;
           return (
-            <line
-              key={`${edge.from}-${edge.to}-${index}`}
-              x1={from.x}
-              y1={from.y}
-              x2={to.x}
-              y2={to.y}
-              className={`graph-renderer__edge ${active ? "graph-renderer__edge--path" : ""}`}
-              markerEnd={edge.directed ? "url(#agocode-arrow)" : undefined}
-            />
+            <g key={`${edge.from}-${edge.to}-${index}`}>
+              <line
+                x1={from.x}
+                y1={from.y}
+                x2={to.x}
+                y2={to.y}
+                className={`graph-renderer__edge ${active ? "graph-renderer__edge--path" : ""}`}
+                markerEnd={edge.directed ? "url(#agocode-arrow)" : undefined}
+              />
+              {edge.label !== undefined ? (
+                <g className="graph-renderer__edge-label" transform={`translate(${midX} ${midY})`}>
+                  <rect x="-16" y="-11" width="32" height="22" rx="3" />
+                  <text textAnchor="middle" dominantBaseline="central">{edge.label}</text>
+                </g>
+              ) : null}
+            </g>
           );
         })}
       </g>

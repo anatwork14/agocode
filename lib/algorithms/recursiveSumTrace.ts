@@ -79,7 +79,7 @@ export function buildRecursiveSumTrace(input: number[]): RecursiveSumTraceFrame[
   return frames;
 }
 
-export function recursiveSum(input: number[]) {
+export function recursiveSum(input: number[]): number {
   if (input.length === 0) return 0;
   return input[0] + recursiveSum(input.slice(1));
 }

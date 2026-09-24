@@ -38,6 +38,8 @@ const learningSteps: readonly PlanStep[] = [
   { key: "agocode.progress.chapter-4.recap", label: "Recall", title: "Reconstruct Chapter 4", description: "Recover divide and conquer, partitioning, recursive combine, and pivot-dependent runtime.", href: "/learn/chapter-4-recap" },
   { key: "agocode.progress.hash-tables.duplicate-filter", label: "Chapter 05", title: "Make keys point directly to state", description: "Learn hash functions, common lookup use cases, collisions, load factor, and then use a built-in hash-backed set for duplicate detection.", href: "/learn/hash-tables" },
   { key: "agocode.progress.chapter-5.recap", label: "Recall", title: "Reconstruct Hash Tables", description: "Connect key→bucket mapping, collisions, use cases, and average-case performance without reopening the lesson.", href: "/learn/chapter-5-recap" },
+  { key: "agocode.progress.bfs.rebuild", label: "Chapter 06", title: "Search a graph by layers", description: "Model relationships as a graph, make FIFO queue order visible, trace a shortest unweighted path, and rebuild BFS yourself.", href: "/learn/breadth-first-search" },
+  { key: "agocode.progress.chapter-6.recap", label: "Recall", title: "Reconstruct Breadth-First Search", description: "Recover graph modeling, FIFO layer order, visited-state protection, shortest-path reasoning, and O(V + E).", href: "/learn/chapter-6-recap" },
 ];
 
 const reviewSchedule = [
@@ -59,6 +61,8 @@ const reviewSchedule = [
   ["agocode.progress.chapter-4.recap", 7],
   ["agocode.progress.hash-tables.duplicate-filter", 3],
   ["agocode.progress.chapter-5.recap", 7],
+  ["agocode.progress.bfs.rebuild", 3],
+  ["agocode.progress.chapter-6.recap", 7],
 ] as const;
 
 const extraEvidenceKeys = [
@@ -83,8 +87,8 @@ function chooseNextStep(): Omit<PlanStep, "key"> {
   if (next) return next;
   return {
     label: "Next chapter",
-    title: "Preview Graphs + BFS",
-    description: "The next Book Track slice will turn relationships into a graph, make the queue visible, and derive shortest paths in an unweighted network.",
+    title: "Preview weighted shortest paths",
+    description: "Chapter 7 keeps the graph model but gives edges different costs, so fewest edges and cheapest route are no longer the same question.",
     href: "/roadmap",
   };
 }

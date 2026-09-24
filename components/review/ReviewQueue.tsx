@@ -92,6 +92,11 @@ function buildReviewItems() {
     description: "Rebuild the base case and recursive case, then explain what values remain suspended while the call stack grows.",
     href: "/learn/recursion#rebuild",
   });
+  addScheduledReview(items, "agocode.progress.chapter-3.recap", 7, {
+    title: "Chapter 3 cumulative recall",
+    description: "Recover the stopping case, progress rule, LIFO call-stack model, and recursive unwinding before starting divide and conquer.",
+    href: "/learn/chapter-3-recap",
+  });
 
   return items;
 }

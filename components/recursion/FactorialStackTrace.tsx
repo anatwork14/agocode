@@ -1,19 +1,64 @@
 "use client";
 
 import { FormEvent, useMemo, useReducer, useState } from "react";
-import { buildFactorialTrace } from "@/lib/algorithms/factorialTrace";
+import { StackRenderer } from "@/components/visualization/StackRenderer";
+import { buildFactorialTrace, type FactorialTraceFrame } from "@/lib/algorithms/factorialTrace";
 import { initialTimelineState, timelineReducer } from "@/lib/visualization/timeline";
+
+type PredictionAnswer = {
+  selected: string;
+  correct: boolean;
+};
+
+const predictionOptions = [
+  { id: "push", label: "Push another smaller call." },
+  { id: "base", label: "Stop at the base case and return 1." },
+  { id: "return", label: "Pop/resume a caller and combine the returned value." },
+  { id: "complete", label: "Finish because no suspended calls remain." },
+] as const;
+
+function predictionFor(frame: FactorialTraceFrame | undefined) {
+  if (!frame) return null;
+  if (frame.event.type === "CALL") {
+    return {
+      correct: "push",
+      explanation: "The next smaller factorial call is pushed while the current call remains suspended underneath it.",
+    };
+  }
+  if (frame.event.type === "BASE") {
+    return {
+      correct: "base",
+      explanation: "The smallest call returns immediately instead of recursing again. This is what stops the chain.",
+    };
+  }
+  if (frame.event.type === "RETURN") {
+    return {
+      correct: "return",
+      explanation: "A child result is now known, so the waiting caller resumes and combines its local n with that result.",
+    };
+  }
+  return {
+    correct: "complete",
+    explanation: "The final caller has returned, so the stack is empty and the recursive computation is complete.",
+  };
+}
 
 export function FactorialStackTrace() {
   const [n, setN] = useState(4);
   const [draft, setDraft] = useState("4");
   const [error, setError] = useState("");
   const [timeline, dispatchTimeline] = useReducer(timelineReducer, initialTimelineState);
+  const [answers, setAnswers] = useState<Record<number, PredictionAnswer>>({});
 
   const frames = useMemo(() => buildFactorialTrace(n), [n]);
   const frame = frames[timeline.index];
 
   if (!frame) return null;
+
+  function resetTrace() {
+    dispatchTimeline({ type: "reset" });
+    setAnswers({});
+  }
 
   function apply(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -24,7 +69,7 @@ export function FactorialStackTrace() {
     }
     setError("");
     setN(next);
-    dispatchTimeline({ type: "reset" });
+    resetTrace();
   }
 
   const eventLabel = frame.event.type === "CALL"
@@ -34,6 +79,34 @@ export function FactorialStackTrace() {
       : frame.event.type === "RETURN"
         ? `return ${frame.event.result}`
         : `complete = ${frame.event.result}`;
+
+  const nextFrame = frames[timeline.index + 1];
+  const prediction = predictionFor(nextFrame);
+  const answer = answers[timeline.index];
+  const predictionLocked = Boolean(prediction && !answer?.correct);
+
+  function answerPrediction(optionId: string) {
+    if (!prediction || answer?.correct) return;
+    setAnswers((current) => ({
+      ...current,
+      [timeline.index]: {
+        selected: optionId,
+        correct: optionId === prediction.correct,
+      },
+    }));
+  }
+
+  function advance() {
+    if (predictionLocked) return;
+    dispatchTimeline({ type: "advance", length: frames.length });
+  }
+
+  const stackItems = frame.stack.map((item) => ({
+    id: `fact-${item.n}`,
+    title: `fact(${item.n})`,
+    detail: `local n = ${item.n}`,
+    state: item.state,
+  }));
 
   return (
     <div className="factorial-lab">
@@ -58,17 +131,7 @@ export function FactorialStackTrace() {
       <div className="factorial-grid">
         <section>
           <div className="eyebrow">Call stack · top first</div>
-          <div className="factorial-stack" aria-label="Factorial call stack">
-            {frame.stack.length ? [...frame.stack].reverse().map((item, index) => (
-              <div className={`factorial-frame factorial-frame--${item.state}`} key={`${item.n}-${index}`}>
-                <div>
-                  <span className="mono">fact({item.n})</span>
-                  <strong>{item.state}</strong>
-                </div>
-                <span className="factorial-frame__local">local n = {item.n}</span>
-              </div>
-            )) : <div className="selection-empty">stack empty</div>}
-          </div>
+          <StackRenderer items={stackItems} ariaLabel="Factorial call stack" />
         </section>
 
         <section>
@@ -82,6 +145,38 @@ export function FactorialStackTrace() {
           </dl>
         </section>
       </div>
+
+      {prediction ? (
+        <div className="prediction-gate" aria-live="polite">
+          <div className="prediction-gate__label">Predict before advancing</div>
+          <p>What should the recursive execution do next?</p>
+          <div className="prediction-options">
+            {predictionOptions.map((option) => {
+              const selected = answer?.selected === option.id;
+              const correct = selected && answer?.correct;
+              const wrong = selected && answer && !answer.correct;
+              return (
+                <button
+                  type="button"
+                  className={`prediction-option ${correct ? "prediction-option--correct" : ""} ${wrong ? "prediction-option--wrong" : ""}`}
+                  key={option.id}
+                  onClick={() => answerPrediction(option.id)}
+                  disabled={Boolean(answer?.correct)}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
+          {answer ? (
+            <p className={`prediction-feedback ${answer.correct ? "prediction-feedback--correct" : ""}`}>
+              {answer.correct
+                ? prediction.explanation
+                : "Use the current stack and ask whether another smaller call is required, the stopping case has been reached, or a suspended caller can now resume."}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="trace-timeline" aria-label="Visited factorial trace">
         <input
@@ -100,12 +195,12 @@ export function FactorialStackTrace() {
         <button
           className="button button--primary"
           type="button"
-          onClick={() => dispatchTimeline({ type: "advance", length: frames.length })}
-          disabled={timeline.index === frames.length - 1}
+          onClick={advance}
+          disabled={timeline.index === frames.length - 1 || predictionLocked}
         >
-          Step →
+          Apply next step →
         </button>
-        <button className="button button--quiet" type="button" onClick={() => dispatchTimeline({ type: "reset" })}>Reset</button>
+        <button className="button button--quiet" type="button" onClick={resetTrace}>Reset</button>
       </div>
     </div>
   );

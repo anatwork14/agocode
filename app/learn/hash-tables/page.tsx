@@ -106,7 +106,7 @@ export default function HashTablesPage() {
                 <h2>Use the built-in hash table instead of implementing one from scratch.</h2>
                 <p>
                   For normal application code, the important skill is recognizing the data-access pattern. When you need
-                  key→value mapping or repeated membership checks, reach for the language's built-in dictionary or set
+                  key→value mapping or repeated membership checks, reach for the language&apos;s built-in dictionary or set
                   rather than rebuilding the storage internals.
                 </p>
                 <DuplicateFilterExercise />

@@ -26,6 +26,8 @@ const reviewDefinitions: ReviewDefinition[] = [
   { key: "agocode.progress.divide-conquer.sum-rebuild", delayDays: 3, title: "Divide & Conquer reduction recall", description: "State the base case and the smaller subproblem before rebuilding recursive sum from memory.", href: "/learn/divide-and-conquer#rebuild" },
   { key: "agocode.progress.quicksort.rebuild", delayDays: 3, title: "Rebuild Quicksort", description: "Recover the base case, pivot partition, recursive calls, and combine rule without reopening the finished implementation.", href: "/learn/quicksort#rebuild" },
   { key: "agocode.progress.chapter-4.recap", delayDays: 7, title: "Chapter 4 cumulative recall", description: "Reconnect divide and conquer, partitioning, recursive combine, and balanced-versus-lopsided runtime behavior.", href: "/learn/chapter-4-recap" },
+  { key: "agocode.progress.hash-tables.duplicate-filter", delayDays: 3, title: "Hash-backed membership recall", description: "Rebuild the duplicate-filter task and explain why a set or dictionary changes repeated membership checking into key lookup.", href: "/learn/hash-tables#apply" },
+  { key: "agocode.progress.chapter-5.recap", delayDays: 7, title: "Chapter 5 cumulative recall", description: "Reconnect hash function, array buckets, use cases, collisions, load factor, resizing, and average-case performance.", href: "/learn/chapter-5-recap" },
 ];
 
 function completedAt(key: string) {

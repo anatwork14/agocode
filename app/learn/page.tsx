@@ -30,6 +30,10 @@ const liveTopics: Record<number, readonly (readonly [string, string])[]> = {
     ["Hash Tables", "/learn/hash-tables"],
     ["Chapter 5 Recap", "/learn/chapter-5-recap"],
   ],
+  6: [
+    ["Breadth-First Search", "/learn/breadth-first-search"],
+    ["Chapter 6 Recap", "/learn/chapter-6-recap"],
+  ],
 };
 
 export default function LearnIndexPage() {

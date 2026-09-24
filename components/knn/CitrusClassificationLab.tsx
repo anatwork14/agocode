@@ -17,6 +17,7 @@ const samples: KnnSample<CitrusLabel>[] = [
 ];
 
 const target = [5.4, 5.1] as const;
+const storageKey = "agocode.progress.knn.classification";
 
 function x(value: number) {
   return 56 + ((value - 2) / 7) * 520;
@@ -24,6 +25,15 @@ function x(value: number) {
 
 function y(value: number) {
   return 310 - ((value - 2) / 7) * 260;
+}
+
+function markExplored() {
+  try {
+    if (localStorage.getItem(storageKey)) return;
+    localStorage.setItem(storageKey, JSON.stringify({ completedAt: new Date().toISOString(), exerciseId: "knn-classification" }));
+  } catch {
+    // The learning interaction remains usable if browser storage is unavailable.
+  }
 }
 
 export function CitrusClassificationLab() {
@@ -37,6 +47,11 @@ export function CitrusClassificationLab() {
     setK(nextK);
     setGuess(null);
     setRevealed(false);
+  }
+
+  function reveal() {
+    setRevealed(true);
+    markExplored();
   }
 
   return (
@@ -104,7 +119,7 @@ export function CitrusClassificationLab() {
             <button className={`prediction-option ${guess === "orange" ? "prediction-option--selected" : ""}`} type="button" onClick={() => setGuess("orange")}>orange</button>
             <button className={`prediction-option ${guess === "grapefruit" ? "prediction-option--selected" : ""}`} type="button" onClick={() => setGuess("grapefruit")}>grapefruit</button>
           </div>
-          <button className="button button--primary" type="button" onClick={() => setRevealed(true)} disabled={!guess}>Reveal {k} nearest →</button>
+          <button className="button button--primary" type="button" onClick={reveal} disabled={!guess}>Reveal {k} nearest →</button>
         </div>
       ) : (
         <div className="trace-note" aria-live="polite">

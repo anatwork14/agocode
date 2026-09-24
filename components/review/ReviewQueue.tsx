@@ -4,106 +4,46 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { readLearningEvidence } from "@/lib/learning/evidence";
 
-type ReviewItem = {
-  title: string;
-  description: string;
-  href: string;
-  dueAt: Date;
-};
+type ReviewItem = { title: string; description: string; href: string; dueAt: Date };
+type ReviewDefinition = Omit<ReviewItem, "dueAt"> & { key: string; delayDays: number };
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+
+const reviewDefinitions: ReviewDefinition[] = [
+  { key: "agocode.progress.binary-search.rebuild", delayDays: 1, title: "Rebuild Binary Search", description: "Return without rereading the implementation. Reconstruct low, high, mid, and the two interval updates.", href: "/learn/binary-search#rebuild" },
+  { key: "agocode.progress.binary-search.explain", delayDays: 2, title: "Explain the invariant", description: "Explain why sorted order makes a whole region disposable and what low…high promises after every update.", href: "/learn/binary-search#explain" },
+  { key: "agocode.progress.binary-search.transfer-01", delayDays: 3, title: "Insertion boundary transfer", description: "Solve the insertion-position variant again and explain why the final low index is meaningful.", href: "/practice/binary-search" },
+  { key: "agocode.progress.binary-search.transfer-02", delayDays: 4, title: "First-occurrence boundary", description: "Find the first duplicate again. Recall why equality becomes a candidate answer instead of an immediate return.", href: "/practice/binary-search/boundary" },
+  { key: "agocode.progress.binary-search.transfer-03", delayDays: 5, title: "Rotated-array pattern recall", description: "Recover the structural observation that one side of a distinct rotated array around mid remains sorted.", href: "/practice/binary-search/rotated" },
+  { key: "agocode.progress.binary-search.transfer-04", delayDays: 6, title: "Answer-space search recall", description: "Reconstruct why a monotonic feasibility predicate makes a range of possible answers searchable by binary search.", href: "/practice/binary-search/answer-space" },
+  { key: "agocode.progress.chapter-1.recap", delayDays: 7, title: "Chapter 1 cumulative recall", description: "Reconnect Binary Search, running time, Big O, and factorial growth without rereading the chapter first.", href: "/learn/chapter-1-recap" },
+  { key: "agocode.progress.binary-search.rebuild-blank", delayDays: 8, title: "Blank implementation recall", description: "Start from only the function signature and rebuild the loop, midpoint, and discard rules without embedded reminders.", href: "/practice/binary-search/rebuild" },
+  { key: "agocode.progress.binary-search.bug-repair", delayDays: 9, title: "Boundary bug repair", description: "Diagnose the off-by-one loop condition again from failing boundary cases rather than from a clean reference solution.", href: "/practice/binary-search/bug-repair" },
+  { key: "agocode.progress.selection-sort.rebuild", delayDays: 3, title: "Rebuild Selection Sort", description: "Recover the repeated minimum-selection mechanism and explain why the shrinking scans still sum to quadratic work.", href: "/learn/selection-sort#rebuild" },
+  { key: "agocode.progress.chapter-2.recap", delayDays: 7, title: "Chapter 2 cumulative recall", description: "Reconnect memory addresses, arrays, linked lists, and Selection Sort before opening Chapter 3.", href: "/learn/chapter-2-recap" },
+  { key: "agocode.progress.recursion.factorial-rebuild", delayDays: 3, title: "Recursive factorial recall", description: "Rebuild the base case and recursive case, then explain what values remain suspended while the call stack grows.", href: "/learn/recursion#rebuild" },
+  { key: "agocode.progress.chapter-3.recap", delayDays: 7, title: "Chapter 3 cumulative recall", description: "Recover the stopping case, progress rule, LIFO call-stack model, and recursive unwinding before starting divide and conquer.", href: "/learn/chapter-3-recap" },
+  { key: "agocode.progress.divide-conquer.sum-rebuild", delayDays: 3, title: "Divide & Conquer reduction recall", description: "State the base case and the smaller subproblem before rebuilding recursive sum from memory.", href: "/learn/divide-and-conquer#rebuild" },
+  { key: "agocode.progress.quicksort.rebuild", delayDays: 3, title: "Rebuild Quicksort", description: "Recover the base case, pivot partition, recursive calls, and combine rule without reopening the finished implementation.", href: "/learn/quicksort#rebuild" },
+  { key: "agocode.progress.chapter-4.recap", delayDays: 7, title: "Chapter 4 cumulative recall", description: "Reconnect divide and conquer, partitioning, recursive combine, and balanced-versus-lopsided runtime behavior.", href: "/learn/chapter-4-recap" },
+];
 
 function completedAt(key: string) {
   const value = readLearningEvidence(localStorage, key)?.completedAt;
   return value ? new Date(value).getTime() : null;
 }
 
-function addScheduledReview(
-  items: ReviewItem[],
-  key: string,
-  delayDays: number,
-  item: Omit<ReviewItem, "dueAt">,
-) {
-  const completionTime = completedAt(key);
-  if (completionTime === null) return;
-  items.push({ ...item, dueAt: new Date(completionTime + delayDays * DAY_MS) });
-}
-
 function buildReviewItems() {
-  const items: ReviewItem[] = [];
-
-  addScheduledReview(items, "agocode.progress.binary-search.rebuild", 1, {
-    title: "Rebuild Binary Search",
-    description: "Return without rereading the implementation. Reconstruct low, high, mid, and the two interval updates.",
-    href: "/learn/binary-search#rebuild",
+  return reviewDefinitions.flatMap((definition): ReviewItem[] => {
+    const completionTime = completedAt(definition.key);
+    if (completionTime === null) return [];
+    return [{
+      title: definition.title,
+      description: definition.description,
+      href: definition.href,
+      dueAt: new Date(completionTime + definition.delayDays * DAY_MS),
+    }];
   });
-  addScheduledReview(items, "agocode.progress.binary-search.explain", 2, {
-    title: "Explain the invariant",
-    description: "Explain why sorted order makes a whole region disposable and what low…high promises after every update.",
-    href: "/learn/binary-search#explain",
-  });
-  addScheduledReview(items, "agocode.progress.binary-search.transfer-01", 3, {
-    title: "Insertion boundary transfer",
-    description: "Solve the insertion-position variant again and explain why the final low index is meaningful.",
-    href: "/practice/binary-search",
-  });
-  addScheduledReview(items, "agocode.progress.binary-search.transfer-02", 4, {
-    title: "First-occurrence boundary",
-    description: "Find the first duplicate again. Recall why equality becomes a candidate answer instead of an immediate return.",
-    href: "/practice/binary-search/boundary",
-  });
-  addScheduledReview(items, "agocode.progress.binary-search.transfer-03", 5, {
-    title: "Rotated-array pattern recall",
-    description: "Recover the structural observation that one side of a distinct rotated array around mid remains sorted.",
-    href: "/practice/binary-search/rotated",
-  });
-  addScheduledReview(items, "agocode.progress.binary-search.transfer-04", 6, {
-    title: "Answer-space search recall",
-    description: "Reconstruct why a monotonic feasibility predicate makes a range of possible answers searchable by binary search.",
-    href: "/practice/binary-search/answer-space",
-  });
-  addScheduledReview(items, "agocode.progress.chapter-1.recap", 7, {
-    title: "Chapter 1 cumulative recall",
-    description: "Reconnect Binary Search, running time, Big O, and factorial growth without rereading the chapter first.",
-    href: "/learn/chapter-1-recap",
-  });
-  addScheduledReview(items, "agocode.progress.binary-search.rebuild-blank", 8, {
-    title: "Blank implementation recall",
-    description: "Start from only the function signature and rebuild the loop, midpoint, and discard rules without embedded reminders.",
-    href: "/practice/binary-search/rebuild",
-  });
-  addScheduledReview(items, "agocode.progress.binary-search.bug-repair", 9, {
-    title: "Boundary bug repair",
-    description: "Diagnose the off-by-one loop condition again from failing boundary cases rather than from a clean reference solution.",
-    href: "/practice/binary-search/bug-repair",
-  });
-  addScheduledReview(items, "agocode.progress.selection-sort.rebuild", 3, {
-    title: "Rebuild Selection Sort",
-    description: "Recover the repeated minimum-selection mechanism and explain why the shrinking scans still sum to quadratic work.",
-    href: "/learn/selection-sort#rebuild",
-  });
-  addScheduledReview(items, "agocode.progress.chapter-2.recap", 7, {
-    title: "Chapter 2 cumulative recall",
-    description: "Reconnect memory addresses, arrays, linked lists, and Selection Sort before opening Chapter 3.",
-    href: "/learn/chapter-2-recap",
-  });
-  addScheduledReview(items, "agocode.progress.recursion.factorial-rebuild", 3, {
-    title: "Recursive factorial recall",
-    description: "Rebuild the base case and recursive case, then explain what values remain suspended while the call stack grows.",
-    href: "/learn/recursion#rebuild",
-  });
-  addScheduledReview(items, "agocode.progress.chapter-3.recap", 7, {
-    title: "Chapter 3 cumulative recall",
-    description: "Recover the stopping case, progress rule, LIFO call-stack model, and recursive unwinding before starting divide and conquer.",
-    href: "/learn/chapter-3-recap",
-  });
-  addScheduledReview(items, "agocode.progress.divide-conquer.sum-rebuild", 3, {
-    title: "Divide & Conquer reduction recall",
-    description: "State the base case and the smaller subproblem before rebuilding recursive sum from memory.",
-    href: "/learn/divide-and-conquer#rebuild",
-  });
-
-  return items;
 }
 
 function formatWait(ms: number) {

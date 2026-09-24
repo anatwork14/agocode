@@ -42,6 +42,9 @@ const learningSteps: readonly PlanStep[] = [
   { key: "agocode.progress.chapter-6.recap", label: "Recall", title: "Reconstruct Breadth-First Search", description: "Recover graph modeling, FIFO layer order, visited-state protection, shortest-path reasoning, and O(V + E).", href: "/learn/chapter-6-recap" },
   { key: "agocode.progress.dijkstra.rebuild", label: "Chapter 07", title: "Minimize weighted path cost", description: "Compare BFS with weighted paths, trace cheapest-node selection and edge relaxation, then rebuild Dijkstra from cost and parent tables.", href: "/learn/dijkstra" },
   { key: "agocode.progress.chapter-7.recap", label: "Recall", title: "Reconstruct Dijkstra", description: "Recover weighted-graph reasoning, relaxation, parent reconstruction, and the negative-weight boundary.", href: "/learn/chapter-7-recap" },
+  { key: "agocode.progress.greedy.scheduling", label: "Chapter 08", title: "Choose the earliest finish", description: "Trace interval scheduling and see why one local rule can produce an optimal non-overlapping schedule.", href: "/learn/greedy#schedule" },
+  { key: "agocode.progress.greedy.set-cover", label: "Chapter 08", title: "Approximate set cover", description: "Choose the option that covers the most still-uncovered requirements and watch a hard exact search become a practical approximation.", href: "/learn/greedy#set-cover" },
+  { key: "agocode.progress.chapter-8.recap", label: "Recall", title: "Reconstruct Greedy Algorithms", description: "Separate proven greedy optimality from approximation, counterexamples, and hard combinatorial search.", href: "/learn/chapter-8-recap" },
 ];
 
 const reviewSchedule = [
@@ -67,6 +70,9 @@ const reviewSchedule = [
   ["agocode.progress.chapter-6.recap", 7],
   ["agocode.progress.dijkstra.rebuild", 3],
   ["agocode.progress.chapter-7.recap", 7],
+  ["agocode.progress.greedy.scheduling", 3],
+  ["agocode.progress.greedy.set-cover", 4],
+  ["agocode.progress.chapter-8.recap", 7],
 ] as const;
 
 const extraEvidenceKeys = [
@@ -91,8 +97,8 @@ function chooseNextStep(): Omit<PlanStep, "key"> {
   if (next) return next;
   return {
     label: "Next chapter",
-    title: "Preview Greedy Algorithms",
-    description: "Chapter 8 studies locally optimal choices, when they produce global answers, and when approximation is the practical goal.",
+    title: "Preview Dynamic Programming",
+    description: "Chapter 9 returns to knapsack and replaces a merely plausible greedy shortcut with a systematic subproblem table that can recover the optimal value.",
     href: "/roadmap",
   };
 }

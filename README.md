@@ -8,36 +8,35 @@ The canonical learning backbone follows the pedagogical progression of *Grokking
 
 > Understand → Predict → Trace → Rebuild → Explain → Transfer → Recall
 
-AgoCode is intentionally not another static textbook, animation gallery, or problem dump. Every lesson should make the learner actively reason about algorithm state and eventually reproduce the algorithm without copying a finished solution.
+AgoCode is intentionally not another static textbook, animation gallery, or problem dump. Every lesson should make the learner actively reason about algorithm state and eventually reproduce the mechanism without copying a finished solution.
 
 ## Implementation status
 
-**Chapter 1 is an end-to-end interactive chapter, and Chapter 2 now has its first complete Book Track slice.** Binary Search also has a four-rung transfer ladder plus delayed-recall drills.
+**Chapters 1–4 now have live Book Track learning slices.** Binary Search has the deepest transfer/review loop, while Chapters 2–4 progressively add reusable memory, stack, recursion, divide-and-conquer, and sorting visualization primitives.
 
 Currently implemented:
 
 - Next.js + React + TypeScript application scaffold
 - canonical paper/ink/red design system and SVG-first AgoCode brand
 - responsive Book / Roadmap / Lab / Practice / Review routes
-- Binary Search intuition, guessing, halving, sorted-input counterexample, code trace, prediction gates, reconstruction, explanation, and recap
-- deterministic Binary Search trace generator with reusable visited-timeline reducer
-- editable sorted-array / target scenarios in Lab mode
-- in-browser Python execution isolated in a Web Worker with timeout protection, stdout/stderr, tests, progressive hints, and Python-friendly indentation
-- Binary Search transfer ladder: insertion boundary → first occurrence → rotated array → monotonic answer space
-- blank Binary Search rebuild and boundary bug-repair recall drills
-- richer local learning evidence with attempt history, best test performance, and hint-use tracking
-- Chapter 1 Running Time, Big O, factorial-growth/TSP lesson, and cumulative retrieval
-- Chapter 2 memory-slot model, arrays-vs-linked-lists trade-off lab, Selection Sort trace, Python rebuild, and cumulative recap
-- deterministic unit tests for Binary Search, Selection Sort, learning evidence, and the shared timeline reducer
+- in-browser Python execution isolated in a Web Worker with timeout protection, tests, stdout/stderr, progressive hints, and Python-friendly indentation
+- richer local learning evidence with attempt history, best test performance, hint-use tracking, next-step guidance, and delayed-review scheduling
+- shared visited-timeline reducer and reusable stack/call-frame renderer
+- Chapter 1: Binary Search, Running Time, Big O, Traveling Salesperson, cumulative recap
+- Binary Search prediction gates, custom scenarios, guided + blank reconstruction, bug repair, and four-rung transfer ladder
+- Chapter 2: memory-slot model, arrays vs. linked lists, Selection Sort trace, Python rebuild, cumulative recap
+- Chapter 3: recursion analogy, base/recursive cases, ordinary call stack, recursive factorial stack, prediction gates, Python rebuild, cumulative recap
+- Chapter 4: Divide & Conquer reduction model, recursive-sum trace/rebuild, Quicksort partition trace, pivot strategy comparison, Python rebuild, cumulative recap
+- deterministic tests for Binary Search, Selection Sort, factorial recursion, recursive sum, Quicksort, learning evidence, and timeline behavior
 - CI gates for typecheck, tests, lint, and production build
 
 Next implementation priorities:
 
-1. strengthen mastery aggregation from recorded attempt evidence,
-2. add prediction-attempt persistence and review rescheduling after successful/failed recall,
-3. polish Chapter 2 interactions and add a dedicated Selection Sort transfer task,
-4. begin Chapter 3 Recursion with stack/call-stack visualization primitives,
-5. continue extracting reusable visualization primitives before graph and DP chapters.
+1. verify and polish Chapter 4 end-to-end interactions and review behavior,
+2. persist prediction-attempt evidence and aggregate explicit mastery dimensions,
+3. reschedule reviews from actual recall success/failure instead of only original completion time,
+4. begin Chapter 5 Hash Tables with key→bucket, collision, lookup/duplicate/cache, and load-factor visualizations,
+5. continue extracting reusable array/node/stack/graph/table renderer contracts before later graph and DP chapters.
 
 ## Local development
 

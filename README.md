@@ -12,7 +12,7 @@ AgoCode is intentionally not another static textbook, animation gallery, or prob
 
 ## Implementation status
 
-**Chapters 1–4 now have live Book Track learning slices.** Binary Search has the deepest transfer/review loop, while Chapters 2–4 progressively add reusable memory, stack, recursion, divide-and-conquer, and sorting visualization primitives.
+**Chapters 1–5 now have live Book Track learning slices.** Binary Search still has the deepest transfer/review loop, while Chapters 2–5 progressively add reusable memory, stack, recursion, divide-and-conquer, sorting, and hash-table visualization primitives.
 
 Currently implemented:
 
@@ -26,16 +26,17 @@ Currently implemented:
 - Binary Search prediction gates, custom scenarios, guided + blank reconstruction, bug repair, and four-rung transfer ladder
 - Chapter 2: memory-slot model, arrays vs. linked lists, Selection Sort trace, Python rebuild, cumulative recap
 - Chapter 3: recursion analogy, base/recursive cases, ordinary call stack, recursive factorial stack, prediction gates, Python rebuild, cumulative recap
-- Chapter 4: Divide & Conquer reduction model, recursive-sum trace/rebuild, Quicksort partition trace, pivot strategy comparison, Python rebuild, cumulative recap
-- deterministic tests for Binary Search, Selection Sort, factorial recursion, recursive sum, Quicksort, learning evidence, and timeline behavior
+- Chapter 4: book-aligned 1680×640 divide-and-conquer farm reduction, recursive-sum trace/rebuild, Quicksort partition trace, pivot strategy comparison, Python rebuild, cumulative recap
+- Chapter 5: grocery lookup comparison, inspectable key→index hashing, mapping/duplicate/cache use cases, collision chains, load factor + rehashing, built-in dictionary exercise, cumulative recap
+- deterministic tests for Binary Search, Selection Sort, factorial recursion, recursive sum, Quicksort, hash-table mechanics, learning evidence, and timeline behavior
 - CI gates for typecheck, tests, lint, and production build
 
 Next implementation priorities:
 
-1. verify and polish Chapter 4 end-to-end interactions and review behavior,
+1. polish Chapter 5 collision/distribution feedback around the book's apple/avocado example and 0.7 resize rule,
 2. persist prediction-attempt evidence and aggregate explicit mastery dimensions,
 3. reschedule reviews from actual recall success/failure instead of only original completion time,
-4. begin Chapter 5 Hash Tables with key→bucket, collision, lookup/duplicate/cache, and load-factor visualizations,
+4. begin Chapter 6 Breadth-First Search with graph representation, queue ordering, shortest-unweighted-path reasoning, and deterministic traversal traces,
 5. continue extracting reusable array/node/stack/graph/table renderer contracts before later graph and DP chapters.
 
 ## Local development

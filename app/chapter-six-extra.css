@@ -1,0 +1,121 @@
+.bfs-layer-lab,
+.topological-check {
+  margin: 28px 0 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 22px;
+}
+
+.bfs-layer-lab__header,
+.topological-check__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.bfs-layer-lab__header h3,
+.topological-check__header h3 {
+  margin: 4px 0 0;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 1.35rem;
+}
+
+.bfs-layer-lab__state {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: 16px;
+  border: 1px solid var(--border);
+  background: var(--border);
+}
+
+.bfs-layer-lab__state > div,
+.bfs-layer-lab__state > p {
+  margin: 0;
+  background: var(--surface);
+  padding: 13px 14px;
+}
+
+.bfs-layer-lab__state span {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--muted);
+  font-size: .68rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.bfs-layer-lab__state > p {
+  grid-column: 1 / -1;
+  color: var(--ink-secondary);
+}
+
+.bfs-layer-lab__found {
+  border-left: 3px solid var(--success);
+  color: var(--success) !important;
+  font-weight: 650;
+}
+
+.topological-dependencies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.topological-dependencies span {
+  border: 1px solid var(--border);
+  background: var(--paper);
+  padding: 7px 9px;
+  font-size: .72rem;
+}
+
+.topological-candidates {
+  display: grid;
+  gap: 8px;
+  margin: 18px 0;
+}
+
+.topological-candidate {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  border: 1px solid var(--border);
+  background: var(--paper);
+  padding: 12px 14px;
+  cursor: pointer;
+}
+
+.topological-candidate--selected {
+  border-color: var(--accent);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.topological-candidate span {
+  overflow-wrap: anywhere;
+  font-size: .76rem;
+}
+
+.topological-check__note {
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: .8rem;
+}
+
+@media (max-width: 620px) {
+  .bfs-layer-lab,
+  .topological-check {
+    padding: 16px;
+  }
+
+  .bfs-layer-lab__header,
+  .topological-check__header {
+    flex-direction: column;
+  }
+
+  .bfs-layer-lab__state {
+    grid-template-columns: 1fr;
+  }
+}

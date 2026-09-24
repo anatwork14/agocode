@@ -42,6 +42,10 @@ const liveTopics: Record<number, readonly (readonly [string, string])[]> = {
     ["Greedy Algorithms", "/learn/greedy"],
     ["Chapter 8 Recap", "/learn/chapter-8-recap"],
   ],
+  9: [
+    ["Dynamic Programming", "/learn/dynamic-programming"],
+    ["Chapter 9 Recap", "/learn/chapter-9-recap"],
+  ],
 };
 
 export default function LearnIndexPage() {

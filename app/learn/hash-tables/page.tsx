@@ -112,7 +112,7 @@ export default function HashTablesPage() {
                 <DuplicateFilterExercise />
                 <div className="action-row">
                   <Link className="button" href="/learn/chapter-4-recap">← Chapter 4 recap</Link>
-                  <Link className="button button--primary" href="/roadmap">Chapter 5 recap coming next →</Link>
+                  <Link className="button button--primary" href="/learn/chapter-5-recap">Chapter 5 recap →</Link>
                 </div>
               </section>
             </div>

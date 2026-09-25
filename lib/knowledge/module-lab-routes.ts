@@ -7,6 +7,8 @@ export const moduleLabRoutes: Record<string, string> = {
   "sorting-as-tool": "/lab/transformations",
   "graph-representation": "/lab/graph-modeling",
   "dynamic-programming": "/lab/dp-state-design",
+  hardness: "/lab/optimization-strategies",
+  "baseline-refine": "/lab/special-cases",
 };
 
 export function getModuleRoute(moduleId: string, canonicalRoute?: string) {

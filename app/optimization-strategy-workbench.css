@@ -1,0 +1,54 @@
+.optimization-hero { padding-bottom: 34px; }
+.optimization-lab-section { padding-top: 18px; }
+.optimization-workbench { border-top: 1px solid var(--ink); }
+.optimization-picker,.optimization-contract,.optimization-oracle,.optimization-strategies,.optimization-reasoning,.optimization-transfer { padding: 30px 0; border-bottom: 1px solid var(--ink); }
+.optimization-picker { display: grid; grid-template-columns: minmax(280px,.82fr) minmax(0,1.18fr); gap: 46px; }
+.optimization-picker h2,.optimization-contract h2,.optimization-oracle h2,.optimization-section-head h2,.optimization-reasoning h2,.optimization-transfer h2 { margin: 6px 0 9px; font-family: var(--font-editorial),Georgia,serif; font-size: clamp(1.55rem,3vw,2.35rem); letter-spacing: -.035em; line-height: 1.05; }
+.optimization-picker p,.optimization-contract p,.optimization-oracle p,.optimization-section-head p,.optimization-reasoning p { margin: 0; color: var(--ink-secondary); line-height: 1.6; }
+.optimization-tabs { border-top: 1px solid var(--border); }
+.optimization-tab { width: 100%; display: grid; grid-template-columns: 110px minmax(0,1fr); gap: 16px; padding: 13px 0; border: 0; border-bottom: 1px solid var(--border); background: transparent; color: var(--ink); text-align: left; cursor: pointer; }
+.optimization-tab .mono { color: var(--muted); font-size: .63rem; text-transform: uppercase; }
+.optimization-tab strong { font-size: .86rem; line-height: 1.4; }
+.optimization-tab:hover,.optimization-tab:focus-visible,.optimization-tab--active { color: var(--accent); outline: none; }
+.optimization-tab--active .mono { color: var(--accent); }
+.optimization-contract { display: grid; grid-template-columns: minmax(280px,.8fr) minmax(0,1.2fr); gap: 46px; }
+.optimization-contract__controls { display: grid; gap: 22px; }
+.optimization-contract fieldset { margin: 0; padding: 0; border: 0; }
+.optimization-contract legend { margin-bottom: 10px; }
+.optimization-contract fieldset .button { margin: 0 7px 7px 0; }
+.optimization-oracle { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 24px; align-items: end; }
+.optimization-oracle__answer { grid-column: 1/-1; padding: 18px 0 2px 18px; border-left: 3px solid var(--accent); }
+.optimization-oracle__answer strong { display: block; max-width: 900px; font-family: var(--font-editorial),Georgia,serif; font-size: 1.1rem; line-height: 1.45; }
+.optimization-oracle__answer p { margin-top: 8px; }
+.optimization-section-head { margin-bottom: 22px; }
+.optimization-strategy-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); border-top: 1px solid var(--border); border-left: 1px solid var(--border); }
+.optimization-strategy { min-height: 220px; padding: 15px; border: 0; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--surface); color: var(--ink); text-align: left; cursor: pointer; }
+.optimization-strategy:hover,.optimization-strategy:focus-visible,.optimization-strategy--selected { background: var(--accent-soft); outline: none; }
+.optimization-strategy--selected { box-shadow: inset 0 3px 0 var(--accent); }
+.optimization-strategy__head { display: flex; justify-content: space-between; gap: 8px; align-items: start; margin-bottom: 22px; }
+.optimization-class,.optimization-fit { font-family: var(--font-mono),ui-monospace,monospace; font-size: .6rem; text-transform: uppercase; letter-spacing: .04em; }
+.optimization-class--exact { color: var(--state-candidate); }
+.optimization-class--approximation { color: var(--success); }
+.optimization-class--heuristic { color: var(--warning); }
+.optimization-fit { color: var(--muted); }
+.optimization-fit--yes { color: var(--success); }
+.optimization-strategy > strong { display: block; min-height: 46px; margin-bottom: 10px; font-family: var(--font-editorial),Georgia,serif; font-size: 1.16rem; line-height: 1.15; }
+.optimization-strategy > .mono { display: block; color: var(--muted); font-size: .64rem; line-height: 1.4; }
+.optimization-fit-reasons { display: grid; gap: 4px; margin-top: 22px; color: var(--ink-secondary); font-size: .72rem; }
+.optimization-strategy-detail { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--ink); }
+.optimization-strategy-detail__head { display: flex; justify-content: space-between; gap: 20px; align-items: start; }
+.optimization-strategy-detail h3 { margin: 5px 0 0; font-family: var(--font-editorial),Georgia,serif; font-size: 1.55rem; }
+.optimization-strategy-detail__head > .mono { color: var(--muted); font-size: .66rem; }
+.optimization-strategy-detail__grid { display: grid; grid-template-columns: 1fr 1fr; margin-top: 18px; border-top: 1px solid var(--border); border-left: 1px solid var(--border); }
+.optimization-strategy-detail__grid > div { padding: 14px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.optimization-strategy-detail__grid span { display: block; margin-bottom: 5px; color: var(--muted); font-family: var(--font-mono),ui-monospace,monospace; font-size: .62rem; text-transform: uppercase; }
+.optimization-strategy-detail__grid strong { font-size: .86rem; line-height: 1.5; }
+.optimization-reasoning { display: grid; grid-template-columns: minmax(280px,.8fr) minmax(0,1.2fr); gap: 46px; }
+.optimization-checklist { border-top: 1px solid var(--border); }
+.optimization-checklist > div { display: grid; grid-template-columns: 34px minmax(0,1fr); gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--border); }
+.optimization-checklist .mono { color: var(--accent); font-size: .64rem; }
+.optimization-checklist strong { font-size: .9rem; line-height: 1.4; }
+.optimization-transfer { border-bottom: 0; padding-left: 22px; border-left: 3px solid var(--accent); }
+.optimization-transfer h2 { max-width: 880px; }
+@media (max-width: 980px) { .optimization-strategy-grid { grid-template-columns: 1fr 1fr; } .optimization-picker,.optimization-contract,.optimization-reasoning { grid-template-columns: 1fr; gap: 24px; } }
+@media (max-width: 700px) { .optimization-tab,.optimization-oracle,.optimization-strategy-detail__head { display: grid; grid-template-columns: 1fr; } .optimization-strategy-grid,.optimization-strategy-detail__grid { grid-template-columns: 1fr; } .optimization-oracle__answer { grid-column: 1; } .optimization-contract fieldset .button { width: 100%; margin-right: 0; } }

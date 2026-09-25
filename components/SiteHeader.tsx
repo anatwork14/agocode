@@ -3,9 +3,10 @@ import { BrandLockup } from "@/components/brand/Logo";
 
 const links = [
   ["Book", "/learn"],
-  ["Roadmap", "/roadmap"],
+  ["Syllabus", "/syllabus"],
   ["Lab", "/lab"],
-  ["Practice", "/practice"],
+  ["Exercises", "/exercises"],
+  ["Blog", "/blog"],
   ["Review", "/review"],
   ["Progress", "/progress"],
 ] as const;
@@ -22,8 +23,8 @@ export function SiteHeader() {
             </Link>
           ))}
         </nav>
-        <Link className="mobile-nav" href="/learn">
-          Open book →
+        <Link className="mobile-nav" href="/syllabus">
+          Open syllabus →
         </Link>
       </div>
     </header>

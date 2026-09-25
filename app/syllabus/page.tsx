@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PracticeProgression } from "@/components/syllabus/PracticeProgression";
+import { getModuleRoute, moduleLabRoutes } from "@/lib/knowledge/module-lab-routes";
 import { problemSolvingLoop, syllabusModuleCount, syllabusTracks } from "@/lib/knowledge/syllabus";
 
 export const metadata = {
@@ -24,7 +25,7 @@ export default function SyllabusPage() {
           <aside className="knowledge-note">
             <span className="eyebrow">Structure</span>
             <strong>{syllabusTracks.length} tracks · {syllabusModuleCount} modules</strong>
-            <p>Use this page as a dependency map. Use the Book page for the guided visual sequence and the Atlas for source-grounded practice.</p>
+            <p>Use this page as a dependency map. Modules with an AgoCode workbench open directly into the corresponding design lab.</p>
             <Link href="/learn">Open the visual Book Track →</Link>
           </aside>
         </div>
@@ -52,28 +53,33 @@ export default function SyllabusPage() {
               </div>
 
               <div className="syllabus-modules">
-                {track.modules.map((module) => (
-                  <div className="syllabus-module" key={module.id}>
-                    <div className="syllabus-module__top">
-                      <div>
-                        <span className="eyebrow">{module.sources.join(" · ")}</span>
-                        <h3>{module.title}</h3>
+                {track.modules.map((module) => {
+                  const route = getModuleRoute(module.id, module.route);
+                  const opensLab = Boolean(moduleLabRoutes[module.id]);
+
+                  return (
+                    <div className="syllabus-module" key={module.id}>
+                      <div className="syllabus-module__top">
+                        <div>
+                          <span className="eyebrow">{module.sources.join(" · ")}</span>
+                          <h3>{module.title}</h3>
+                        </div>
+                        {route ? <Link href={route}>{opensLab ? "Open lab" : "Open"} →</Link> : <span className="mono">syllabus</span>}
                       </div>
-                      {module.route ? <Link href={module.route}>Open →</Link> : <span className="mono">syllabus</span>}
+                      <p className="syllabus-question">{module.question}</p>
+                      <div className="syllabus-module__grid">
+                        <div>
+                          <strong>Outcomes</strong>
+                          <ul>{module.outcomes.map((item) => <li key={item}>{item}</li>)}</ul>
+                        </div>
+                        <div>
+                          <strong>Topics</strong>
+                          <div className="atlas-tags">{module.topics.map((item) => <span key={item}>{item}</span>)}</div>
+                        </div>
+                      </div>
                     </div>
-                    <p className="syllabus-question">{module.question}</p>
-                    <div className="syllabus-module__grid">
-                      <div>
-                        <strong>Outcomes</strong>
-                        <ul>{module.outcomes.map((item) => <li key={item}>{item}</li>)}</ul>
-                      </div>
-                      <div>
-                        <strong>Topics</strong>
-                        <div className="atlas-tags">{module.topics.map((item) => <span key={item}>{item}</span>)}</div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </article>
           ))}
@@ -83,7 +89,7 @@ export default function SyllabusPage() {
           <div>
             <span className="eyebrow">Use the syllabus actively</span>
             <h2>Move from topic coverage to problem-solving evidence.</h2>
-            <p>Choose a module, then test it against canonical problems where the chapter label does not give away the method.</p>
+            <p>Choose a module, use its workbench when available, then test it against canonical problems where the chapter label does not give away the method.</p>
           </div>
           <div className="action-row">
             <Link className="button" href="/blog">Read Ways of Solving</Link>

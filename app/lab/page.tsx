@@ -31,6 +31,13 @@ const labs = [
     href: "/lab/amortization",
     action: "Inspect amortized cost",
   },
+  {
+    eyebrow: "Graph modeling",
+    title: "Graph Modeling Workbench",
+    description: "Translate application stories into vertices, edges, direction, weights, and objectives before choosing BFS, Dijkstra, topological sort, or MST.",
+    href: "/lab/graph-modeling",
+    action: "Build the graph first",
+  },
 ] as const;
 
 export default function LabIndexPage() {

@@ -11,15 +11,15 @@ export default function HomePage() {
             <div className="eyebrow">Interactive algorithm notebook</div>
             <h1 className="editorial-title">See it. Trace it. Write it again.</h1>
             <p className="lede">
-              AgoCode turns algorithm learning into a visual, hands-on sequence: first build the mental model,
-              then trace the state, reconstruct the code, explain the invariant, and finally transfer the idea.
+              AgoCode turns algorithm learning into a visual, hands-on sequence: build the mental model, model the problem,
+              trace the state, reconstruct the mechanism, explain the invariant, and transfer the idea to unfamiliar work.
             </p>
             <div className="action-row">
               <Link className="button button--primary" href="/learn">
                 Open the Book →
               </Link>
-              <Link className="button" href="/roadmap">
-                Open roadmap
+              <Link className="button" href="/exercises">
+                Solve a problem
               </Link>
             </div>
           </div>
@@ -40,10 +40,10 @@ export default function HomePage() {
 
           <div className="learning-strip">
             {[
-              ["01", "Understand", "Build a concrete visual model before formal notation."],
+              ["01", "Understand + Model", "Build a concrete mental model, then translate the story into computational structure."],
               ["02", "Predict + Trace", "Reason about each state transition before it is revealed."],
-              ["03", "Rebuild + Explain", "Write the algorithm again and defend why the invariant is safe."],
-              ["04", "Transfer + Recall", "Recognize the idea in changed problems, then return after a delay."],
+              ["03", "Rebuild + Explain", "Write the mechanism again and defend why the invariant is safe."],
+              ["04", "Transfer + Recall", "Recognize the idea after labels disappear, then return after a delay."],
             ].map(([number, title, description]) => (
               <article className="learning-strip__item" key={number}>
                 <div className="learning-strip__number">{number}</div>
@@ -51,6 +51,40 @@ export default function HomePage() {
                 <p>{description}</p>
               </article>
             ))}
+          </div>
+        </section>
+
+        <section className="section home-knowledge">
+          <div className="section-heading">
+            <div className="section-heading__index">BEYOND THE BOOK</div>
+            <div>
+              <h2>Study the mechanism. Learn how to choose it.</h2>
+              <p>
+                The expanded AgoCode system combines data-structure depth, interview-style solution development, and algorithm-design
+                modeling. The result is a path from guided learning to unlabeled, source-grounded problem solving.
+              </p>
+            </div>
+          </div>
+
+          <div className="home-knowledge__grid">
+            <Link href="/syllabus" className="home-knowledge__item">
+              <span className="mono">01 · MAP</span>
+              <h3>Expanded syllabus</h3>
+              <p>ADTs, correctness, heaps, trees, strings, graphs, search, optimization, hardness, and algorithm engineering.</p>
+              <strong>See the dependency map →</strong>
+            </Link>
+            <Link href="/exercises" className="home-knowledge__item">
+              <span className="mono">02 · PRACTICE</span>
+              <h3>Canonical Problem Atlas</h3>
+              <p>Named problem families, complete Goodrich workbook references, blind recognition, and persistent reasoning notebooks.</p>
+              <strong>Choose a problem →</strong>
+            </Link>
+            <Link href="/blog" className="home-knowledge__item">
+              <span className="mono">03 · THINK</span>
+              <h3>Ways of Solving</h3>
+              <p>Original field notes on modeling, brute force, invariants, sorting, special cases, variants, complexity, and design logs.</p>
+              <strong>Read the field notes →</strong>
+            </Link>
           </div>
         </section>
 

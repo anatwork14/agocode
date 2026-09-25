@@ -24,12 +24,16 @@ export default function RoadmapPage() {
   return (
     <main className="page">
       <div className="site-shell">
-        <div className="eyebrow">Book track</div>
+        <div className="eyebrow">Visual-first Book Track</div>
         <h1 className="editorial-title editorial-title--compact">The roadmap is a dependency, not a checklist.</h1>
         <p className="lede">
-          The core path keeps the book&apos;s chapter order intact. AgoCode adds interactive laboratories, reconstruction,
-          cumulative recall, and later transfer practice without replacing the conceptual progression.
+          This page preserves the original 11-chapter visual path. The expanded syllabus now surrounds it with deeper
+          data-structure trade-offs, correctness, modeling, canonical problem families, algorithm-design strategy, and engineering constraints.
         </p>
+        <div className="action-row">
+          <Link className="button button--primary" href="/syllabus">Open expanded syllabus →</Link>
+          <Link className="button" href="/exercises">Browse canonical problems</Link>
+        </div>
 
         <section className="section">
           <div className="roadmap-grid">
@@ -39,8 +43,8 @@ export default function RoadmapPage() {
                 Chapter {String(current.number).padStart(2, "0")}
               </h2>
               <p>
-                {current.title}. The canonical chapter sequence is now live through the book&apos;s final survey chapter.
-                The next product frontier is mixed transfer practice and deeper algorithm branches.
+                {current.title}. The visual-first sequence is live end-to-end. New source material now expands sideways
+                into ADTs, trees/heaps, string algorithms, DFS/backtracking, MST, hardness, approximation, and problem-design practice.
               </p>
               <Link className="button button--primary" href={activeRoutes[current.number] ?? "/learn"}>
                 Open final Book Track chapter →
@@ -61,11 +65,7 @@ export default function RoadmapPage() {
                           {live ? "Live" : "Planned"}
                         </span>
                       </div>
-                      <p>
-                        {live
-                          ? "Interactive lesson content, active exercises, or cumulative recall are available now."
-                          : "Planned in book order; implementation starts after the prerequisite chapter has a stable learning slice."}
-                      </p>
+                      <p>{live ? "Interactive lesson content, active exercises, or cumulative recall are available now." : "Planned."}</p>
                       <div className="roadmap-topics">
                         {chapter.topics.map((topic) => <span className="roadmap-topic" key={topic}>{topic}</span>)}
                       </div>

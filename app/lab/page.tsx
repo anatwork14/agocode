@@ -38,6 +38,13 @@ const labs = [
     href: "/lab/graph-modeling",
     action: "Build the graph first",
   },
+  {
+    eyebrow: "Dynamic programming",
+    title: "DP State Design Workbench",
+    description: "Define what one subproblem means, choose dimensions and dependencies, establish base cases, and only then reveal the recurrence.",
+    href: "/lab/dp-state-design",
+    action: "Design the state first",
+  },
 ] as const;
 
 export default function LabIndexPage() {

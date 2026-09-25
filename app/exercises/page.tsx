@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ExerciseCatalog } from "@/components/exercises/ExerciseCatalog";
+import { GoodrichWorkbookIndex } from "@/components/exercises/GoodrichWorkbookIndex";
 
 export const metadata = {
   title: "Exercise Atlas",
@@ -23,16 +24,25 @@ export default function ExercisesPage() {
           <aside className="knowledge-note">
             <span className="eyebrow">Copyright boundary</span>
             <p>
-              AgoCode catalogs short problem names and source provenance. It does not reproduce the books&apos; full exercise
-              statements, solution text, or illustrations. Interactive versions use original formulations and visuals.
+              AgoCode catalogs short problem names, exercise identifiers, and source provenance. It does not reproduce the books&apos;
+              full exercise statements, published solutions, or illustrations. Use your copy of the source beside the AgoCode notebook.
             </p>
             <Link href="/blog#repertoire-not-memorization">Why repertoire matters →</Link>
           </aside>
         </div>
 
         <section className="section" style={{ paddingTop: 38 }}>
+          <div className="section-heading">
+            <div className="section-heading__index">ATLAS</div>
+            <div>
+              <h2>Named canonical problems and algorithm families</h2>
+              <p>Filter by source or domain, or switch on blind recognition so the structure labels stop giving away the method.</p>
+            </div>
+          </div>
           <ExerciseCatalog />
         </section>
+
+        <GoodrichWorkbookIndex />
       </div>
     </main>
   );

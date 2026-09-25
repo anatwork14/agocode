@@ -153,14 +153,33 @@ export const transferProgressItems: readonly TransferProgressItem[] = [
   { number: "08", key: "agocode.progress.transfer.mixed-recognition", title: "No-label mixed recognition", technique: "Interleaved", href: "/practice/mixed", kind: "recognition", dimensions: ["transfer", "predict"], weight: 1.2 },
 ];
 
+export const designEvidenceItems: readonly ProgressEvidenceItem[] = [
+  {
+    key: "agocode.progress.design.reasoning-notebooks",
+    title: "Reasoning notebooks",
+    href: "/exercises",
+    dimensions: ["understand", "explain", "transfer"],
+    weight: 0.9,
+  },
+  {
+    key: "agocode.progress.design.project-workspaces",
+    title: "Project engineering workspaces",
+    href: "/exercises",
+    dimensions: ["understand", "rebuild", "explain", "transfer"],
+    weight: 0.8,
+  },
+];
+
 export const progressEvidenceKeys = Array.from(
   new Set([
     ...bookProgressChapters.flatMap((chapter) => chapter.evidence.map((item) => item.key)),
     ...transferProgressItems.map((item) => item.key),
+    ...designEvidenceItems.map((item) => item.key),
   ]),
 );
 
 export const masteryEvidenceItems: readonly ProgressEvidenceItem[] = [
   ...bookProgressChapters.flatMap((chapter) => chapter.evidence),
   ...transferProgressItems,
+  ...designEvidenceItems,
 ];

@@ -1,0 +1,125 @@
+.source-practice-progress {
+  margin-top: 72px;
+  padding-top: 62px;
+  border-top: 1px solid var(--ink);
+}
+
+.source-practice-progress__metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+}
+
+.source-practice-progress__metrics > div {
+  display: grid;
+  gap: 4px;
+  min-height: 118px;
+  padding: 18px 18px 18px 0;
+  border-right: 1px solid var(--border);
+}
+
+.source-practice-progress__metrics > div + div { padding-left: 18px; }
+.source-practice-progress__metrics > div:last-child { border-right: 0; }
+.source-practice-progress__metrics span,
+.source-practice-progress__metrics small { color: var(--muted); }
+.source-practice-progress__metrics span { font-size: .68rem; text-transform: uppercase; letter-spacing: .05em; }
+.source-practice-progress__metrics strong { font-family: var(--font-editorial), Georgia, serif; font-size: 2.2rem; letter-spacing: -.04em; }
+.source-practice-progress__metrics small { font-size: .72rem; line-height: 1.4; }
+
+.source-practice-progress__grid {
+  display: grid;
+  grid-template-columns: minmax(260px, .65fr) minmax(0, 1.35fr);
+  gap: 42px;
+  padding-top: 30px;
+}
+
+.source-practice-progress__canvas {
+  align-self: start;
+  padding: 18px 0 18px 20px;
+  border-left: 3px solid var(--accent);
+}
+
+.source-practice-progress__canvas h3 {
+  margin: 8px 0 6px;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 1.4rem;
+}
+
+.source-practice-progress__canvas p {
+  margin: 0 0 16px;
+  color: var(--ink-secondary);
+  line-height: 1.55;
+}
+
+.source-practice-progress__recent {
+  border-top: 1px solid var(--ink);
+}
+
+.source-practice-progress__recent-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.source-practice-progress__recent-head a {
+  color: var(--ink);
+  font-size: .75rem;
+  font-weight: 700;
+}
+
+.source-practice-progress__row {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.source-practice-progress__row > .mono {
+  color: var(--accent);
+  font-size: .65rem;
+}
+
+.source-practice-progress__row strong {
+  font-size: .84rem;
+  text-transform: capitalize;
+}
+
+.source-practice-progress__row > span:last-child {
+  color: var(--muted);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: .62rem;
+  text-transform: uppercase;
+}
+
+.source-practice-progress__row:hover strong,
+.source-practice-progress__row:focus-visible strong { color: var(--accent); }
+.source-practice-progress__empty { margin: 0; padding: 20px 0; color: var(--muted); }
+
+@media (max-width: 880px) {
+  .source-practice-progress__metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .source-practice-progress__metrics > div:nth-child(2) { border-right: 0; }
+  .source-practice-progress__metrics > div:nth-child(-n+2) { border-bottom: 1px solid var(--border); }
+  .source-practice-progress__grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 560px) {
+  .source-practice-progress__metrics { grid-template-columns: 1fr; }
+  .source-practice-progress__metrics > div,
+  .source-practice-progress__metrics > div + div {
+    min-height: auto;
+    padding: 14px 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .source-practice-progress__metrics > div:last-child { border-bottom: 0; }
+  .source-practice-progress__row { grid-template-columns: 36px minmax(0, 1fr); }
+  .source-practice-progress__row > span:last-child { grid-column: 2; }
+}

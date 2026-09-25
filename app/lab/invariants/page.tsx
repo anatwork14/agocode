@@ -25,7 +25,7 @@ export default function InvariantWorkbenchPage() {
             <span className="eyebrow">Method</span>
             <strong>Initialize → Preserve → Terminate</strong>
             <p>Use counterexamples aggressively. A statement that merely sounds plausible is not enough to justify discarding state.</p>
-            <Link href="/blog/invariants">Read the field note →</Link>
+            <Link href="/blog/invariants-as-guardrails">Read the field note →</Link>
           </aside>
         </div>
 

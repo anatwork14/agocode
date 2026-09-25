@@ -89,24 +89,28 @@ export function ReasoningNotebook({ exerciseId, lens }: { exerciseId: string; le
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
 
   useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(storageKey(exerciseId));
-      if (raw) {
-        const parsed = JSON.parse(raw) as Partial<NotebookState>;
-        setState({
-          version: 1,
-          responses: { ...emptyResponses, ...(parsed.responses ?? {}) },
-          revealedLens: Boolean(parsed.revealedLens),
-          confidence: parsed.confidence,
-          completedAt: parsed.completedAt,
-          updatedAt: parsed.updatedAt,
-        });
+    const hydrationTimer = window.setTimeout(() => {
+      try {
+        const raw = window.localStorage.getItem(storageKey(exerciseId));
+        if (raw) {
+          const parsed = JSON.parse(raw) as Partial<NotebookState>;
+          setState({
+            version: 1,
+            responses: { ...emptyResponses, ...(parsed.responses ?? {}) },
+            revealedLens: Boolean(parsed.revealedLens),
+            confidence: parsed.confidence,
+            completedAt: parsed.completedAt,
+            updatedAt: parsed.updatedAt,
+          });
+        }
+      } catch {
+        // Keep the in-memory notebook usable when storage is unavailable or malformed.
+      } finally {
+        setHydrated(true);
       }
-    } catch {
-      // Keep the in-memory notebook usable when storage is unavailable or malformed.
-    } finally {
-      setHydrated(true);
-    }
+    }, 0);
+
+    return () => window.clearTimeout(hydrationTimer);
   }, [exerciseId]);
 
   useEffect(() => {

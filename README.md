@@ -18,7 +18,7 @@ The shorter mastery loop remains:
 
 - Next.js + React + TypeScript application foundation
 - paper / ink / editorial-red visual system and SVG-first AgoCode brand
-- responsive Book / Syllabus / Problems / Solve / Ways / Review / Progress experiences
+- responsive Book / Syllabus / Lab / Problems / Solve / Ways / Review / Progress experiences
 - interactive learning slices across all 11 original Book Track chapters
 - deterministic traces and reusable array, stack, queue, graph, weighted-graph, table, grid, and state-inspector primitives
 - in-browser Python execution in a Web Worker with timeout protection, tests, stdout/stderr, progressive hints, and Python-friendly indentation
@@ -31,8 +31,11 @@ The shorter mastery loop remains:
 - **Ways of Solving**: 12 original field notes about modeling, brute force, invariants, sorting as a transformation, ADT choice, special cases, repertoire, variants, complexity, and design logs
 - **Canonical Problem Atlas**: 400+ named, source-aware entries from the source books with search/filtering, blind recognition mode, randomized “Surprise me” practice, and an original AgoCode reasoning lens
 - **Complete Goodrich source-workbook index**: 758 numbered `R`, `C`, and `P` references from the supplied PDF across Chapters 1–15, each routed to an AgoCode reasoning workspace without reproducing the copyrighted prompt
+- **EPI domain-specific extension**: design, Python/language, object-oriented design, and common-tools problems from Chapters 20–23 are represented in the source-aware atlas alongside the core algorithm chapters
 - per-problem **persistent Reasoning Notebook**: understand, tiny/extreme cases, baseline, named waste, strategy, invariant, cost, and variant; autosaved locally with progressive structural hints
 - open-ended **Design a Solution** workspace for arbitrary problems that are not already in the atlas, including exact-vs-approximate requirements, scale, model candidates, special cases, candidate paradigms, invariants, and a “no, because…” rejection log
+- **ADT Representation Workbench**: keep the abstract contract fixed, vary operation frequencies and collection size, then compare representation trade-offs rather than memorizing one preferred data structure
+- **Invariant Workbench**: choose a correctness claim, defend initialization / preservation / termination, inspect state transitions, break weak claims with counterexamples, and rewrite the invariant for a transfer variant
 - CI gates for typecheck, tests, lint, and production build
 
 ## Knowledge architecture
@@ -44,6 +47,8 @@ AgoCode separates five complementary views:
 3. **Problem Atlas** — a repertoire of canonical problem names and families for recognition and transfer.
 4. **Ways of Solving** — reusable problem-solving questions for the moment before the technique is obvious.
 5. **Design Workspace** — a blank problem-solving canvas for turning a new problem into explicit models, baselines, trade-offs, and proof obligations.
+
+The Lab layer cuts across these views: trace labs make algorithm state inspectable, while workbenches make representation choices and correctness arguments inspectable.
 
 This prevents the product from collapsing into either a static textbook, an animation gallery, or a random problem list.
 
@@ -101,7 +106,7 @@ The Book Track is intentionally preserved rather than overwritten. The expanded 
 
 - **Read** — illustrated editorial lessons and interactive analogies
 - **Syllabus** — prerequisite and perspective map across the broader DSA curriculum
-- **Lab** — synchronized visualization, algorithm state, code, prediction, and custom scenarios
+- **Lab** — synchronized algorithm traces plus interactive workbenches for ADT trade-offs and invariants
 - **Problems** — canonical repertoire, complete source-workbook references, blind recognition, and reasoning notebooks
 - **Solve** — open-ended algorithm design canvas for unfamiliar problems
 - **Ways** — original problem-solving field notes

@@ -12,9 +12,9 @@ const sourceMap = {
 const modules = syllabusTracks.flatMap((track) => track.modules);
 
 function moduleById(id) {
-  const module = modules.find((item) => item.id === id);
-  assert.ok(module, `missing syllabus module ${id}`);
-  return module;
+  const syllabusModule = modules.find((item) => item.id === id);
+  assert.ok(syllabusModule, `missing syllabus module ${id}`);
+  return syllabusModule;
 }
 
 function titlesFor(id, limit = 6) {
@@ -24,23 +24,23 @@ function titlesFor(id, limit = 6) {
 test("every syllabus module surfaces several unique canonical Atlas problems", () => {
   assert.ok(modules.length >= 30);
 
-  for (const module of modules) {
-    const matches = getAtlasProblemsForModule(module, 4);
-    assert.equal(matches.length, 4, `${module.id} should surface four Atlas problems`);
-    assert.equal(new Set(matches.map((match) => match.exercise.id)).size, matches.length, `${module.id} duplicated an exercise id`);
-    assert.equal(new Set(matches.map((match) => match.exercise.title.toLowerCase())).size, matches.length, `${module.id} duplicated a problem title`);
-    assert.ok(matches.every((match) => Number.isFinite(match.score) && match.score > 0), `${module.id} should have positive semantic scores`);
+  for (const syllabusModule of modules) {
+    const matches = getAtlasProblemsForModule(syllabusModule, 4);
+    assert.equal(matches.length, 4, `${syllabusModule.id} should surface four Atlas problems`);
+    assert.equal(new Set(matches.map((match) => match.exercise.id)).size, matches.length, `${syllabusModule.id} duplicated an exercise id`);
+    assert.equal(new Set(matches.map((match) => match.exercise.title.toLowerCase())).size, matches.length, `${syllabusModule.id} duplicated a problem title`);
+    assert.ok(matches.every((match) => Number.isFinite(match.score) && match.score > 0), `${syllabusModule.id} should have positive semantic scores`);
   }
 });
 
 test("modules retain at least one exercise from a named source perspective", () => {
-  for (const module of modules) {
-    const supported = module.sources.map((source) => sourceMap[source]).filter(Boolean);
+  for (const syllabusModule of modules) {
+    const supported = syllabusModule.sources.map((source) => sourceMap[source]).filter(Boolean);
     if (!supported.length) continue;
-    const matches = getAtlasProblemsForModule(module, 4);
+    const matches = getAtlasProblemsForModule(syllabusModule, 4);
     assert.ok(
       matches.some((match) => supported.includes(match.exercise.source)),
-      `${module.id} lost all exercises from its named source perspective`,
+      `${syllabusModule.id} lost all exercises from its named source perspective`,
     );
   }
 });

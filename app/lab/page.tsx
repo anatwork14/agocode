@@ -59,6 +59,13 @@ const labs = [
     href: "/lab/special-cases",
     action: "Climb toward the general case",
   },
+  {
+    eyebrow: "Hard optimization",
+    title: "Optimization Strategy Workbench",
+    description: "Compare exact algorithms, certified approximations, and heuristics against the required quality, realistic scale, and assumptions that make guarantees valid.",
+    href: "/lab/optimization-strategies",
+    action: "Negotiate the algorithm contract",
+  },
 ] as const;
 
 export default function LabIndexPage() {

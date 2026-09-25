@@ -45,6 +45,13 @@ const labs = [
     href: "/lab/dp-state-design",
     action: "Design the state first",
   },
+  {
+    eyebrow: "Problem transformation",
+    title: "Input Transformation Workbench",
+    description: "Start from a brute-force baseline, name the repeated waste, then compare sorting, hashing, heaps, and staged preprocessing by the structure they expose.",
+    href: "/lab/transformations",
+    action: "Change the representation",
+  },
 ] as const;
 
 export default function LabIndexPage() {

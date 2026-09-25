@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { fieldNotes } from "@/lib/knowledge/blog";
+import { caseStudies } from "@/lib/knowledge/casebook";
 import { problemSolvingLoop } from "@/lib/knowledge/syllabus";
 
 export const metadata = {
@@ -30,6 +31,32 @@ export default function BlogPage() {
 
         <section className="blog-loop" aria-label="Problem-solving loop">
           {problemSolvingLoop.map((step) => <span key={step}>{step}</span>)}
+        </section>
+
+        <section className="section" style={{ paddingTop: 48 }}>
+          <div className="section-heading">
+            <div className="section-heading__index">CASEBOOK</div>
+            <div>
+              <h2>See the questions used inside an application story.</h2>
+              <p>
+                Field notes describe reusable moves. The Casebook shows those moves unfolding across raw requirements, false starts,
+                model changes, proof assumptions, implementation choices, and transfer variants.
+              </p>
+            </div>
+          </div>
+          <div className="home-knowledge__grid">
+            {caseStudies.slice(0, 3).map((caseStudy) => (
+              <Link className="home-knowledge__item" href={`/casebook/${caseStudy.slug}`} key={caseStudy.slug}>
+                <span className="mono">Case {caseStudy.number} · {caseStudy.domain}</span>
+                <h3>{caseStudy.title}</h3>
+                <p>{caseStudy.subtitle}</p>
+                <strong>Trace the decisions →</strong>
+              </Link>
+            ))}
+          </div>
+          <div className="action-row">
+            <Link className="button button--primary" href="/casebook">Open the full Casebook →</Link>
+          </div>
         </section>
 
         <section className="section field-notes">

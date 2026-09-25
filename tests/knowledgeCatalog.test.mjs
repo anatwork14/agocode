@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { fieldNotes } from "../lib/knowledge/blog.ts";
-import { canonicalExercises } from "../lib/knowledge/exercises.ts";
+import { canonicalExercises } from "../lib/knowledge/all-exercises.ts";
 import { goodrichExerciseCount, goodrichExerciseIndex, goodrichExerciseReferences } from "../lib/knowledge/goodrich-workbook.ts";
 import { practiceStages } from "../lib/knowledge/practice-framework.ts";
 import { syllabusTracks } from "../lib/knowledge/syllabus.ts";
 
 test("canonical problem atlas is broad, source-aware, and uniquely addressable", () => {
-  assert.ok(canonicalExercises.length >= 300, `expected at least 300 catalog entries, received ${canonicalExercises.length}`);
+  assert.ok(canonicalExercises.length >= 350, `expected at least 350 catalog entries, received ${canonicalExercises.length}`);
 
   const ids = new Set(canonicalExercises.map((item) => item.id));
   assert.equal(ids.size, canonicalExercises.length);
@@ -20,6 +20,16 @@ test("canonical problem atlas is broad, source-aware, and uniquely addressable",
     assert.ok(item.sourceChapter.trim().length > 2);
     assert.ok(item.domain.trim().length > 2);
     assert.ok(item.lens.trim().length > 20);
+  }
+});
+
+test("EPI atlas includes domain-specific chapters 20 through 23", () => {
+  const epi = canonicalExercises.filter((item) => item.source === "epi");
+  for (const chapter of ["20 ·", "21 ·", "22 ·", "23 ·"]) {
+    assert.ok(epi.some((item) => item.sourceChapter.startsWith(chapter)), `missing EPI ${chapter}`);
+  }
+  for (const title of ["Design a spell checker", "Implement PageRank", "Garbage collection", "Template Method vs Strategy", "SQL vs NoSQL", "DNS"]) {
+    assert.ok(epi.some((item) => item.title === title), `missing EPI problem ${title}`);
   }
 });
 

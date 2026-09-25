@@ -9,7 +9,7 @@ import {
   sourceLabels,
   type ExerciseLevel,
   type ExerciseSource,
-} from "@/lib/knowledge/exercises";
+} from "@/lib/knowledge/all-exercises";
 
 const sourceOptions: { value: "all" | ExerciseSource; label: string }[] = [
   { value: "all", label: "All sources" },

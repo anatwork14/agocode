@@ -36,6 +36,7 @@ import "./amortization-workbench.css";
 import "./graph-modeling-workbench.css";
 import "./dp-state-workbench.css";
 import "./transformation-workbench.css";
+import "./special-case-ladder.css";
 
 const editorial = Fraunces({ subsets: ["latin"], variable: "--font-editorial", display: "swap" });
 const reading = Source_Sans_3({ subsets: ["latin"], variable: "--font-reading", display: "swap" });

@@ -24,6 +24,13 @@ const labs = [
     href: "/lab/invariants",
     action: "Stress-test invariants",
   },
+  {
+    eyebrow: "Algorithm analysis",
+    title: "Amortization Workbench",
+    description: "Compare dynamic-array growth rules, inspect resize spikes, and see why occasional expensive appends can still be cheap across a sequence.",
+    href: "/lab/amortization",
+    action: "Inspect amortized cost",
+  },
 ] as const;
 
 export default function LabIndexPage() {

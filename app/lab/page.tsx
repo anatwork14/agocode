@@ -17,6 +17,13 @@ const labs = [
     href: "/lab/adt-workbench",
     action: "Compare representations",
   },
+  {
+    eyebrow: "Correctness reasoning",
+    title: "Invariant Workbench",
+    description: "Choose a correctness claim, defend initialization, preservation, and termination, then break weaker claims with counterexamples.",
+    href: "/lab/invariants",
+    action: "Stress-test invariants",
+  },
 ] as const;
 
 export default function LabIndexPage() {

@@ -5,7 +5,9 @@ import {
   recordExplanationCompletion,
   recordLearningAttempt,
   recordPredictionAttempt,
+  recordProjectWorkspaceEvidence,
   recordRecallOutcome,
+  recordReasoningNotebookEvidence,
   recordRecognitionCompletion,
 } from "../lib/learning/evidence.ts";
 
@@ -259,6 +261,116 @@ test("recall outcomes expand successful intervals and reset weak recall", () => 
   });
   assert.equal(weak.recall?.intervalDays, 1);
   assert.equal(weak.recall?.failed, 1);
+});
+
+test("reasoning notebook evidence aggregates by exercise and revises in place", () => {
+  const storage = makeStorage();
+
+  recordReasoningNotebookEvidence(storage, "reasoning", {
+    exerciseId: "epi-two-sum",
+    developedStages: 4,
+    totalStages: 8,
+    lensRevealed: true,
+    confidence: "developing",
+    updatedAt: "2026-09-20T00:00:00.000Z",
+  });
+
+  const revised = recordReasoningNotebookEvidence(storage, "reasoning", {
+    exerciseId: "epi-two-sum",
+    developedStages: 7,
+    totalStages: 8,
+    lensRevealed: true,
+    confidence: "solid",
+    completedAt: "2026-09-21T00:00:00.000Z",
+    updatedAt: "2026-09-21T00:00:00.000Z",
+  });
+
+  assert.equal(Object.keys(revised.reasoning?.byExercise ?? {}).length, 1);
+  assert.equal(revised.reasoning?.byExercise["epi-two-sum"].developedStages, 7);
+  assert.equal(revised.reasoning?.byExercise["epi-two-sum"].confidence, "solid");
+  assert.equal(revised.completedAt, "2026-09-21T00:00:00.000Z");
+});
+
+test("reasoning aggregate completion follows remaining completed notebooks", () => {
+  const storage = makeStorage();
+
+  recordReasoningNotebookEvidence(storage, "reasoning", {
+    exerciseId: "one",
+    developedStages: 6,
+    lensRevealed: false,
+    completedAt: "2026-09-20T00:00:00.000Z",
+  });
+  recordReasoningNotebookEvidence(storage, "reasoning", {
+    exerciseId: "two",
+    developedStages: 7,
+    lensRevealed: false,
+    completedAt: "2026-09-22T00:00:00.000Z",
+  });
+
+  const firstReset = recordReasoningNotebookEvidence(storage, "reasoning", {
+    exerciseId: "one",
+    developedStages: 0,
+    lensRevealed: false,
+  });
+  assert.equal(firstReset.completedAt, "2026-09-22T00:00:00.000Z");
+  assert.equal(firstReset.reasoning?.byExercise.one, undefined);
+
+  const allReset = recordReasoningNotebookEvidence(storage, "reasoning", {
+    exerciseId: "two",
+    developedStages: 0,
+    lensRevealed: false,
+  });
+  assert.equal(allReset.completedAt, undefined);
+  assert.equal(allReset.reasoning, undefined);
+});
+
+test("project workspace evidence clamps counts and removes completion when quality gate regresses", () => {
+  const storage = makeStorage();
+
+  const completed = recordProjectWorkspaceEvidence(storage, "projects", {
+    exerciseId: "p-7-01",
+    developedSections: 99,
+    totalSections: 9,
+    checkedQualityGates: 99,
+    totalQualityGates: 6,
+    completed: true,
+    updatedAt: "2026-09-20T00:00:00.000Z",
+  });
+
+  assert.equal(completed.project?.byExercise["p-7-01"].developedSections, 9);
+  assert.equal(completed.project?.byExercise["p-7-01"].checkedQualityGates, 6);
+  assert.equal(completed.completedAt, "2026-09-20T00:00:00.000Z");
+
+  const regressed = recordProjectWorkspaceEvidence(storage, "projects", {
+    exerciseId: "p-7-01",
+    developedSections: 8,
+    totalSections: 9,
+    checkedQualityGates: 5,
+    totalQualityGates: 6,
+    completed: false,
+    updatedAt: "2026-09-21T00:00:00.000Z",
+  });
+
+  assert.equal(regressed.project?.byExercise["p-7-01"].completedAt, undefined);
+  assert.equal(regressed.completedAt, undefined);
+});
+
+test("empty project workspace removes its aggregate child evidence", () => {
+  const storage = makeStorage();
+  recordProjectWorkspaceEvidence(storage, "projects", {
+    exerciseId: "p-1-01",
+    developedSections: 3,
+    checkedQualityGates: 1,
+  });
+
+  const cleared = recordProjectWorkspaceEvidence(storage, "projects", {
+    exerciseId: "p-1-01",
+    developedSections: 0,
+    checkedQualityGates: 0,
+  });
+
+  assert.equal(cleared.project, undefined);
+  assert.equal(cleared.completedAt, undefined);
 });
 
 test("attempt history is bounded", () => {

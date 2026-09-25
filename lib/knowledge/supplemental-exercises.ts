@@ -1,4 +1,4 @@
-import type { CanonicalExercise, ExerciseLevel } from "@/lib/knowledge/exercises";
+import type { CanonicalExercise, ExerciseLevel } from "./exercises.ts";
 
 type SupplementalGroup = {
   sourceChapter: string;

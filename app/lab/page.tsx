@@ -52,6 +52,13 @@ const labs = [
     href: "/lab/transformations",
     action: "Change the representation",
   },
+  {
+    eyebrow: "Generalization",
+    title: "Special-Case Ladder",
+    description: "Restrict a difficult problem until it becomes tractable, then remove assumptions one by one and identify exactly which proof or data requirement breaks.",
+    href: "/lab/special-cases",
+    action: "Climb toward the general case",
+  },
 ] as const;
 
 export default function LabIndexPage() {

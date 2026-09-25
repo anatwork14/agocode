@@ -190,5 +190,16 @@ export function getAtlasProblemsForModule(module: SyllabusModule, limit = 4): Sy
     if (selected.length >= safeLimit) break;
   }
 
+  if (sources.size && !selected.some((match) => sources.has(match.exercise.source))) {
+    const sourceMatch = ranked.find((match) => {
+      const titleKey = normalize(match.exercise.title);
+      return sources.has(match.exercise.source) && !seenTitles.has(titleKey);
+    });
+    if (sourceMatch) {
+      if (selected.length >= safeLimit) selected[selected.length - 1] = sourceMatch;
+      else selected.push(sourceMatch);
+    }
+  }
+
   return selected;
 }

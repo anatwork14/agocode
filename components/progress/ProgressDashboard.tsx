@@ -30,6 +30,12 @@ function getLatestTimestamp(evidence: EvidenceMap) {
     if (item.prediction?.lastAnsweredAt) latest = Math.max(latest, new Date(item.prediction.lastAnsweredAt).getTime());
     if (item.explanation?.lastCompletedAt) latest = Math.max(latest, new Date(item.explanation.lastCompletedAt).getTime());
     if (item.recall?.lastReviewedAt) latest = Math.max(latest, new Date(item.recall.lastReviewedAt).getTime());
+    for (const reasoning of Object.values(item.reasoning?.byExercise ?? {})) {
+      latest = Math.max(latest, new Date(reasoning.updatedAt).getTime());
+    }
+    for (const project of Object.values(item.project?.byExercise ?? {})) {
+      latest = Math.max(latest, new Date(project.updatedAt).getTime());
+    }
     for (const attempt of item.attempts) {
       latest = Math.max(latest, new Date(attempt.attemptedAt).getTime());
     }
@@ -152,8 +158,9 @@ export function ProgressDashboard() {
           <strong>{formatActivity(snapshot.latestActivity)}</strong>
         </div>
         <p>
-          AgoCode records evidence in this browser for the current MVP. The mastery view below is an evidence-weighted estimate,
-          not a certification: independent reconstruction, first-try prediction, transfer, and delayed recall count more than simply opening a lesson.
+          AgoCode records evidence in this browser for the current MVP. Reasoning notebooks and engineering workspaces now
+          contribute bounded design evidence, but self-authored notes and checklist state are not treated as certification.
+          Independent reconstruction, first-try prediction, transfer, and delayed recall remain stronger signals.
         </p>
       </div>
 
@@ -324,7 +331,7 @@ export function ProgressDashboard() {
           <span className="eyebrow">Adaptive retrieval</span>
           <h2>The next session should be shaped by the evidence you already produced.</h2>
           <p>
-            First-try prediction, no-hint reconstruction, mixed recognition, and delayed recall now feed the same evidence model.
+            First-try prediction, no-hint reconstruction, mixed recognition, bounded design artifacts, and delayed recall feed the same evidence model.
             The product can therefore direct you toward the skill that is weak, not merely the next unchecked chapter.
           </p>
         </div>

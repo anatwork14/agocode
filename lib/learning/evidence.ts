@@ -56,6 +56,34 @@ export type RecallEvidence = {
   intervalDays: number;
 };
 
+export type ReasoningConfidence = "stuck" | "developing" | "solid";
+
+export type ReasoningExerciseEvidence = {
+  developedStages: number;
+  totalStages: number;
+  lensRevealed: boolean;
+  confidence?: ReasoningConfidence;
+  completedAt?: string;
+  updatedAt: string;
+};
+
+export type ReasoningEvidence = {
+  byExercise: Record<string, ReasoningExerciseEvidence>;
+};
+
+export type ProjectExerciseEvidence = {
+  developedSections: number;
+  totalSections: number;
+  checkedQualityGates: number;
+  totalQualityGates: number;
+  completedAt?: string;
+  updatedAt: string;
+};
+
+export type ProjectEvidence = {
+  byExercise: Record<string, ProjectExerciseEvidence>;
+};
+
 export type LearningEvidence = {
   version: 1;
   exerciseId: string;
@@ -68,6 +96,8 @@ export type LearningEvidence = {
   prediction?: PredictionEvidence;
   explanation?: ExplanationEvidence;
   recall?: RecallEvidence;
+  reasoning?: ReasoningEvidence;
+  project?: ProjectEvidence;
 };
 
 type RecordAttemptInput = Omit<LearningAttempt, "attemptedAt"> & {
@@ -104,6 +134,26 @@ type RecordRecallInput = {
   outcome: "remembered" | "needs-work";
   reviewedAt?: string;
   baseIntervalDays?: number;
+};
+
+type RecordReasoningInput = {
+  exerciseId: string;
+  developedStages: number;
+  totalStages?: number;
+  lensRevealed: boolean;
+  confidence?: ReasoningConfidence;
+  completedAt?: string;
+  updatedAt?: string;
+};
+
+type RecordProjectInput = {
+  exerciseId: string;
+  developedSections: number;
+  totalSections?: number;
+  checkedQualityGates: number;
+  totalQualityGates?: number;
+  completed?: boolean;
+  updatedAt?: string;
 };
 
 const MAX_ATTEMPTS = 50;
@@ -248,6 +298,71 @@ function parseRecall(value: unknown): RecallEvidence | undefined {
   };
 }
 
+function parseReasoning(value: unknown): ReasoningEvidence | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  const rawByExercise = (value as Partial<ReasoningEvidence>).byExercise;
+  if (!rawByExercise || typeof rawByExercise !== "object" || Array.isArray(rawByExercise)) return undefined;
+
+  const byExercise: Record<string, ReasoningExerciseEvidence> = {};
+  for (const [exerciseId, raw] of Object.entries(rawByExercise as Record<string, unknown>)) {
+    if (!raw || typeof raw !== "object") continue;
+    const item = raw as Partial<ReasoningExerciseEvidence>;
+    if (
+      typeof item.developedStages !== "number" ||
+      typeof item.totalStages !== "number" ||
+      typeof item.lensRevealed !== "boolean" ||
+      typeof item.updatedAt !== "string"
+    ) continue;
+
+    const totalStages = Math.max(1, item.totalStages);
+    const confidence = item.confidence === "stuck" || item.confidence === "developing" || item.confidence === "solid"
+      ? item.confidence
+      : undefined;
+    byExercise[exerciseId] = {
+      developedStages: Math.max(0, Math.min(item.developedStages, totalStages)),
+      totalStages,
+      lensRevealed: item.lensRevealed,
+      confidence,
+      completedAt: typeof item.completedAt === "string" ? item.completedAt : undefined,
+      updatedAt: item.updatedAt,
+    };
+  }
+
+  return Object.keys(byExercise).length ? { byExercise } : undefined;
+}
+
+function parseProject(value: unknown): ProjectEvidence | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  const rawByExercise = (value as Partial<ProjectEvidence>).byExercise;
+  if (!rawByExercise || typeof rawByExercise !== "object" || Array.isArray(rawByExercise)) return undefined;
+
+  const byExercise: Record<string, ProjectExerciseEvidence> = {};
+  for (const [exerciseId, raw] of Object.entries(rawByExercise as Record<string, unknown>)) {
+    if (!raw || typeof raw !== "object") continue;
+    const item = raw as Partial<ProjectExerciseEvidence>;
+    if (
+      typeof item.developedSections !== "number" ||
+      typeof item.totalSections !== "number" ||
+      typeof item.checkedQualityGates !== "number" ||
+      typeof item.totalQualityGates !== "number" ||
+      typeof item.updatedAt !== "string"
+    ) continue;
+
+    const totalSections = Math.max(1, item.totalSections);
+    const totalQualityGates = Math.max(1, item.totalQualityGates);
+    byExercise[exerciseId] = {
+      developedSections: Math.max(0, Math.min(item.developedSections, totalSections)),
+      totalSections,
+      checkedQualityGates: Math.max(0, Math.min(item.checkedQualityGates, totalQualityGates)),
+      totalQualityGates,
+      completedAt: typeof item.completedAt === "string" ? item.completedAt : undefined,
+      updatedAt: item.updatedAt,
+    };
+  }
+
+  return Object.keys(byExercise).length ? { byExercise } : undefined;
+}
+
 function legacyRecognition(parsed: Record<string, unknown>): RecognitionEvidence | undefined {
   if (typeof parsed.score !== "number" || typeof parsed.total !== "number") return undefined;
   const totalScenarios = Math.max(0, parsed.total);
@@ -296,6 +411,8 @@ export function readLearningEvidence(
         prediction: parsePrediction(parsed.prediction),
         explanation: parseExplanation(parsed.explanation),
         recall: parseRecall(parsed.recall),
+        reasoning: parseReasoning(parsed.reasoning),
+        project: parseProject(parsed.project),
       };
     }
 
@@ -331,7 +448,15 @@ function baseEvidence(previous: LearningEvidence | null, exerciseId: string): Le
     prediction: previous?.prediction,
     explanation: previous?.explanation,
     recall: previous?.recall,
+    reasoning: previous?.reasoning,
+    project: previous?.project,
   };
+}
+
+function earliestCompletion(values: Array<string | undefined>) {
+  const timestamps = values.filter((value): value is string => typeof value === "string");
+  if (!timestamps.length) return undefined;
+  return timestamps.sort((a, b) => new Date(a).getTime() - new Date(b).getTime())[0];
 }
 
 export function recordLearningAttempt(
@@ -506,4 +631,85 @@ export function recordRecallOutcome(
   };
 
   return persist(storage, key, evidence);
+}
+
+export function recordReasoningNotebookEvidence(
+  storage: StorageLike,
+  key: string,
+  input: RecordReasoningInput,
+): LearningEvidence {
+  const updatedAt = input.updatedAt ?? new Date().toISOString();
+  const previous = readLearningEvidence(storage, key, "reasoning-notebooks");
+  const totalStages = Math.max(1, input.totalStages ?? 8);
+  const developedStages = Math.max(0, Math.min(input.developedStages, totalStages));
+  const byExercise: Record<string, ReasoningExerciseEvidence> = {
+    ...(previous?.reasoning?.byExercise ?? {}),
+  };
+  const meaningful = developedStages > 0 || Boolean(input.completedAt) || input.lensRevealed || Boolean(input.confidence);
+
+  if (meaningful) {
+    byExercise[input.exerciseId] = {
+      developedStages,
+      totalStages,
+      lensRevealed: input.lensRevealed,
+      confidence: input.confidence,
+      completedAt: input.completedAt,
+      updatedAt,
+    };
+  } else {
+    delete byExercise[input.exerciseId];
+  }
+
+  const reasoning = Object.keys(byExercise).length ? { byExercise } : undefined;
+  const completedAt = reasoning
+    ? earliestCompletion(Object.values(byExercise).map((item) => item.completedAt))
+    : undefined;
+
+  return persist(storage, key, {
+    ...baseEvidence(previous, "reasoning-notebooks"),
+    completedAt,
+    reasoning,
+  });
+}
+
+export function recordProjectWorkspaceEvidence(
+  storage: StorageLike,
+  key: string,
+  input: RecordProjectInput,
+): LearningEvidence {
+  const updatedAt = input.updatedAt ?? new Date().toISOString();
+  const previous = readLearningEvidence(storage, key, "project-workspaces");
+  const totalSections = Math.max(1, input.totalSections ?? 9);
+  const totalQualityGates = Math.max(1, input.totalQualityGates ?? 6);
+  const developedSections = Math.max(0, Math.min(input.developedSections, totalSections));
+  const checkedQualityGates = Math.max(0, Math.min(input.checkedQualityGates, totalQualityGates));
+  const byExercise: Record<string, ProjectExerciseEvidence> = {
+    ...(previous?.project?.byExercise ?? {}),
+  };
+  const meaningful = developedSections > 0 || checkedQualityGates > 0;
+  const priorEntry = byExercise[input.exerciseId];
+
+  if (meaningful) {
+    byExercise[input.exerciseId] = {
+      developedSections,
+      totalSections,
+      checkedQualityGates,
+      totalQualityGates,
+      completedAt: input.completed ? (priorEntry?.completedAt ?? updatedAt) : undefined,
+      updatedAt,
+    };
+  } else {
+    delete byExercise[input.exerciseId];
+  }
+
+  const project = Object.keys(byExercise).length ? { byExercise } : undefined;
+  const completedAt = project
+    ? earliestCompletion(Object.values(byExercise).map((item) => item.completedAt))
+    : undefined;
+
+  return persist(storage, key, {
+    ...baseEvidence(previous, "project-workspaces"),
+    completedAt,
+    project,
+  });
 }

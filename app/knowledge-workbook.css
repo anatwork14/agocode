@@ -1,0 +1,404 @@
+.atlas-practice-mode {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 28px;
+  align-items: end;
+  margin-top: 24px;
+  padding: 20px 0;
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--border);
+}
+
+.atlas-practice-mode strong {
+  display: block;
+  margin: 5px 0 4px;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 1.28rem;
+}
+
+.atlas-practice-mode p {
+  max-width: 780px;
+  margin: 0;
+  color: var(--ink-secondary);
+  line-height: 1.55;
+}
+
+.atlas-practice-mode__actions,
+.reasoning-notebook__actions,
+.reasoning-reflection__choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.button--selected {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.atlas--blind .atlas-row {
+  background-image: linear-gradient(to right, transparent 0, transparent calc(100% - 1px), var(--note) calc(100% - 1px));
+}
+
+.atlas-blind-prompt {
+  max-width: 660px !important;
+  font-style: italic;
+}
+
+.atlas-state--blind {
+  color: var(--accent);
+}
+
+.atlas-more {
+  display: flex;
+  justify-content: center;
+  padding: 24px 0 8px;
+}
+
+.workbook-index {
+  padding: 62px 0 72px;
+  border-top: 1px solid var(--ink);
+}
+
+.workbook-index__intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, .8fr);
+  gap: 58px;
+  align-items: end;
+  padding-bottom: 30px;
+}
+
+.workbook-index__intro h2 {
+  max-width: 780px;
+  margin: 8px 0 10px;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: clamp(2rem, 4vw, 3.35rem);
+  letter-spacing: -.045em;
+  line-height: 1.02;
+}
+
+.workbook-index__intro p {
+  max-width: 820px;
+  margin: 0;
+  color: var(--ink-secondary);
+  line-height: 1.65;
+}
+
+.workbook-index__legend {
+  border-top: 1px solid var(--ink);
+}
+
+.workbook-index__legend > div {
+  display: grid;
+  grid-template-columns: 30px 110px minmax(0, 1fr);
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.workbook-index__legend > div > strong {
+  color: var(--accent);
+  font-family: var(--font-mono), ui-monospace, monospace;
+}
+
+.workbook-index__legend > div > span {
+  font-weight: 700;
+}
+
+.workbook-index__legend small {
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.workbook-index__count {
+  padding: 11px 0;
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  color: var(--muted);
+  font-size: .7rem;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.workbook-chapters {
+  border-bottom: 1px solid var(--ink);
+}
+
+.workbook-chapter {
+  border-bottom: 1px solid var(--border);
+}
+
+.workbook-chapter:last-child {
+  border-bottom: 0;
+}
+
+.workbook-chapter > summary {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  padding: 17px 0;
+  cursor: pointer;
+  list-style: none;
+}
+
+.workbook-chapter > summary::-webkit-details-marker { display: none; }
+
+.workbook-chapter__number {
+  color: var(--accent);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: .7rem;
+}
+
+.workbook-chapter summary strong {
+  display: block;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 1.25rem;
+}
+
+.workbook-chapter summary small,
+.workbook-chapter__expand {
+  color: var(--muted);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: .64rem;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.workbook-chapter[open] .workbook-chapter__expand::after { content: " · expanded"; }
+
+.workbook-tiers {
+  margin-left: 72px;
+  padding: 0 0 24px;
+}
+
+.workbook-tier + .workbook-tier {
+  margin-top: 20px;
+}
+
+.workbook-tier__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.workbook-tier__head strong {
+  font-size: .82rem;
+}
+
+.workbook-tier__head .mono {
+  color: var(--muted);
+  font-size: .64rem;
+}
+
+.workbook-exercise-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+  border-left: 1px solid var(--border);
+}
+
+.workbook-exercise-grid a {
+  min-height: 40px;
+  padding: 11px 8px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  color: var(--ink-secondary);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: .66rem;
+  text-align: center;
+  text-decoration: none;
+}
+
+.workbook-exercise-grid a:hover,
+.workbook-exercise-grid a:focus-visible {
+  background: var(--accent-soft);
+  color: var(--accent);
+  outline: none;
+}
+
+.reasoning-notebook {
+  border-top: 1px solid var(--ink);
+}
+
+.reasoning-notebook__status {
+  display: grid;
+  grid-template-columns: minmax(230px, .8fr) minmax(180px, 1.2fr) auto;
+  gap: 22px;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.reasoning-notebook__status strong {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 1.15rem;
+}
+
+.reasoning-notebook__status > .mono {
+  color: var(--muted);
+  font-size: .62rem;
+  text-align: right;
+}
+
+.reasoning-notebook__meter {
+  height: 6px;
+  background: var(--note);
+  overflow: hidden;
+}
+
+.reasoning-notebook__meter span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 180ms ease;
+}
+
+.reasoning-notebook__steps {
+  border-bottom: 1px solid var(--ink);
+}
+
+.reasoning-step {
+  display: grid;
+  grid-template-columns: minmax(260px, .78fr) minmax(0, 1.22fr);
+  gap: 42px;
+  padding: 26px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.reasoning-step:last-child { border-bottom: 0; }
+
+.reasoning-step__head {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: 10px;
+}
+
+.reasoning-step__head > .mono {
+  color: var(--accent);
+  font-size: .66rem;
+  padding-top: 5px;
+}
+
+.reasoning-step h3,
+.structural-lens h3,
+.reasoning-reflection h3 {
+  margin: 0 0 7px;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 1.32rem;
+  letter-spacing: -.02em;
+}
+
+.reasoning-step p,
+.structural-lens p {
+  margin: 0;
+  color: var(--ink-secondary);
+  line-height: 1.58;
+}
+
+.reasoning-step textarea {
+  width: 100%;
+  min-height: 150px;
+  resize: vertical;
+  border: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--surface);
+  color: var(--ink);
+  padding: 13px 14px;
+  font: inherit;
+  font-size: .9rem;
+  line-height: 1.55;
+}
+
+.reasoning-step textarea:focus {
+  border-color: var(--ink);
+  outline: 2px solid transparent;
+}
+
+.reasoning-step textarea::placeholder { color: var(--muted); }
+
+.structural-lens {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 32px;
+  align-items: end;
+  padding: 28px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.structural-lens--open {
+  grid-template-columns: minmax(0, .85fr) minmax(280px, 1.15fr);
+}
+
+.structural-lens__answer {
+  padding: 16px 0 16px 20px;
+  border-left: 3px solid var(--accent);
+}
+
+.structural-lens__answer .mono {
+  color: var(--accent);
+  font-size: .62rem;
+}
+
+.structural-lens__answer p {
+  margin-top: 8px;
+  color: var(--ink);
+  font-weight: 650;
+}
+
+.reasoning-reflection {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 30px;
+  align-items: end;
+  padding: 28px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.reasoning-notebook__actions {
+  justify-content: flex-end;
+  padding: 22px 0 4px;
+}
+
+@media (max-width: 920px) {
+  .atlas-practice-mode,
+  .workbook-index__intro,
+  .reasoning-step,
+  .structural-lens,
+  .structural-lens--open,
+  .reasoning-reflection {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .reasoning-notebook__status {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .reasoning-notebook__status > .mono { text-align: left; }
+  .reasoning-notebook__actions { justify-content: flex-start; }
+}
+
+@media (max-width: 700px) {
+  .workbook-index { padding-top: 44px; }
+  .workbook-index__legend > div { grid-template-columns: 28px 88px minmax(0, 1fr); }
+  .workbook-chapter > summary { grid-template-columns: 34px minmax(0, 1fr); gap: 10px; }
+  .workbook-chapter__expand { grid-column: 2; }
+  .workbook-tiers { margin-left: 44px; }
+  .workbook-exercise-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .atlas-practice-mode__actions,
+  .reasoning-reflection__choices,
+  .reasoning-notebook__actions { align-items: stretch; flex-direction: column; }
+  .atlas-practice-mode__actions .button,
+  .reasoning-reflection__choices .button,
+  .reasoning-notebook__actions .button { width: 100%; justify-content: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reasoning-notebook__meter span { transition: none; }
+}

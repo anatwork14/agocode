@@ -124,7 +124,7 @@ export const invariantScenarios: InvariantScenario[] = [
     proof: {
       initialization: "For i = 0 the prefix is empty, so it is trivially sorted and contains the zero smallest values.",
       preservation: "Selecting the minimum of the suffix places the smallest remaining value at position i. Appending it to a prefix that already contains the smaller values preserves sorted order and extends the claim to i + 1.",
-      termination: "When i reaches n, the prefix is the entire array. The invariant then says the whole array is sorted and contains exactly the original values.",
+      termination: "After n - 1 passes, the prefix contains the n - 1 smallest values in sorted order. The one remaining value must be the largest, so the entire array is sorted and is still a permutation of the input.",
     },
     frames: [
       {
@@ -146,10 +146,16 @@ export const invariantScenarios: InvariantScenario[] = [
         reason: "The prefix becomes [1, 3, 5], preserving the same statement for a larger i.",
       },
       {
+        step: "Pass 3",
+        state: ["A = [1, 3, 5, 7, 9]", "prefix = [1, 3, 5]", "suffix = [7, 9]"],
+        transition: "Select 7; it is already at index 3.",
+        reason: "The prefix now contains the four smallest values. The only remaining value, 9, must be the largest.",
+      },
+      {
         step: "Finish",
-        state: ["A = [1, 3, 5, 7, 9]", "prefix = whole array", "suffix = []"],
-        transition: "No unsorted positions remain.",
-        reason: "At termination the invariant applies to the full array, which proves the result is sorted.",
+        state: ["A = [1, 3, 5, 7, 9]", "sorted prefix = [1, 3, 5, 7]", "one value remains = 9"],
+        transition: "Terminate after n - 1 passes.",
+        reason: "The invariant plus the single remaining largest value proves the entire array is sorted.",
       },
     ],
     counterexample: {
@@ -211,8 +217,8 @@ export const invariantScenarios: InvariantScenario[] = [
     ],
     counterexample: {
       weakClaim: "The absolute error |sum - target| shrinks every step.",
-      state: ["A = [1, 4, 8, 20]", "target = 13", "start sum = 21, error = 8", "move right → sum = 9, error = 4", "move left → sum = 12, error = 1"],
-      explanation: "This example improves, but that numerical trend is not the proof obligation. A different spacing of values can make the error jump; endpoint impossibility is the property that remains reliable.",
+      state: ["A = [1, 5, 12]", "target = 10", "start: 1 + 12 = 13, error = 3", "sum is too large, so move right", "next: 1 + 5 = 6, error = 4"],
+      explanation: "The safe pointer move makes the numerical error larger, from 3 to 4. The proof therefore cannot depend on getting numerically closer; it depends on proving that the discarded endpoint cannot belong to a solution.",
     },
     transferQuestion: "What breaks if the array is unsorted, and what preprocessing or alternative structure could restore a safe elimination rule?",
   },

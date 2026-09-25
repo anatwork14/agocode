@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { fieldNotes } from "../lib/knowledge/blog.ts";
 import { canonicalExercises } from "../lib/knowledge/exercises.ts";
+import { goodrichExerciseCount, goodrichExerciseIndex, goodrichExerciseReferences } from "../lib/knowledge/goodrich-workbook.ts";
+import { practiceStages } from "../lib/knowledge/practice-framework.ts";
 import { syllabusTracks } from "../lib/knowledge/syllabus.ts";
 
 test("canonical problem atlas is broad, source-aware, and uniquely addressable", () => {
@@ -21,6 +23,18 @@ test("canonical problem atlas is broad, source-aware, and uniquely addressable",
   }
 });
 
+test("Goodrich source workbook preserves every indexed R/C/P identifier uniquely", () => {
+  assert.equal(goodrichExerciseIndex.length, 15);
+  assert.equal(goodrichExerciseCount, 758);
+  assert.equal(goodrichExerciseReferences.length, goodrichExerciseCount);
+  assert.equal(new Set(goodrichExerciseReferences.map((item) => item.id)).size, goodrichExerciseCount);
+  assert.equal(new Set(goodrichExerciseReferences.map((item) => item.sourceId)).size, goodrichExerciseCount);
+  assert.deepEqual(
+    [...new Set(goodrichExerciseReferences.map((item) => item.tier))].sort(),
+    ["C", "P", "R"],
+  );
+});
+
 test("problem-solving field notes have unique slugs and actionable questions", () => {
   assert.equal(fieldNotes.length, 12);
   assert.equal(new Set(fieldNotes.map((item) => item.slug)).size, fieldNotes.length);
@@ -36,4 +50,10 @@ test("expanded syllabus contains multiple modules across ten tracks", () => {
   assert.ok(syllabusTracks.some((track) => track.modules.some((module) => module.sources.includes("Goodrich"))));
   assert.ok(syllabusTracks.some((track) => track.modules.some((module) => module.sources.includes("EPI"))));
   assert.ok(syllabusTracks.some((track) => track.modules.some((module) => module.sources.includes("Skiena"))));
+});
+
+test("practice progression moves from mechanism to transfer and delayed retrieval", () => {
+  assert.deepEqual(practiceStages.map((stage) => stage.id), ["reinforce", "create", "build", "recognize", "vary", "retrieve"]);
+  assert.ok(practiceStages.every((stage) => stage.evidence.length >= 4));
+  assert.ok(practiceStages.every((stage) => stage.learnerPrompt.endsWith("?")));
 });

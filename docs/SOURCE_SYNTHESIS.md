@@ -1,84 +1,192 @@
-# Source Synthesis — AgoCode Syllabus v2
+# Source Synthesis — AgoCode Syllabus v3
 
-This document records the product ideas extracted from three additional references used to expand AgoCode beyond the original visual Book Track:
+AgoCode now uses four complementary perspectives rather than treating one book as the entire curriculum:
 
-- Michael T. Goodrich, Roberto Tamassia, Michael H. Goldwasser — *Data Structures & Algorithms in Python*
-- Adnan Aziz, Tsung-Hsien Lee, Amit Prakash — *Elements of Programming Interviews in Python*
-- Steven S. Skiena — *The Algorithm Design Manual*
+- **Grokking Algorithms** supplies the visual-first, concrete-to-formal learning backbone.
+- **Data Structures and Algorithms in Python** (Goodrich, Tamassia, Goldwasser) supplies ADT depth, correctness habits, representation trade-offs, and layered practice.
+- **Elements of Programming Interviews in Python** (Aziz, Lee, Prakash) supplies solution development, canonical problem repertoire, variants, and transfer pressure.
+- **The Algorithm Design Manual** (Skiena) supplies modeling, design questions, strategy-vs-tactics thinking, problem catalogs, and the habit of recording why an approach fails.
 
-AgoCode treats these works as pedagogical references, not content to reproduce. Short problem names and source provenance may be indexed; exercises, explanations, solutions, figures, and prose are rewritten from scratch.
+AgoCode treats these works as pedagogical references, not content to reproduce. Short problem names, exercise identifiers, and provenance may be indexed; explanations, exercise statements, solutions, figures, and prose are rewritten from scratch.
 
-## 1. The three perspectives are complementary
+## 1. The unified learning model
 
-### Goodrich: abstraction, representation, correctness, and implementation
+A learner should develop three layers of competence.
 
-The strongest contribution to AgoCode is the separation between an **abstract data type** and the **representation used to implement it**. The syllabus must ask two different questions:
+### Layer A — Mechanism
 
-1. What operations does the client need?
-2. Which representation makes that workload efficient?
+Understand what the data structure or algorithm does:
 
-This changes how we teach stacks, queues, maps, trees, priority queues, and sequences. Learners should compare multiple implementations of the same contract instead of memorizing one canonical code listing.
+- state representation;
+- legal operations;
+- invariant;
+- transition rule;
+- time/space behavior;
+- implementation.
 
-The second major contribution is **justification**. Complexity is paired with correctness techniques such as counterexamples, induction, contradiction, and loop invariants. AgoCode should therefore attach a proof obligation to important state transitions: what must remain true before and after this operation?
+### Layer B — Design
 
-The third contribution is **algorithm engineering**: experimental analysis, amortization, Python library behavior, memory representation, and external-memory structures belong in the curriculum because real performance depends on more than the top-level asymptotic label.
+Understand why this mechanism is relevant:
 
-### EPI: develop a solution rather than reveal one
+- model the story as a computational problem;
+- establish a simple correct baseline;
+- identify the dominant repeated work;
+- transform the input or use a more appropriate ADT;
+- justify the improvement;
+- understand when assumptions fail.
 
-The strongest product pattern is a consistent exercise narrative:
+### Layer C — Transfer
 
-1. establish context,
-2. state the problem,
-3. offer a delayed hint,
-4. begin with a simple baseline,
-5. analyze why that baseline wastes work,
-6. derive a better algorithm in prose,
-7. apply it to a concrete input,
-8. implement the key mechanism,
-9. analyze time and space,
-10. vary the problem to test transfer.
+Use the idea without labels:
 
-This becomes the AgoCode exercise contract. The learner should see the optimized solution only after producing evidence at earlier stages.
+- recognize a problem family from structural clues;
+- compare multiple plausible approaches;
+- solve a variant;
+- handle scale or memory constraints;
+- retrieve the reasoning after a delay.
 
-EPI also reinforces **concrete examples, case analysis, iterative refinement, reduction, and pattern recognition**. Canonical problems are useful as retrieval keys, but memorizing a finished solution is explicitly the wrong objective. Mixed practice should hide chapter labels so the learner must first choose a technique.
-
-### Skiena: modeling, repertoire, and a repeatable design checklist
-
-The strongest contribution is the idea that modeling is a primary algorithm-design skill. AgoCode should not begin every exercise with an algorithm category. Instead, learners should translate a messy application into an abstract problem and compare alternative formulations.
-
-The design process is turned into a sequence of questions:
-
-- Do I really understand the input, output, scale, and objective?
-- Can I solve a tiny instance by hand?
-- Can I write a simple correct or brute-force method?
-- What does that method repeatedly waste?
-- Are there special cases I can solve exactly?
-- Does sorting expose useful order?
-- Can the problem be divided?
-- Is there repeated work suggesting dynamic programming?
-- Are repeated queries suggesting a data structure?
-- Is the problem naturally a graph, string, set, numerical, geometric, or combinatorial problem?
-- Is exact optimization realistic, or should I consider pruning, approximation, or heuristics?
-
-A rejected approach is only useful when the learner writes **why** it fails. This motivates a future persistent Design Log.
-
-Skiena's catalog also motivates the Canonical Problem Atlas: learners should know the names of important problem families so they can recognize what is already known rather than reinvent every technique from scratch.
-
-## 2. New AgoCode learning contract
-
-The original mastery loop remains:
+The product loop remains:
 
 > Understand → Predict → Trace → Rebuild → Explain → Transfer → Recall
 
-The broader problem-solving loop is now:
+The expanded syllabus now makes **Model**, **Baseline**, **Invariant**, **Trade-off**, and **Variant** explicit activities rather than background prose.
 
-> Understand → Model → Baseline → Transform → Choose structure → Prove → Analyze → Implement → Vary → Recall
+## 2. Goodrich perspective: abstraction before representation
 
-A strong exercise should gather evidence from both loops.
+The key product implication is to separate an abstract data type from its implementation.
 
-## 3. Syllabus consequences
+AgoCode should repeatedly ask:
 
-The 11-chapter visual Book Track remains intact. It is now surrounded by ten broader tracks:
+- What behavior does the client actually require?
+- Which operations dominate the workload?
+- Which representation makes those operations cheap?
+- What capability are we paying for but not using?
+
+Examples include queue behavior vs array/circular-array/linked implementations, priority queue behavior vs lists/heaps, map behavior vs hash/search-tree implementations, and sequence behavior vs array/list representations.
+
+The source also organizes exercises into **Reinforcement**, **Creativity**, and **Projects**, giving AgoCode a useful practice progression from executing a mechanism to designing and building with it.
+
+### Product features from this perspective
+
+- ADT/workload comparison tables;
+- representation-switching labs;
+- invariant checks during state transitions;
+- empirical-vs-asymptotic complexity exercises;
+- Reinforcement → Creativity → Project practice progression;
+- complete source-workbook identifiers linked to original AgoCode reasoning notebooks.
+
+## 3. EPI perspective: develop the solution, do not reveal it
+
+A problem should not jump from statement to optimized code. AgoCode should make the learner expose the path:
+
+1. understand the context;
+2. restate the problem;
+3. request only a small hint when stuck;
+4. produce a simple correct baseline;
+5. analyze why the baseline wastes work;
+6. improve using discovered structure;
+7. apply the method to a concrete case;
+8. implement the key mechanism;
+9. analyze time and space;
+10. solve a nearby variant.
+
+### Product features from this perspective
+
+- progressive hint gating;
+- persistent reasoning notebooks;
+- baseline before technique hints;
+- explicit “name the waste” prompts;
+- blind recognition mode;
+- surprise/interleaved practice;
+- variants as a completion criterion;
+- multiple-solution comparison instead of one hidden trick.
+
+## 4. Skiena perspective: modeling is an algorithmic skill
+
+AgoCode should train the question **“What problem is this, really?”** before “Which algorithm do I remember?”
+
+The design workflow becomes:
+
+1. specify inputs and outputs;
+2. solve a tiny example by hand;
+3. decide whether exact optimality is necessary;
+4. estimate realistic scale and latency constraints;
+5. consider multiple formulations;
+6. find a simple exact algorithm or heuristic;
+7. study special cases;
+8. try standard paradigms and data structures;
+9. recognize when hardness may be the issue;
+10. revisit earlier answers after each failed attempt.
+
+A rejected approach should be recorded as **“does not work because…”**, not merely discarded.
+
+### Product features from this perspective
+
+- design log embedded in each exercise;
+- strategy-vs-tactics prompts;
+- model sentence before implementation;
+- problem-family catalog;
+- special-case ladder;
+- exact-vs-approximate decision prompts;
+- future original casebook stories showing algorithms as subproblems in larger systems.
+
+## 5. Practice is a progression, not a pile of questions
+
+AgoCode combines these perspectives into six practice stages:
+
+1. **Reinforce** — execute and explain a known mechanism.
+2. **Create** — derive an approach from constraints.
+3. **Build** — implement a larger artifact with interfaces and tests.
+4. **Recognize** — diagnose a mixed problem without labels.
+5. **Vary** — change one assumption and adapt the solution.
+6. **Retrieve** — rebuild the reasoning after spacing.
+
+This progression is now represented explicitly on `/syllabus` and shapes `/exercises`.
+
+## 6. Canonical Problem Atlas
+
+The Problem Atlas is a retrieval and recognition system, not a solution archive.
+
+Each named entry stores only:
+
+- short problem name or source exercise identifier;
+- source/chapter provenance;
+- broad domain;
+- AgoCode-original structural lens;
+- AgoCode-original tags;
+- route to an original interactive lesson when available.
+
+The atlas supports two modes:
+
+- **Study mode** — structural lens and tags are visible.
+- **Blind mode** — chapter/domain/tags/lens are hidden so the learner must recognize the structure.
+
+A **Surprise me** action interleaves the currently filtered repertoire rather than encouraging chapter-by-chapter pattern guessing.
+
+## 7. Goodrich workbook coverage
+
+The source preface describes the exercise program as roughly 750 exercises. The supplied PDF contains **758 indexed `R`, `C`, and `P` references** across Chapters 1–15 using the identifiers extracted for this project. AgoCode preserves those identifiers while treating the discrepancy as a source-file/indexing detail rather than rewriting the book's own stated count.
+
+AgoCode does not copy those prompts. Every identifier can open a reasoning notebook while the learner keeps their own copy of the source beside the site.
+
+## 8. Persistent reasoning notebook
+
+Every catalog problem can now use the same original eight-stage notebook:
+
+1. Understand
+2. Solve tiny/extreme cases
+3. Establish a baseline
+4. Name the waste
+5. Choose strategy before tactics
+6. Write the invariant
+7. Analyze the real cost
+8. Vary and transfer
+
+The notebook autosaves locally, gates the structural hint until the learner has written a baseline and named the waste, records self-confidence, and can be copied as a design log.
+
+## 9. Expanded syllabus
+
+The 11-chapter visual Book Track remains intact. It is surrounded by ten broader tracks:
 
 0. Visual-first foundation
 1. Measure and justify
@@ -93,43 +201,25 @@ The 11-chapter visual Book Track remains intact. It is now surrounded by ten bro
 
 This adds missing foundations such as heaps, balanced trees, DFS/backtracking, string matching, MST/union-find, amortization, external memory, hardness, approximation, and concurrency without destroying the simplicity of the original entry path.
 
-## 4. Exercise-system consequences
+## 10. What to build next
 
-Each canonical problem entry should eventually support:
+After the current source expansion is stable:
 
-- source provenance and structural tags,
-- an original AgoCode formulation,
-- tiny example generation,
-- baseline capture,
-- hypothesis before code,
-- progressive hints,
-- invariant/proof prompt,
-- executable tests,
-- complexity check,
-- at least one variant,
-- mixed recognition after a delay,
-- Design Log history showing rejected approaches and reasons.
+1. capture reasoning-notebook evidence into the mastery engine;
+2. add an open-ended Problem Design Canvas for arbitrary user problems;
+3. connect syllabus modules to atlas entries automatically;
+4. add original ADT workload-comparison labs;
+5. add original casebook stories showing algorithms appearing inside larger systems;
+6. draw mixed-recognition sessions from the full canonical atlas;
+7. add project rubrics for the Goodrich-style Project tier;
+8. add exact / heuristic / approximation branches for hard optimization problems.
 
-The current Problem Atlas is the indexing layer. Existing AgoCode learning slices are linked directly; catalog-only entries open a design worksheet until an original interactive formulation is authored.
+## 11. Copyright transformation rule
 
-## 5. Copyright boundary
+For every source-derived feature, preserve the **learning objective and conceptual relationship**, not the expression.
 
-The books contain hundreds of copyrighted exercises and explanations. AgoCode must not republish them wholesale.
+Allowed transformation pattern:
 
-Allowed product use:
+> source idea → abstract teaching principle → original interaction / wording / example / illustration
 
-- short bibliographic/source names,
-- short problem or algorithm titles,
-- chapter/topic provenance,
-- original taxonomy,
-- original problem formulations inspired by general concepts,
-- original examples, visualizations, hints, tests, and solutions.
-
-Not allowed in AgoCode content without permission:
-
-- copied exercise statements,
-- copied solution prose,
-- copied figures or traced illustrations,
-- large excerpts or reconstructed chapter text.
-
-This constraint improves the product: the goal is to build a learning system from the ideas, not a digital copy of the books.
+Do not scan, trace, transcribe, or publish substantial source text, exercise statements, solutions, or illustrations unless appropriate permission exists.

@@ -47,7 +47,12 @@ function DpTablePreview({ scenario }: { scenario: DpStateScenario }) {
   );
 
   return (
-    <div className="dp-state-table" role="table" aria-label={`State table geometry for ${scenario.title}`}>
+    <div
+      className="dp-state-table"
+      role="table"
+      aria-label={`State table geometry for ${scenario.title}`}
+      style={{ gridTemplateColumns: `96px repeat(${scenario.table.colLabels.length}, minmax(42px, 1fr))` }}
+    >
       <div className="dp-state-table__corner" />
       {scenario.table.colLabels.map((label, index) => (
         <div className="dp-state-table__label dp-state-table__label--column" role="columnheader" key={`c-${index}`}>

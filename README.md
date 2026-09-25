@@ -37,6 +37,7 @@ The shorter mastery loop remains:
 - **ADT Representation Workbench**: keep the abstract contract fixed, vary operation frequencies and collection size, then compare representation trade-offs rather than memorizing one preferred data structure
 - **Invariant Workbench**: choose a correctness claim, defend initialization / preservation / termination, inspect state transitions, break weak claims with counterexamples, and rewrite the invariant for a transfer variant
 - **Amortization Workbench**: compare dynamic-array capacity rules, inspect expensive resize spikes, measure cumulative average work, and contrast geometric growth with fixed-increment growth
+- **Graph Modeling Workbench**: turn application stories into vertices, edges, direction, weights, and objectives before the learner is allowed to choose a graph algorithm
 - CI gates for typecheck, tests, lint, and production build
 
 ## Knowledge architecture
@@ -49,7 +50,7 @@ AgoCode separates five complementary views:
 4. **Ways of Solving** — reusable problem-solving questions for the moment before the technique is obvious.
 5. **Design Workspace** — a blank problem-solving canvas for turning a new problem into explicit models, baselines, trade-offs, and proof obligations.
 
-The Lab layer cuts across these views: trace labs make algorithm state inspectable, while workbenches make representation choices, correctness arguments, and sequence-level cost reasoning inspectable.
+The Lab layer cuts across these views: trace labs make algorithm state inspectable, while workbenches make representation choices, correctness arguments, sequence-level cost reasoning, and graph modeling decisions inspectable.
 
 This prevents the product from collapsing into either a static textbook, an animation gallery, or a random problem list.
 
@@ -107,7 +108,7 @@ The Book Track is intentionally preserved rather than overwritten. The expanded 
 
 - **Read** — illustrated editorial lessons and interactive analogies
 - **Syllabus** — prerequisite and perspective map across the broader DSA curriculum
-- **Lab** — synchronized algorithm traces plus interactive workbenches for ADT trade-offs, invariants, and amortized analysis
+- **Lab** — synchronized algorithm traces plus interactive workbenches for ADT trade-offs, invariants, amortized analysis, and graph modeling
 - **Problems** — canonical repertoire, complete source-workbook references, blind recognition, and reasoning notebooks
 - **Solve** — open-ended algorithm design canvas for unfamiliar problems
 - **Ways** — original problem-solving field notes

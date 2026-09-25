@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { PracticeProgression } from "@/components/syllabus/PracticeProgression";
+import { sourceLabels } from "@/lib/knowledge/all-exercises";
 import { getModuleRoute, moduleLabRoutes } from "@/lib/knowledge/module-lab-routes";
+import { getAtlasProblemsForModule } from "@/lib/knowledge/syllabus-atlas";
 import { problemSolvingLoop, syllabusModuleCount, syllabusTracks } from "@/lib/knowledge/syllabus";
 
 export const metadata = {
@@ -25,7 +27,7 @@ export default function SyllabusPage() {
           <aside className="knowledge-note">
             <span className="eyebrow">Structure</span>
             <strong>{syllabusTracks.length} tracks · {syllabusModuleCount} modules</strong>
-            <p>Use this page as a dependency map. Modules with an AgoCode workbench open directly into the corresponding design lab.</p>
+            <p>Use this page as a dependency map. Each module now surfaces nearby canonical Atlas problems automatically from its concepts and source perspective.</p>
             <Link href="/learn">Open the visual Book Track →</Link>
           </aside>
         </div>
@@ -56,6 +58,7 @@ export default function SyllabusPage() {
                 {track.modules.map((module) => {
                   const route = getModuleRoute(module.id, module.route);
                   const opensLab = Boolean(moduleLabRoutes[module.id]);
+                  const atlasProblems = getAtlasProblemsForModule(module, 4);
 
                   return (
                     <div className="syllabus-module" key={module.id}>
@@ -77,6 +80,25 @@ export default function SyllabusPage() {
                           <div className="atlas-tags">{module.topics.map((item) => <span key={item}>{item}</span>)}</div>
                         </div>
                       </div>
+
+                      <div className="syllabus-module__atlas">
+                        <div className="syllabus-module__atlas-head">
+                          <div>
+                            <span className="mono">PRACTICE FROM THE ATLAS</span>
+                            <strong>Remove the module label and test the idea on a named problem.</strong>
+                          </div>
+                          <Link href="/exercises">Full Atlas →</Link>
+                        </div>
+                        <div className="syllabus-module__atlas-links">
+                          {atlasProblems.map(({ exercise, matchedTerms }) => (
+                            <Link className="syllabus-module__atlas-link" href={`/exercises/${exercise.id}`} key={exercise.id}>
+                              <span className="mono">{sourceLabels[exercise.source]} · {exercise.level}</span>
+                              <strong>{exercise.title}</strong>
+                              <small>{matchedTerms.length ? `matched: ${matchedTerms.slice(0, 2).join(" · ")}` : exercise.domain}</small>
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   );
                 })}
@@ -89,7 +111,7 @@ export default function SyllabusPage() {
           <div>
             <span className="eyebrow">Use the syllabus actively</span>
             <h2>Move from topic coverage to problem-solving evidence.</h2>
-            <p>Choose a module, use its workbench when available, then test it against canonical problems where the chapter label does not give away the method.</p>
+            <p>Choose a module, use its workbench when available, then test it against the linked canonical problems where the chapter label no longer gives away the method.</p>
           </div>
           <div className="action-row">
             <Link className="button" href="/blog">Read Ways of Solving</Link>

@@ -226,7 +226,7 @@ export const optimizationScenarios: OptimizationScenario[] = [
         practicalThrough: "moderate",
         requires: ["Moderate n", "Capacity dimension too large for O(nC) DP"],
         strength: "Trades the capacity dimension for exponential dependence on half the item count.",
-        limitation: "Still exponential as n grows.",
+        limitation: "Still exponential as the item count n grows beyond moderate instances.",
       },
       {
         id: "scaled-dp",

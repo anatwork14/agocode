@@ -40,6 +40,7 @@ import "./special-case-ladder.css";
 import "./casebook.css";
 import "./optimization-strategy-workbench.css";
 import "./project-workspace.css";
+import "./syllabus-atlas.css";
 
 const editorial = Fraunces({ subsets: ["latin"], variable: "--font-editorial", display: "swap" });
 const reading = Source_Sans_3({ subsets: ["latin"], variable: "--font-reading", display: "swap" });

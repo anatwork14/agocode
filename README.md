@@ -1,46 +1,51 @@
 # AgoCode
 
-AgoCode is a visual-first algorithm learning platform designed to help learners **understand algorithms, re-implement them from memory, and transfer that understanding to unfamiliar problems**.
+AgoCode is a visual-first algorithm learning platform designed to help learners **understand algorithms, model unfamiliar problems, re-implement mechanisms from memory, and transfer that understanding to new contexts**.
 
-The canonical learning backbone follows the pedagogical progression of *Grokking Algorithms* by Aditya Bhargava. AgoCode does **not** reproduce the book; it transforms its teaching principles into an original interactive learning experience: concrete examples first, visual mental models, executable traces, short prediction gates, reconstruction, explanation, delayed recall, and later problem transfer.
+The original Book Track follows the pedagogical progression of *Grokking Algorithms*. The broader AgoCode syllabus now combines that visual-first path with original learning structures synthesized from *Data Structures & Algorithms in Python* (Goodrich, Tamassia, Goldwasser), *Elements of Programming Interviews in Python* (Aziz, Lee, Prakash), and *The Algorithm Design Manual* (Skiena).
+
+AgoCode does **not** reproduce those books. It transforms their teaching perspectives into original interactive lessons, field notes, design worksheets, visualizations, and transfer practice.
 
 ## Product principle
 
+> Understand → Model → Baseline → Transform → Choose structure → Prove → Analyze → Implement → Vary → Recall
+
+The shorter mastery loop remains:
+
 > Understand → Predict → Trace → Rebuild → Explain → Transfer → Recall
 
-AgoCode is intentionally not another static textbook, animation gallery, or problem dump. A lesson is only successful when the learner can reason about state, reproduce the mechanism without copying, explain why it works, and recognize the idea again after the surface story changes.
-
-## Implementation status
-
-The Book Track now has interactive learning slices across all 11 chapters, with progressively richer visual and practice systems around the core algorithms.
-
-Currently implemented:
+## What is implemented
 
 - Next.js + React + TypeScript application foundation
-- canonical paper/ink/red design system and SVG-first AgoCode brand
-- responsive Book / Roadmap / Lab / Practice / Review / Progress routes
-- in-browser Python execution isolated in a Web Worker with timeout protection, tests, stdout/stderr, progressive hints, and Python-friendly indentation
-- deterministic algorithm traces and reusable timeline behavior
-- reusable array, stack/call-frame, queue, graph, weighted-graph, table, grid, and state-inspector visualization primitives
-- Chapter 1: Binary Search, running time, Big O, Traveling Salesperson, cumulative recap
-- Chapter 2: memory model, arrays vs. linked lists, Selection Sort, cumulative recap
-- Chapter 3: recursion, base/recursive cases, stack, recursive call stack, cumulative recap
-- Chapter 4: divide and conquer, recursive reduction, Quicksort, runtime behavior, cumulative recap
-- Chapter 5: hash functions, key→index mapping, use cases, collisions, load factor, resizing, cumulative recap
-- Chapter 6: graph modeling, FIFO queue behavior, Breadth-First Search, shortest unweighted paths, prediction gates, reconstruction, cumulative recap
-- Chapter 7: weighted graphs, Dijkstra relaxation, parent reconstruction, negative-weight limitation, cumulative recap
-- Chapter 8: greedy scheduling, counterexamples, set-cover approximation, cumulative recap
-- Chapter 9: dynamic-programming state grids, knapsack recurrence, sequence DP, cumulative recap
-- Chapter 10: K-nearest-neighbor classification/regression, feature distance, neighborhood quality, cumulative recap
-- Chapter 11: advanced-topic map and next-step exploration
-- Transfer Track with direct coding challenges plus no-label mixed pattern recognition
-- adaptive mixed-recognition sessions that prioritize recent misses and track technique-level first-try accuracy
-- local learning evidence for coding attempts, hint use, first-try recognition, BFS prediction, explanation quality, and delayed recall
+- paper / ink / editorial-red visual system and SVG-first AgoCode brand
+- responsive Book / Syllabus / Lab / Exercises / Blog / Review / Progress experiences
+- interactive learning slices across all 11 original Book Track chapters
+- deterministic traces and reusable array, stack, queue, graph, weighted-graph, table, grid, and state-inspector primitives
+- in-browser Python execution in a Web Worker with timeout protection, tests, stdout/stderr, progressive hints, and Python-friendly indentation
+- Transfer Track with direct coding challenges and no-label mixed recognition
+- local evidence for coding attempts, hint use, prediction, explanation, recognition, and delayed recall
 - seven-dimension mastery model: Understand / Trace / Predict / Rebuild / Explain / Transfer / Recall
-- progress dashboard that separates completion from evidence strength and surfaces the weakest learning dimension
-- adaptive spaced review: successful recall expands intervals, weak recall returns the item sooner
-- deterministic tests for the core algorithms, timeline behavior, learning evidence, recognition, and mastery scoring
+- adaptive review scheduling based on actual recall outcomes
+- **Expanded Syllabus**: 10 connected tracks covering analysis/correctness, ADTs and representations, trees/heaps/search structures, sorting/search/text, recursive search, graph modeling, optimization/hardness, problem-solving method, and algorithm engineering
+- **Ways of Solving**: 12 original field notes about modeling, brute force, invariants, sorting as a transformation, ADT choice, special cases, repertoire, variants, complexity, and design logs
+- **Canonical Problem Atlas**: 400+ source-aware entries drawn from named problems, canonical algorithms, and problem families in the source books, with search/filtering and an original AgoCode reasoning lens
+- per-problem **Design Worksheet** that asks learners to restate, hand-solve, baseline, identify waste, choose structure, state an invariant, analyze, and vary
 - CI gates for typecheck, tests, lint, and production build
+
+## Knowledge architecture
+
+AgoCode now separates four complementary views:
+
+1. **Book Track** — guided visual intuition in a deliberate chapter order.
+2. **Expanded Syllabus** — a dependency map of deeper data-structure and algorithm-design knowledge.
+3. **Problem Atlas** — a repertoire of canonical problem names and families for recognition and transfer.
+4. **Ways of Solving** — reusable problem-solving questions for the moment before the technique is obvious.
+
+This prevents the product from collapsing into either a static textbook or a random problem list.
+
+## Copyright boundary
+
+The source books are used as pedagogical references. AgoCode may index short problem titles, chapter/topic names, and source provenance, but it does not republish full copyrighted exercise statements, published solutions, or book illustrations. Interactive exercises are rewritten as original AgoCode formulations with original visuals and hints.
 
 ## Local development
 
@@ -69,7 +74,7 @@ pnpm build
 - [Content & Copyright Policy](docs/CONTENT_COPYRIGHT_POLICY.md)
 - [Agent/Contributor Guardrails](AGENTS.md)
 
-## Canonical curriculum
+## Original Book Track
 
 1. Introduction to Algorithms — Binary Search, Running Time, Big O, Traveling Salesperson
 2. Selection Sort — Memory, Arrays vs. Linked Lists, Selection Sort
@@ -83,16 +88,19 @@ pnpm build
 10. K-Nearest Neighbors
 11. Where to Go Next
 
-Interview-specific techniques such as two pointers, sliding window, monotonic stack, binary search on answer, and advanced graph/DP patterns belong to an **Extension Track** around the book-faithful foundation.
+The Book Track is intentionally preserved rather than overwritten. The expanded syllabus grows around it.
 
 ## Core product modes
 
 - **Read** — illustrated editorial lessons and interactive analogies
+- **Syllabus** — prerequisite and perspective map across the broader DSA curriculum
 - **Lab** — synchronized visualization, algorithm state, code, prediction, and custom scenarios
+- **Exercises** — canonical repertoire plus problem-design worksheets and interactive slices
+- **Ways of Solving** — original problem-solving field notes
 - **Practice** — reconstruction and progressively less-labeled transfer problems
 - **Review** — spaced retrieval rescheduled by actual recall outcome
 - **Progress** — evidence ledger plus multi-dimensional mastery diagnosis
 
 ## Reference milestone
 
-A learning slice is successful when a learner can leave, return after a delay, rebuild the mechanism, explain why it works, diagnose a plausible bug, and recognize the same idea after the problem framing changes.
+A learning slice is successful when a learner can leave, return after a delay, rebuild the mechanism, explain why it works, diagnose a plausible bug, recognize the same idea after the surface story changes, and justify why the chosen representation or algorithm fits the real constraints.

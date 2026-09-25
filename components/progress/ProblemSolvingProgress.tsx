@@ -112,7 +112,8 @@ export function ProblemSolvingProgress() {
           <h2>Track the reasoning that happens before code.</h2>
           <p>
             The expanded source practice records modeling, baselines, rejected ideas, invariants, complexity, and variants separately
-            from code-test completion. These are design artifacts, not automatic mastery claims.
+            from code-test completion. Reasoning notebooks and project workspaces now contribute bounded signals to the mastery map,
+            but self-authored notes, confidence, and checklist state are not treated as certification.
           </p>
         </div>
       </div>
@@ -121,7 +122,7 @@ export function ProblemSolvingProgress() {
         <div><span>Notebooks started</span><strong>{snapshot.notebooks.length}</strong><small>canonical or source-workbook problems</small></div>
         <div><span>Reasoning complete</span><strong>{summary.completed}</strong><small>manually marked after substantial development</small></div>
         <div><span>Stages developed</span><strong>{summary.developedStages}/{summary.totalStages || 0}</strong><small>eight reasoning stages per notebook</small></div>
-        <div><span>Self-rated solid</span><strong>{summary.solid}</strong><small>confidence only; not treated as proof</small></div>
+        <div><span>Self-rated solid</span><strong>{summary.solid}</strong><small>small supporting signal only; not proof</small></div>
       </div>
 
       <div className="source-practice-progress__grid">

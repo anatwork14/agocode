@@ -38,6 +38,7 @@ import "./dp-state-workbench.css";
 import "./transformation-workbench.css";
 import "./special-case-ladder.css";
 import "./casebook.css";
+import "./optimization-strategy-workbench.css";
 
 const editorial = Fraunces({ subsets: ["latin"], variable: "--font-editorial", display: "swap" });
 const reading = Source_Sans_3({ subsets: ["latin"], variable: "--font-reading", display: "swap" });

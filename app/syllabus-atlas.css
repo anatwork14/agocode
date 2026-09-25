@@ -1,0 +1,103 @@
+.syllabus-module__atlas {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px dashed var(--border);
+}
+
+.syllabus-module__atlas-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 12px;
+}
+
+.syllabus-module__atlas-head > div {
+  display: grid;
+  gap: 5px;
+}
+
+.syllabus-module__atlas-head .mono {
+  color: var(--accent);
+  font-size: .61rem;
+  letter-spacing: .08em;
+}
+
+.syllabus-module__atlas-head strong {
+  max-width: 680px;
+  font-size: .9rem;
+  font-weight: 650;
+}
+
+.syllabus-module__atlas-head > a {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: .72rem;
+  font-weight: 700;
+}
+
+.syllabus-module__atlas-links {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--border);
+}
+
+.syllabus-module__atlas-link {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+  padding: 13px 16px 13px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.syllabus-module__atlas-link:nth-child(odd) {
+  padding-right: 22px;
+  border-right: 1px solid var(--border);
+}
+
+.syllabus-module__atlas-link:nth-child(even) {
+  padding-left: 22px;
+}
+
+.syllabus-module__atlas-link .mono {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: .57rem;
+  letter-spacing: .03em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.syllabus-module__atlas-link strong {
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 1.02rem;
+  line-height: 1.2;
+}
+
+.syllabus-module__atlas-link small {
+  color: var(--muted);
+  font-size: .68rem;
+  line-height: 1.35;
+}
+
+.syllabus-module__atlas-link:hover strong {
+  color: var(--accent);
+}
+
+@media (max-width: 760px) {
+  .syllabus-module__atlas-head {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .syllabus-module__atlas-links {
+    grid-template-columns: 1fr;
+  }
+
+  .syllabus-module__atlas-link,
+  .syllabus-module__atlas-link:nth-child(odd),
+  .syllabus-module__atlas-link:nth-child(even) {
+    padding: 13px 0;
+    border-right: 0;
+  }
+}

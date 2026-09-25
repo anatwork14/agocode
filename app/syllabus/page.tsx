@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PracticeProgression } from "@/components/syllabus/PracticeProgression";
 import { problemSolvingLoop, syllabusModuleCount, syllabusTracks } from "@/lib/knowledge/syllabus";
 
 export const metadata = {
@@ -12,18 +13,18 @@ export default function SyllabusPage() {
       <div className="site-shell">
         <div className="knowledge-hero">
           <div>
-            <div className="eyebrow">Expanded syllabus · v2</div>
-            <h1 className="editorial-title editorial-title--compact">The book track is now one path through a larger map.</h1>
+            <div className="eyebrow">Expanded syllabus · v3</div>
+            <h1 className="editorial-title editorial-title--compact">The book track is one path through a larger map.</h1>
             <p className="lede">
               AgoCode keeps the visual-first 11-chapter foundation, then adds the deeper perspectives that make data
               structures and algorithms useful in unfamiliar work: ADT trade-offs, correctness, representation, modeling,
-              canonical problem recognition, algorithm design, hardness, and engineering constraints.
+              canonical problem recognition, algorithm design, hardness, engineering constraints, and deliberate practice.
             </p>
           </div>
           <aside className="knowledge-note">
             <span className="eyebrow">Structure</span>
             <strong>{syllabusTracks.length} tracks · {syllabusModuleCount} modules</strong>
-            <p>Use this page as a dependency map. Use the Book page when you want the original guided reading order.</p>
+            <p>Use this page as a dependency map. Use the Book page for the guided visual sequence and the Atlas for source-grounded practice.</p>
             <Link href="/learn">Open the visual Book Track →</Link>
           </aside>
         </div>
@@ -36,6 +37,8 @@ export default function SyllabusPage() {
             </div>
           ))}
         </section>
+
+        <PracticeProgression />
 
         <section className="section syllabus-tracks">
           {syllabusTracks.map((track) => (

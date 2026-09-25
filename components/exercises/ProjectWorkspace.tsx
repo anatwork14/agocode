@@ -123,17 +123,23 @@ export function ProjectWorkspace({ exerciseId }: { exerciseId: string }) {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(storageKey);
-      if (raw) {
-        const parsed = JSON.parse(raw) as Partial<ProjectState>;
-        setState({ ...blankState(), ...parsed, checkpoints: parsed.checkpoints ?? {} });
+    const hydrationTimer = window.setTimeout(() => {
+      try {
+        const raw = localStorage.getItem(storageKey);
+        if (raw) {
+          const parsed = JSON.parse(raw) as Partial<ProjectState>;
+          setState({ ...blankState(), ...parsed, checkpoints: parsed.checkpoints ?? {} });
+        } else {
+          setState(blankState());
+        }
+      } catch {
+        setState(blankState());
+      } finally {
+        setLoaded(true);
       }
-    } catch {
-      setState(blankState());
-    } finally {
-      setLoaded(true);
-    }
+    }, 0);
+
+    return () => window.clearTimeout(hydrationTimer);
   }, [storageKey]);
 
   useEffect(() => {

@@ -4,7 +4,7 @@ AgoCode is a visual-first algorithm learning platform designed to help learners 
 
 The original Book Track follows the pedagogical progression of *Grokking Algorithms*. The broader AgoCode syllabus now combines that visual-first path with original learning structures synthesized from *Data Structures & Algorithms in Python* (Goodrich, Tamassia, Goldwasser), *Elements of Programming Interviews in Python* (Aziz, Lee, Prakash), and *The Algorithm Design Manual* (Skiena).
 
-AgoCode does **not** reproduce those books. It transforms their teaching perspectives into original interactive lessons, field notes, design worksheets, visualizations, and transfer practice.
+AgoCode does **not** reproduce those books. It transforms their teaching perspectives into original interactive lessons, field notes, reasoning notebooks, visualizations, design tools, and transfer practice.
 
 ## Product principle
 
@@ -18,7 +18,7 @@ The shorter mastery loop remains:
 
 - Next.js + React + TypeScript application foundation
 - paper / ink / editorial-red visual system and SVG-first AgoCode brand
-- responsive Book / Syllabus / Lab / Exercises / Blog / Review / Progress experiences
+- responsive Book / Syllabus / Problems / Solve / Ways / Review / Progress experiences
 - interactive learning slices across all 11 original Book Track chapters
 - deterministic traces and reusable array, stack, queue, graph, weighted-graph, table, grid, and state-inspector primitives
 - in-browser Python execution in a Web Worker with timeout protection, tests, stdout/stderr, progressive hints, and Python-friendly indentation
@@ -27,25 +27,31 @@ The shorter mastery loop remains:
 - seven-dimension mastery model: Understand / Trace / Predict / Rebuild / Explain / Transfer / Recall
 - adaptive review scheduling based on actual recall outcomes
 - **Expanded Syllabus**: 10 connected tracks covering analysis/correctness, ADTs and representations, trees/heaps/search structures, sorting/search/text, recursive search, graph modeling, optimization/hardness, problem-solving method, and algorithm engineering
+- **Practice progression**: Reinforce → Create → Build → Recognize → Vary → Retrieve
 - **Ways of Solving**: 12 original field notes about modeling, brute force, invariants, sorting as a transformation, ADT choice, special cases, repertoire, variants, complexity, and design logs
-- **Canonical Problem Atlas**: 400+ source-aware entries drawn from named problems, canonical algorithms, and problem families in the source books, with search/filtering and an original AgoCode reasoning lens
-- per-problem **Design Worksheet** that asks learners to restate, hand-solve, baseline, identify waste, choose structure, state an invariant, analyze, and vary
+- **Canonical Problem Atlas**: 400+ named, source-aware entries from the source books with search/filtering, blind recognition mode, randomized “Surprise me” practice, and an original AgoCode reasoning lens
+- **Complete Goodrich source-workbook index**: 758 numbered `R`, `C`, and `P` references from the supplied PDF across Chapters 1–15, each routed to an AgoCode reasoning workspace without reproducing the copyrighted prompt
+- per-problem **persistent Reasoning Notebook**: understand, tiny/extreme cases, baseline, named waste, strategy, invariant, cost, and variant; autosaved locally with progressive structural hints
+- open-ended **Design a Solution** workspace for arbitrary problems that are not already in the atlas, including exact-vs-approximate requirements, scale, model candidates, special cases, candidate paradigms, invariants, and a “no, because…” rejection log
 - CI gates for typecheck, tests, lint, and production build
 
 ## Knowledge architecture
 
-AgoCode now separates four complementary views:
+AgoCode separates five complementary views:
 
 1. **Book Track** — guided visual intuition in a deliberate chapter order.
 2. **Expanded Syllabus** — a dependency map of deeper data-structure and algorithm-design knowledge.
 3. **Problem Atlas** — a repertoire of canonical problem names and families for recognition and transfer.
 4. **Ways of Solving** — reusable problem-solving questions for the moment before the technique is obvious.
+5. **Design Workspace** — a blank problem-solving canvas for turning a new problem into explicit models, baselines, trade-offs, and proof obligations.
 
-This prevents the product from collapsing into either a static textbook or a random problem list.
+This prevents the product from collapsing into either a static textbook, an animation gallery, or a random problem list.
 
 ## Copyright boundary
 
-The source books are used as pedagogical references. AgoCode may index short problem titles, chapter/topic names, and source provenance, but it does not republish full copyrighted exercise statements, published solutions, or book illustrations. Interactive exercises are rewritten as original AgoCode formulations with original visuals and hints.
+The source books are used as pedagogical references. AgoCode may index short problem titles, chapter/topic names, exercise identifiers, and source provenance, but it does not republish full copyrighted exercise statements, published solutions, or book illustrations. Interactive exercises are rewritten as original AgoCode formulations with original visuals and hints.
+
+The Goodrich preface describes roughly 750 exercises; the supplied PDF yields 758 indexed `R/C/P` identifiers in AgoCode's extraction. The site presents that as an indexing detail rather than changing the source's own stated count.
 
 ## Local development
 
@@ -66,6 +72,7 @@ pnpm build
 ## Documentation
 
 - [Product Blueprint](docs/PRODUCT_BLUEPRINT.md)
+- [Source Synthesis](docs/SOURCE_SYNTHESIS.md)
 - [Design System](docs/DESIGN_SYSTEM.md)
 - [Brand Guidelines](docs/BRAND_GUIDELINES.md)
 - [Learning & Content Specification](docs/LEARNING_CONTENT_SPEC.md)
@@ -95,8 +102,9 @@ The Book Track is intentionally preserved rather than overwritten. The expanded 
 - **Read** — illustrated editorial lessons and interactive analogies
 - **Syllabus** — prerequisite and perspective map across the broader DSA curriculum
 - **Lab** — synchronized visualization, algorithm state, code, prediction, and custom scenarios
-- **Exercises** — canonical repertoire plus problem-design worksheets and interactive slices
-- **Ways of Solving** — original problem-solving field notes
+- **Problems** — canonical repertoire, complete source-workbook references, blind recognition, and reasoning notebooks
+- **Solve** — open-ended algorithm design canvas for unfamiliar problems
+- **Ways** — original problem-solving field notes
 - **Practice** — reconstruction and progressively less-labeled transfer problems
 - **Review** — spaced retrieval rescheduled by actual recall outcome
 - **Progress** — evidence ledger plus multi-dimensional mastery diagnosis

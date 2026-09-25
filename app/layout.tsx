@@ -24,6 +24,7 @@ import "./chapter-eleven.css";
 import "./review.css";
 import "./progress.css";
 import "./mastery.css";
+import "./knowledge.css";
 
 const editorial = Fraunces({ subsets: ["latin"], variable: "--font-editorial", display: "swap" });
 const reading = Source_Sans_3({ subsets: ["latin"], variable: "--font-reading", display: "swap" });
@@ -31,7 +32,7 @@ const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", displ
 
 export const metadata: Metadata = {
   title: { default: "AgoCode — Learn algorithms by seeing them move", template: "%s · AgoCode" },
-  description: "An interactive algorithm notebook for understanding, tracing, rebuilding, and applying algorithms.",
+  description: "An interactive algorithm notebook for understanding, modeling, tracing, rebuilding, and applying algorithms.",
   icons: { icon: "/brand/agocode-mark.svg" },
 };
 
@@ -42,7 +43,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         <SiteHeader />
         {children}
         <footer className="site-footer">
-          <div className="site-shell">AgoCode · an interactive algorithm notebook · built around understanding before memorization.</div>
+          <div className="site-shell">AgoCode · an interactive algorithm notebook · understand, model, build, transfer, recall.</div>
         </footer>
       </body>
     </html>

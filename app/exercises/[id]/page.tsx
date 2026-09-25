@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ReasoningNotebook } from "@/components/exercises/ReasoningNotebook";
-import { getCanonicalExercise, sourceLabels } from "@/lib/knowledge/exercises";
+import { getCanonicalExercise, sourceLabels } from "@/lib/knowledge/all-exercises";
 import { getGoodrichExerciseRef } from "@/lib/knowledge/goodrich-workbook";
 
 type ExercisePageProps = { params: Promise<{ id: string }> };

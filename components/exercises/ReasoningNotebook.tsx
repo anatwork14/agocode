@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { recordReasoningNotebookEvidence } from "@/lib/learning/evidence";
+
+const REASONING_EVIDENCE_KEY = "agocode.progress.design.reasoning-notebooks";
 
 const notebookSteps = [
   {
@@ -129,6 +132,22 @@ export function ReasoningNotebook({ exerciseId, lens }: { exerciseId: string; le
   const completion = Math.round((completedSteps / notebookSteps.length) * 100);
   const lensReady = Boolean(state.responses.baseline.trim() && state.responses.waste.trim());
 
+  useEffect(() => {
+    if (!hydrated) return;
+    const evidenceTimer = window.setTimeout(() => {
+      recordReasoningNotebookEvidence(window.localStorage, REASONING_EVIDENCE_KEY, {
+        exerciseId,
+        developedStages: completedSteps,
+        totalStages: notebookSteps.length,
+        lensRevealed: state.revealedLens,
+        confidence: state.confidence,
+        completedAt: state.completedAt,
+      });
+    }, 250);
+
+    return () => window.clearTimeout(evidenceTimer);
+  }, [completedSteps, exerciseId, hydrated, state.completedAt, state.confidence, state.revealedLens]);
+
   const updateResponse = (id: NotebookStepId, value: string) => {
     setState((current) => ({
       ...current,
@@ -174,7 +193,7 @@ export function ReasoningNotebook({ exerciseId, lens }: { exerciseId: string; le
         <div className="reasoning-notebook__meter" aria-label={`${completion}% of reasoning stages developed`}>
           <span style={{ width: `${completion}%` }} />
         </div>
-        <span className="mono">{hydrated ? "autosaves locally" : "loading notebook…"}</span>
+        <span className="mono">{hydrated ? "autosaves locally · contributes bounded mastery evidence" : "loading notebook…"}</span>
       </div>
 
       <div className="reasoning-notebook__steps">

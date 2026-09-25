@@ -5,8 +5,8 @@ import {
   type ExerciseKind,
   type ExerciseLevel,
   type ExerciseSource,
-} from "@/lib/knowledge/exercises";
-import { supplementalCanonicalExercises } from "@/lib/knowledge/supplemental-exercises";
+} from "./exercises.ts";
+import { supplementalCanonicalExercises } from "./supplemental-exercises.ts";
 
 export type { CanonicalExercise, ExerciseKind, ExerciseLevel, ExerciseSource };
 export { sourceLabels };

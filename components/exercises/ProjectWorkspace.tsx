@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { recordProjectWorkspaceEvidence } from "@/lib/learning/evidence";
 
 const STORAGE_PREFIX = "agocode:project-workspace:v1:";
+const PROJECT_EVIDENCE_KEY = "agocode.progress.design.project-workspaces";
 
 const textFields = [
   "contract",
@@ -145,6 +147,23 @@ export function ProjectWorkspace({ exerciseId }: { exerciseId: string }) {
   const developed = useMemo(() => textFields.filter((field) => isDeveloped(state[field])).length, [state]);
   const checked = useMemo(() => checkpoints.filter((item) => state.checkpoints[item]).length, [state.checkpoints]);
   const progress = Math.round(((developed + checked) / (textFields.length + checkpoints.length)) * 100);
+  const qualityGateComplete = developed === textFields.length && checked === checkpoints.length;
+
+  useEffect(() => {
+    if (!loaded) return;
+    const evidenceTimer = window.setTimeout(() => {
+      recordProjectWorkspaceEvidence(window.localStorage, PROJECT_EVIDENCE_KEY, {
+        exerciseId,
+        developedSections: developed,
+        totalSections: textFields.length,
+        checkedQualityGates: checked,
+        totalQualityGates: checkpoints.length,
+        completed: qualityGateComplete,
+      });
+    }, 250);
+
+    return () => window.clearTimeout(evidenceTimer);
+  }, [checked, developed, exerciseId, loaded, qualityGateComplete]);
 
   const setField = (field: ProjectField, value: string) => setState((current) => ({ ...current, [field]: value }));
   const toggleCheckpoint = (item: string) => setState((current) => ({
@@ -168,7 +187,7 @@ export function ProjectWorkspace({ exerciseId }: { exerciseId: string }) {
         <div className="project-workspace__meter" aria-label={`${progress}% project brief developed`}>
           <span style={{ width: `${progress}%` }} />
         </div>
-        <span className="mono">{progress}%</span>
+        <span className="mono">{qualityGateComplete ? "quality gate complete · bounded mastery evidence" : `${progress}% · partial mastery evidence`}</span>
       </div>
 
       <div className="project-workspace__intro">

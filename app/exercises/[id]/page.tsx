@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ProjectWorkspace } from "@/components/exercises/ProjectWorkspace";
 import { ReasoningNotebook } from "@/components/exercises/ReasoningNotebook";
 import { getCanonicalExercise, sourceLabels } from "@/lib/knowledge/all-exercises";
 import { getGoodrichExerciseRef } from "@/lib/knowledge/goodrich-workbook";
@@ -24,6 +25,7 @@ export default async function ExercisePage({ params }: ExercisePageProps) {
   const domain = exercise?.domain ?? "Source workbook";
   const level = exercise?.level ?? goodrichRef!.tierLabel;
   const lens = exercise?.lens ?? goodrichLens[goodrichRef!.tier];
+  const isProjectTier = goodrichRef?.tier === "P";
 
   return (
     <main className="page">
@@ -71,6 +73,22 @@ export default async function ExercisePage({ params }: ExercisePageProps) {
 
           <ReasoningNotebook exerciseId={id} lens={lens} />
         </section>
+
+        {isProjectTier ? (
+          <section className="section worksheet">
+            <div className="section-heading">
+              <div className="section-heading__index">BUILD</div>
+              <div>
+                <h2>Project-tier work needs engineering evidence beyond the first algorithm.</h2>
+                <p>
+                  Keep the source project prompt in your own copy. AgoCode adds a persistent project brief around it so interfaces,
+                  invariants, milestones, tests, operation budgets, experiments, and failed designs stay inspectable while you build.
+                </p>
+              </div>
+            </div>
+            <ProjectWorkspace exerciseId={id} />
+          </section>
+        ) : null}
 
         <section className="worksheet-next">
           <div>

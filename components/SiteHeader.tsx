@@ -4,6 +4,7 @@ import { BrandLockup } from "@/components/brand/Logo";
 const links = [
   ["Book", "/learn"],
   ["Syllabus", "/syllabus"],
+  ["Lab", "/lab"],
   ["Problems", "/exercises"],
   ["Solve", "/solve"],
   ["Ways", "/blog"],

@@ -50,6 +50,7 @@ import "./reasoning-help.css";
 import "./pattern-library.css";
 import "./friction-progress.css";
 import "./next-problem.css";
+import "./completion-features.css";
 
 const editorial = Fraunces({ subsets: ["latin"], variable: "--font-editorial", display: "swap" });
 const reading = Source_Sans_3({ subsets: ["latin"], variable: "--font-reading", display: "swap" });

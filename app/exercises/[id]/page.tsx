@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { StuckRouter } from "@/components/blog/StuckRouter";
 import { DifficultyCalibration } from "@/components/exercises/DifficultyCalibration";
+import { ProblemSetControl } from "@/components/exercises/ProblemSetControl";
 import { ProjectWorkspace } from "@/components/exercises/ProjectWorkspace";
 import { ReasoningNotebook } from "@/components/exercises/ReasoningNotebook";
 import { getCanonicalExercise, sourceLabels } from "@/lib/knowledge/all-exercises";
@@ -61,6 +62,8 @@ export default async function ExercisePage({ params }: ExercisePageProps) {
             workflow, progressive hint, and persistent design log around your own attempt.
           </p>
         </div>
+
+        <ProblemSetControl exerciseId={id} />
 
         <section className="section worksheet">
           <div className="section-heading">
@@ -137,6 +140,7 @@ export default async function ExercisePage({ params }: ExercisePageProps) {
           </div>
           <div className="action-row">
             <Link className="button" href="/practice/atlas">Run Atlas recognition</Link>
+            <Link className="button" href="/sets">Open my sets</Link>
             <Link className="button" href="/blog#diagnose">Diagnose another obstacle</Link>
             <Link className="button button--primary" href="/exercises">Choose another problem →</Link>
           </div>

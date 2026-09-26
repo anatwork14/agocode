@@ -8,6 +8,8 @@ const links = [
   ["Problems", "/exercises"],
   ["Solve", "/solve"],
   ["Ways", "/blog"],
+  ["Practice", "/practice/next"],
+  ["Sets", "/sets"],
   ["Review", "/review"],
   ["Progress", "/progress"],
 ] as const;
@@ -24,8 +26,8 @@ export function SiteHeader() {
             </Link>
           ))}
         </nav>
-        <Link className="mobile-nav" href="/exercises">
-          Solve a problem →
+        <Link className="mobile-nav" href="/practice/next">
+          Practice →
         </Link>
       </div>
     </header>

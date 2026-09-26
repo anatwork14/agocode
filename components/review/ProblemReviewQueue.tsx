@@ -14,10 +14,12 @@ import {
 } from "@/lib/learning/problem-review";
 import { readReasoningAttemptHistory } from "@/lib/learning/reasoning-attempts";
 import { readRecommendationHistory } from "@/lib/learning/recommendations";
+import { classifiedAtlasExercises } from "@/lib/practice/atlas-recognition";
 
 const REASONING_EVIDENCE_KEY = "agocode.progress.design.reasoning-notebooks";
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
+const objectivelyRetrievableIds = new Set(classifiedAtlasExercises.map((item) => item.exercise.id));
 
 type QueueSnapshot = {
   profile: ProblemReviewProfile;
@@ -80,11 +82,8 @@ export function ProblemReviewQueue() {
       .sort((a, b) => b.priority - a.priority || a.nextReviewAt.localeCompare(b.nextReviewAt));
   }, [snapshot]);
 
-  function record(status: ProblemReviewStatus, outcome: "remembered" | "needs-work") {
-    recordProblemReviewOutcome(window.localStorage, {
-      exerciseId: status.exerciseId,
-      outcome,
-    });
+  function recordFallback(status: ProblemReviewStatus, outcome: "remembered" | "needs-work") {
+    recordProblemReviewOutcome(window.localStorage, { exerciseId: status.exerciseId, outcome });
     refresh();
   }
 
@@ -119,12 +118,14 @@ export function ProblemReviewQueue() {
           const exercise = getCanonicalExercise(status.exerciseId);
           const due = status.dueState === "due" || status.dueState === "overdue";
           const freshness = Math.round(status.freshness * 100);
+          const objective = objectivelyRetrievableIds.has(status.exerciseId);
+          const primaryHref = due && objective ? `/review/retrieve/${status.exerciseId}` : `/exercises/${status.exerciseId}`;
           return (
             <article className={`problem-review-row problem-review-row--${status.dueState}`} key={status.exerciseId}>
               <div className="problem-review-row__body">
                 <div className="problem-review-row__meta">
                   <span className={`review-row__status ${due ? "review-row__status--due" : ""}`}>{statusLabel(status, snapshot.now)}</span>
-                  <span className="mono">{status.independenceStage} · {status.recommendedMode.replace("-", " ")}</span>
+                  <span className="mono">{status.independenceStage} · {objective ? "objective retrieval" : status.recommendedMode.replace("-", " ")}</span>
                 </div>
                 <h2>{exercise?.title ?? status.exerciseId}</h2>
                 <p>{status.explanation}</p>
@@ -141,17 +142,17 @@ export function ProblemReviewQueue() {
               </div>
 
               <div className="problem-review-row__actions">
-                <Link className={due ? "button button--primary" : "button"} href={`/exercises/${status.exerciseId}`}>
-                  {due ? "Retrieve now →" : "Preview problem"}
+                <Link className={due ? "button button--primary" : "button"} href={primaryHref}>
+                  {due ? (objective ? "Start objective retrieval →" : "Retrieve now →") : "Preview problem"}
                 </Link>
-                {status.recommendedMode === "blind-recognition" ? (
+                {status.recommendedMode === "blind-recognition" && !due ? (
                   <Link className="button button--quiet" href="/practice/atlas">Run blind recognition</Link>
                 ) : null}
-                {due ? (
+                {due && !objective ? (
                   <div className="review-row__outcome" aria-label={`Record retrieval outcome for ${exercise?.title ?? status.exerciseId}`}>
-                    <span>After a real attempt · scheduling only</span>
-                    <button className="button button--quiet" type="button" onClick={() => record(status, "remembered")}>Remembered</button>
-                    <button className="button button--quiet" type="button" onClick={() => record(status, "needs-work")}>Needs work</button>
+                    <span>Source-workbook fallback · scheduling only</span>
+                    <button className="button button--quiet" type="button" onClick={() => recordFallback(status, "remembered")}>Remembered</button>
+                    <button className="button button--quiet" type="button" onClick={() => recordFallback(status, "needs-work")}>Needs work</button>
                   </div>
                 ) : null}
               </div>
@@ -163,8 +164,7 @@ export function ProblemReviewQueue() {
       <div className="problem-review-boundary">
         <span className="eyebrow">Scheduling boundary</span>
         <p>
-          Retrieval freshness never demotes historical independence. Manual “remembered / needs work” buttons only change the next interval;
-          blind first-try Atlas recognition is incorporated automatically as stronger objective retrieval evidence.
+          Retrieval freshness never demotes historical independence. Classified canonical problems now use a closed-loop structural-recognition session that writes objective first-try evidence automatically. Manual outcomes remain only as a scheduling fallback for source-workbook items without reliable structural classification.
         </p>
       </div>
     </div>

@@ -7,6 +7,7 @@ import { canonicalExercises } from "../lib/knowledge/all-exercises.ts";
 import { moduleLabRoutes } from "../lib/knowledge/module-lab-routes.ts";
 import { stuckDiagnoses } from "../lib/knowledge/stuck-router.ts";
 import { syllabusTracks } from "../lib/knowledge/syllabus.ts";
+import { primaryLearnerJourneys } from "../lib/navigation/primary-journeys.ts";
 import { atlasPatterns } from "../lib/practice/atlas-recognition.ts";
 
 const appRoot = fileURLToPath(new URL("../app", import.meta.url));
@@ -97,4 +98,20 @@ test("route discovery includes critical product surfaces", () => {
     "/progress",
   ];
   assertRoutesExist("critical surface", critical);
+});
+
+test("primary learner journeys stay unique, internal, and fully routable", () => {
+  const journeyIds = primaryLearnerJourneys.map((journey) => journey.id);
+  assert.equal(new Set(journeyIds).size, journeyIds.length, "Primary learner journey ids must be unique.");
+
+  for (const journey of primaryLearnerJourneys) {
+    assert.ok(journey.label.trim(), `${journey.id} requires a learner-facing label.`);
+    assert.ok(journey.routes.length >= 2, `${journey.id} must describe a multi-step journey.`);
+    assert.equal(new Set(journey.routes).size, journey.routes.length, `${journey.id} must not repeat route steps.`);
+
+    for (const route of journey.routes) {
+      assert.ok(route.startsWith("/"), `${journey.id} contains a non-internal route: ${route}`);
+    }
+    assertRoutesExist(`primary learner journey ${journey.id}`, journey.routes);
+  }
 });

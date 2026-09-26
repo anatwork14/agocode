@@ -30,6 +30,7 @@ import "./knowledge.css";
 import "./knowledge-workbook.css";
 import "./calibration.css";
 import "./independence.css";
+import "./attempt-history.css";
 import "./practice-progression.css";
 import "./solve.css";
 import "./adt-workbench.css";

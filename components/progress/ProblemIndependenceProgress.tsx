@@ -11,6 +11,11 @@ import {
   type ProblemIndependenceProfile,
   type ProblemIndependenceStage,
 } from "@/lib/learning/independence";
+import {
+  buildProblemReviewProfile,
+  readProblemReviewHistory,
+  type ProblemReviewProfile,
+} from "@/lib/learning/problem-review";
 import { readRecommendationHistory } from "@/lib/learning/recommendations";
 import {
   buildReasoningAttemptSummaries,
@@ -25,19 +30,28 @@ const stageOrder: ProblemIndependenceStage[] = ["seen", "guided", "solved", "ind
 type IndependenceView = {
   profile: ProblemIndependenceProfile;
   attempts: Record<string, ReasoningAttemptSummary>;
+  review: ProblemReviewProfile;
 };
 
 function collectProfile(): IndependenceView {
   const reasoning = readLearningEvidence(window.localStorage, REASONING_EVIDENCE_KEY)?.reasoning;
   const attemptHistory = readReasoningAttemptHistory(window.localStorage);
+  const recognitionHistory = readProblemRecognitionHistory(window.localStorage);
+  const profile = buildProblemIndependenceProfile({
+    reasoning,
+    reasoningAttempts: attemptHistory,
+    recommendationHistory: readRecommendationHistory(window.localStorage),
+    recognitionHistory,
+  });
   return {
-    profile: buildProblemIndependenceProfile({
-      reasoning,
-      reasoningAttempts: attemptHistory,
-      recommendationHistory: readRecommendationHistory(window.localStorage),
-      recognitionHistory: readProblemRecognitionHistory(window.localStorage),
-    }),
+    profile,
     attempts: buildReasoningAttemptSummaries(attemptHistory),
+    review: buildProblemReviewProfile({
+      independence: profile,
+      reviewHistory: readProblemReviewHistory(window.localStorage),
+      recognitionHistory,
+      now: Date.now(),
+    }),
   };
 }
 
@@ -80,6 +94,7 @@ export function ProblemIndependenceProgress() {
   const totalFinalizedAttempts = Object.values(view.attempts).reduce((sum, item) => sum + item.attempts, 0);
   const supportReductions = Object.values(view.attempts).filter((item) => item.supportRemoved).length;
   const belowPeak = Object.values(view.attempts).filter((item) => item.belowPeak).length;
+  const retrievalDue = view.review.due + view.review.overdue;
 
   return (
     <section className="problem-independence" aria-labelledby="problem-independence-title">
@@ -88,7 +103,7 @@ export function ProblemIndependenceProgress() {
         <div>
           <h2 id="problem-independence-title">A problem is not mastered just because it was completed once.</h2>
           <p>
-            AgoCode tracks each problem through a stricter evidence ladder: seen → guided → solved → independent → transferred → recalled after delay.
+            AgoCode tracks each problem through a stricter evidence ladder, then keeps a separate spacing clock for when that proof should be retrieved again.
           </p>
         </div>
       </div>
@@ -96,7 +111,7 @@ export function ProblemIndependenceProgress() {
       <div className="independence-summary">
         <div><span>Tracked problems</span><strong>{profile.tracked}</strong><small>recommended, attempted, or recognized</small></div>
         <div><span>Independent+</span><strong>{profile.independentOrBetter}</strong><small>best-ever evidence survives later weaker attempts</small></div>
-        <div><span>Transferred+</span><strong>{profile.transferredOrBetter}</strong><small>independent structural neighbor also solved</small></div>
+        <div><span>Retrieval due</span><strong>{retrievalDue}</strong><small>{view.review.overdue} overdue · freshness never demotes proof</small></div>
         <div><span>Recalled</span><strong>{profile.recalled}</strong><small>first-try blind recognition after delay</small></div>
       </div>
 
@@ -117,31 +132,33 @@ export function ProblemIndependenceProgress() {
               <span className="eyebrow">Problem evidence</span>
               <h3>What would move each problem forward?</h3>
             </div>
-            <Link className="button button--quiet" href="/practice/next">Choose the next evidence gap →</Link>
+            <Link className="button button--quiet" href="/review">Open retrieval queue →</Link>
           </div>
 
           {rows.map((state) => {
             const exercise = getCanonicalExercise(state.exerciseId);
             const attempts = view.attempts[state.exerciseId];
+            const review = view.review.statuses[state.exerciseId];
             return (
               <article className="independence-row" key={state.exerciseId}>
                 <div>
                   <span className={`independence-row__stage independence-row__stage--${state.stage}`}>{state.label}</span>
                   <h4>{exercise?.title ?? state.exerciseId}</h4>
                   <p>{state.explanation}</p>
-                  {attempts ? (
-                    <div className="independence-row__attempt-meta">
-                      <span>{attempts.attempts} finalized attempt{attempts.attempts === 1 ? "" : "s"}</span>
-                      <span>best {reasoningAttemptStageLabels[attempts.bestStage].toLowerCase()}</span>
-                      {attempts.supportRemoved ? <span>support removed</span> : null}
-                      {attempts.belowPeak ? <span>latest below peak · evidence retained</span> : null}
-                    </div>
-                  ) : null}
+                  <div className="independence-row__attempt-meta">
+                    {attempts ? <span>{attempts.attempts} finalized attempt{attempts.attempts === 1 ? "" : "s"}</span> : null}
+                    {attempts ? <span>best {reasoningAttemptStageLabels[attempts.bestStage].toLowerCase()}</span> : null}
+                    {attempts?.supportRemoved ? <span>support removed</span> : null}
+                    {attempts?.belowPeak ? <span>latest below peak · evidence retained</span> : null}
+                    {review ? <span>retrieval {review.dueState.replace("-", " ")} · {Math.round(review.freshness * 100)}% fresh</span> : null}
+                  </div>
                 </div>
                 <div className="independence-row__next">
-                  <span className="mono">NEXT EVIDENCE</span>
-                  <p>{state.nextRequirement}</p>
-                  <Link href={`/exercises/${state.exerciseId}`}>Open problem →</Link>
+                  <span className="mono">{review ? "RETRIEVAL / NEXT EVIDENCE" : "NEXT EVIDENCE"}</span>
+                  {review ? <p>{review.explanation}</p> : <p>{state.nextRequirement}</p>}
+                  <Link href={review && (review.dueState === "due" || review.dueState === "overdue") ? "/review" : `/exercises/${state.exerciseId}`}>
+                    {review && (review.dueState === "due" || review.dueState === "overdue") ? "Retrieve now →" : "Open problem →"}
+                  </Link>
                 </div>
               </article>
             );
@@ -205,7 +222,7 @@ export function ProblemIndependenceProgress() {
       <div className="independence-boundary">
         <span className="eyebrow">Evidence boundary</span>
         <p>
-          Self-confidence and difficulty ratings never advance this ladder by themselves. Finalized reasoning attempts are kept separately from the editable notebook snapshot; the strongest objective attempt is monotonic, while weaker later attempts remain visible for diagnosis instead of deleting earned evidence.
+          Time never erases a demonstrated independence state. Instead, retrieval freshness decays on a separate clock and only changes scheduling priority. Manual recall outcomes change cadence, while blind first-try recognition supplies stronger objective retrieval evidence.
         </p>
       </div>
     </section>

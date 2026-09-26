@@ -1,0 +1,109 @@
+.design-skill-progress {
+  margin-top: 46px;
+}
+
+.design-skill-progress__metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 22px 0;
+}
+
+.design-skill-progress__metrics > div,
+.design-skill-card,
+.design-skill-progress__empty {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
+  background: var(--surface);
+}
+
+.design-skill-progress__metrics > div {
+  display: grid;
+  gap: 5px;
+  padding: 16px;
+}
+
+.design-skill-progress__metrics span,
+.design-skill-progress__metrics small {
+  color: var(--muted);
+}
+
+.design-skill-progress__metrics strong {
+  font-family: var(--font-editorial), serif;
+  font-size: 1.8rem;
+}
+
+.design-skill-progress__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.design-skill-card {
+  padding: 18px;
+}
+
+.design-skill-card__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.design-skill-card__head h3 {
+  margin: 4px 0 0;
+}
+
+.design-skill-card__head > strong {
+  font-family: var(--font-mono), monospace;
+  font-size: 1.2rem;
+}
+
+.design-skill-card > p {
+  color: var(--muted);
+}
+
+.design-skill-card dl {
+  display: grid;
+  gap: 7px;
+  margin: 16px 0;
+}
+
+.design-skill-card dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.design-skill-card dt {
+  color: var(--muted);
+}
+
+.design-skill-card dd {
+  margin: 0;
+  font-family: var(--font-mono), monospace;
+}
+
+.design-skill-card__meter {
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--paper-deep);
+}
+
+.design-skill-card__meter > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+.design-skill-progress__empty {
+  padding: 20px;
+}
+
+@media (max-width: 840px) {
+  .design-skill-progress__metrics,
+  .design-skill-progress__grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -29,5 +29,6 @@ jobs:
       - run: pnpm lint
       - run: pnpm check:a11y
       - run: pnpm check:content
+      - run: pnpm check:pwa
       - run: pnpm build
       - run: pnpm check:budgets

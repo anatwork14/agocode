@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Fraunces, JetBrains_Mono, Source_Sans_3 } from "next/font/google";
+import { ServiceWorkerRegistration } from "@/components/pwa/ServiceWorkerRegistration";
 import { SiteHeader } from "@/components/SiteHeader";
 import "./globals.css";
 import "./accessibility.css";
@@ -62,6 +63,7 @@ import "./session-debrief.css";
 import "./curriculum-plan.css";
 import "./weekly-review.css";
 import "./storage-reliability.css";
+import "./pwa.css";
 import "./advanced-workbenches.css";
 import "./workspace-completion.css";
 
@@ -72,7 +74,18 @@ const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", displ
 export const metadata: Metadata = {
   title: { default: "AgoCode — Learn algorithms by seeing them move", template: "%s · AgoCode" },
   description: "An interactive algorithm notebook for understanding, modeling, tracing, rebuilding, and applying algorithms.",
-  icons: { icon: "/brand/agocode-mark.svg" },
+  icons: {
+    icon: [
+      { url: "/brand/agocode-mark.svg", type: "image/svg+xml" },
+      { url: "/icons/agocode-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [{ url: "/icons/agocode-192.png", sizes: "192x192", type: "image/png" }],
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#fcfbf7",
+  colorScheme: "light",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
@@ -81,6 +94,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
       <body>
         <a className="skip-link" href="#main-content">Skip to main content</a>
         <SiteHeader />
+        <ServiceWorkerRegistration />
         <div id="main-content" tabIndex={-1}>
           {children}
         </div>

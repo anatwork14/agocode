@@ -1,0 +1,36 @@
+.pwa-offline-status {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 80;
+  display: grid;
+  gap: 3px;
+  width: min(420px, calc(100vw - 36px));
+  padding: 13px 15px;
+  border: 1px solid var(--ink);
+  border-left: 4px solid var(--state-warning);
+  border-radius: var(--radius-control);
+  background: color-mix(in srgb, var(--surface) 96%, var(--state-warning) 4%);
+  box-shadow: 0 12px 30px rgba(23, 23, 23, .12);
+}
+
+.pwa-offline-status strong {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: .74rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.pwa-offline-status span {
+  color: var(--ink-secondary);
+  font-size: .8rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 560px) {
+  .pwa-offline-status {
+    right: 10px;
+    bottom: 10px;
+    width: calc(100vw - 20px);
+  }
+}

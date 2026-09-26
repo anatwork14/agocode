@@ -1,11 +1,12 @@
 import Link from "next/link";
+import { StuckRouter } from "@/components/blog/StuckRouter";
 import { fieldNotes } from "@/lib/knowledge/blog";
 import { caseStudies } from "@/lib/knowledge/casebook";
 import { problemSolvingLoop } from "@/lib/knowledge/syllabus";
 
 export const metadata = {
   title: "Ways of Solving",
-  description: "Original AgoCode field notes on modeling, baselines, invariants, representations, complexity, and transfer.",
+  description: "Original AgoCode field notes and contextual help for modeling, baselines, invariants, representations, complexity, and transfer.",
 };
 
 export default function BlogPage() {
@@ -25,13 +26,15 @@ export default function BlogPage() {
           <aside className="knowledge-note">
             <span className="eyebrow">Field-note rule</span>
             <p>Every dead end should end with a reason. “No” teaches almost nothing; “no, because…” becomes part of your future repertoire.</p>
-            <Link href="/exercises">Practice the questions on a canonical problem →</Link>
+            <Link href="#diagnose">Diagnose where you are stuck →</Link>
           </aside>
         </div>
 
         <section className="blog-loop" aria-label="Problem-solving loop">
           {problemSolvingLoop.map((step) => <span key={step}>{step}</span>)}
         </section>
+
+        <StuckRouter />
 
         <section className="section" style={{ paddingTop: 48 }}>
           <div className="section-heading">

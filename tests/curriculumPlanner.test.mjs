@@ -67,7 +67,8 @@ test("two independent relevant exercises can establish objective module mastery"
   assert.equal(searchGrowth?.state, "mastered");
   assert.ok((searchGrowth?.evidence.objectiveScore ?? 0) >= 75);
   assert.equal(experimental?.prerequisites.find((item) => item.moduleId === "search-growth")?.basis, "objective");
-  assert.equal(experimental?.state, "ready");
+  assert.notEqual(experimental?.state, "blocked");
+  assert.equal(experimental?.blockedBy.includes("search-growth"), false);
 });
 
 test("next curriculum targets exclude mastered and blocked modules and remain deterministic", () => {

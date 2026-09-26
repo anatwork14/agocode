@@ -44,6 +44,7 @@ import "./casebook.css";
 import "./optimization-strategy-workbench.css";
 import "./project-workspace.css";
 import "./syllabus-atlas.css";
+import "./syllabus-graph.css";
 import "./atlas-recognition.css";
 import "./contextual-help.css";
 import "./reasoning-help.css";

@@ -1,7 +1,19 @@
 "use client";
 
-import { FormEvent, useMemo, useReducer, useState } from "react";
-import { binarySearchExample, buildBinarySearchTrace } from "@/lib/algorithms/binarySearch";
+import { FormEvent, useEffect, useMemo, useReducer, useState } from "react";
+import {
+  binarySearchCodeLines,
+  binarySearchExample,
+  buildBinarySearchTrace,
+} from "@/lib/algorithms/binarySearch";
+import {
+  canAutoplayAdvance,
+  initialPlaybackState,
+  playbackDelayMs,
+  playbackReducer,
+  playbackSpeeds,
+  type PlaybackSpeedId,
+} from "@/lib/visualization/playback";
 import { initialTimelineState, timelineReducer } from "@/lib/visualization/timeline";
 
 type BinarySearchTraceProps = {
@@ -14,22 +26,6 @@ type PredictionAnswer = {
   correct: boolean;
   lastOptionId: string;
 };
-
-const code = [
-  "def binary_search(nums, target):",
-  "    low = 0",
-  "    high = len(nums) - 1",
-  "    while low <= high:",
-  "        mid = (low + high) // 2",
-  "        guess = nums[mid]",
-  "        if guess == target:",
-  "            return mid",
-  "        if guess > target:",
-  "            high = mid - 1",
-  "        else:",
-  "            low = mid + 1",
-  "    return None",
-];
 
 function eventLabel(type: string) {
   if (type === "SET_RANGE") return "range";
@@ -49,26 +45,55 @@ export function BinarySearchTrace({
   const [targetDraft, setTargetDraft] = useState(String(binarySearchExample.target));
   const [scenarioError, setScenarioError] = useState("");
   const [timeline, dispatchTimeline] = useReducer(timelineReducer, initialTimelineState);
+  const [playback, dispatchPlayback] = useReducer(playbackReducer, initialPlaybackState);
   const [answers, setAnswers] = useState<Record<number, PredictionAnswer>>({});
 
   const steps = useMemo(() => buildBinarySearchTrace(values, target), [values, target]);
   const { index, maxUnlocked } = timeline;
   const step = steps[index];
+  const currentAnswer = answers[index];
+  const predictionLocked = Boolean(requirePrediction && step?.prediction && !currentAnswer?.correct);
+
+  useEffect(() => {
+    if (!canAutoplayAdvance({ state: playback, index, length: steps.length, locked: predictionLocked })) {
+      if (playback.playing && steps.length > 0 && index >= steps.length - 1) {
+        dispatchPlayback({ type: "stop" });
+      }
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      dispatchTimeline({ type: "advance", length: steps.length, locked: predictionLocked });
+    }, playbackDelayMs(playback));
+
+    return () => window.clearTimeout(timer);
+  }, [index, playback, predictionLocked, steps.length]);
 
   if (!step) return null;
 
-  const currentAnswer = answers[index];
-  const predictionLocked = Boolean(requirePrediction && step.prediction && !currentAnswer?.correct);
   const answeredPredictions = Object.values(answers).filter((answer) => answer.correct);
   const firstTryCorrect = answeredPredictions.filter((answer) => answer.attempts === 1).length;
 
   function resetTrace() {
     dispatchTimeline({ type: "reset" });
+    dispatchPlayback({ type: "stop" });
     setAnswers({});
   }
 
   function advanceTrace() {
     dispatchTimeline({ type: "advance", length: steps.length, locked: predictionLocked });
+  }
+
+  function toggleAutoplay() {
+    if (playback.playing) {
+      dispatchPlayback({ type: "stop" });
+      return;
+    }
+    if (index >= steps.length - 1) {
+      dispatchTimeline({ type: "reset" });
+      setAnswers({});
+    }
+    dispatchPlayback({ type: "play" });
   }
 
   function answerPrediction(optionId: string) {
@@ -177,7 +202,10 @@ export function BinarySearchTrace({
           max={Math.max(maxUnlocked, 0)}
           step={1}
           value={index}
-          onChange={(event) => dispatchTimeline({ type: "scrub", index: Number(event.target.value) })}
+          onChange={(event) => {
+            dispatchPlayback({ type: "stop" });
+            dispatchTimeline({ type: "scrub", index: Number(event.target.value) });
+          }}
           disabled={maxUnlocked === 0}
           aria-label="Scrub through visited trace steps"
         />
@@ -288,6 +316,9 @@ export function BinarySearchTrace({
                   {predictionFeedback}
                 </p>
               ) : null}
+              {playback.playing && predictionLocked ? (
+                <p className="prediction-feedback">Autoplay is waiting for your prediction; it never skips a prediction gate.</p>
+              ) : null}
             </div>
           ) : null}
 
@@ -295,7 +326,10 @@ export function BinarySearchTrace({
             <button
               type="button"
               className="button"
-              onClick={() => dispatchTimeline({ type: "back" })}
+              onClick={() => {
+                dispatchPlayback({ type: "stop" });
+                dispatchTimeline({ type: "back" });
+              }}
               disabled={index === 0}
             >
               ← Back
@@ -308,6 +342,19 @@ export function BinarySearchTrace({
             >
               {step.prediction && requirePrediction ? "Apply update →" : "Step →"}
             </button>
+            <button type="button" className="button" onClick={toggleAutoplay}>
+              {playback.playing ? "Pause autoplay" : index === steps.length - 1 ? "Replay automatically" : "Play automatically"}
+            </button>
+            <label>
+              <span className="sr-only">Autoplay speed</span>
+              <select
+                aria-label="Autoplay speed"
+                value={playback.speedId}
+                onChange={(event) => dispatchPlayback({ type: "set-speed", speedId: event.target.value as PlaybackSpeedId })}
+              >
+                {playbackSpeeds.map((speed) => <option value={speed.id} key={speed.id}>{speed.label}</option>)}
+              </select>
+            </label>
             <button type="button" className="button button--quiet" onClick={resetTrace}>
               Reset
             </button>
@@ -317,12 +364,12 @@ export function BinarySearchTrace({
         <section aria-label="Synchronized Python code">
           <div className="eyebrow">Python 3</div>
           <ol className="code-listing code-listing--spaced">
-            {code.map((line, lineIndex) => {
+            {binarySearchCodeLines.map((line, lineIndex) => {
               const number = lineIndex + 1;
               return (
-                <li className={`code-line ${step.activeLine === number ? "code-line--active" : ""}`} key={`${number}-${line}`}>
+                <li className={`code-line ${step.activeCodeLineId === line.id ? "code-line--active" : ""}`} key={line.id}>
                   <span className="code-line__number">{String(number).padStart(2, "0")}</span>
-                  <code>{line}</code>
+                  <code>{line.text}</code>
                 </li>
               );
             })}

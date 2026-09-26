@@ -32,12 +32,12 @@ test("primary learner journey connects curriculum, weekly review, and today's pr
 
 test("daily practice state survives a real browser reload", async ({ page }) => {
   await page.goto("/practice/session");
-  const markDone = page.getByRole("button", { name: "mark done" }).first();
-  await expect(markDone).toBeVisible();
+  const clearManually = page.getByRole("button", { name: "clear manually" }).first();
+  await expect(clearManually).toBeVisible();
 
-  const row = markDone.locator("xpath=ancestor::article[1]");
+  const row = clearManually.locator("xpath=ancestor::article[1]");
   const title = await row.getByRole("heading", { level: 3 }).innerText();
-  await markDone.click();
+  await clearManually.click();
   await expect(row.getByText("Manual done", { exact: true })).toBeVisible();
 
   const beforeReload = await page.evaluate((key) => localStorage.getItem(key), DAILY_SESSION_KEY);

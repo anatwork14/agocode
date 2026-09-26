@@ -13,6 +13,10 @@ export default function PlanPage() {
         <p className="lede">
           This layer sits above next-problem and daily-session planning. It projects your diagnostic placement and objective reasoning history onto AgoCode&apos;s prerequisite graph, then freezes a small weekly mission so progression stays explainable instead of reactive.
         </p>
+        <div className="action-row" style={{ marginTop: 22 }}>
+          <Link className="button button--primary" href="/review/weekly">Open weekly evidence review →</Link>
+          <Link className="button" href="/practice/session">Continue today&apos;s session</Link>
+        </div>
         <section className="section">
           <AdaptiveCurriculumPlanner />
         </section>

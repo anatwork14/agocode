@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ProblemReviewQueue } from "@/components/review/ProblemReviewQueue";
 import { ReviewQueue } from "@/components/review/ReviewQueue";
 
@@ -13,6 +14,10 @@ export default function ReviewPage() {
           Review is where apparent familiarity becomes durable knowledge. AgoCode now combines adaptive problem retrieval from
           your own independent-solve evidence with the existing curriculum recall schedule.
         </p>
+        <div className="action-row" style={{ marginTop: 22 }}>
+          <Link className="button button--primary" href="/review/weekly">Open weekly evidence review →</Link>
+          <Link className="button" href="/plan">View curriculum plan</Link>
+        </div>
 
         <section className="section review-section">
           <div className="section-heading">

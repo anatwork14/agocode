@@ -1,10 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { invariantScenarios } from "../lib/knowledge/invariant-workbench.ts";
+import { invariantScenarios } from "../lib/knowledge/all-invariant-scenarios.ts";
 
 test("invariant workbench exposes multiple uniquely addressable scenarios", () => {
-  assert.ok(invariantScenarios.length >= 3);
+  assert.ok(invariantScenarios.length >= 5);
   assert.equal(new Set(invariantScenarios.map((scenario) => scenario.id)).size, invariantScenarios.length);
+});
+
+test("graph traversal and Dijkstra finalization are explicit correctness scenarios", () => {
+  assert.ok(invariantScenarios.some((scenario) => scenario.id === "bfs-discovery"));
+  assert.ok(invariantScenarios.some((scenario) => scenario.id === "dijkstra-finalization"));
 });
 
 test("every invariant scenario has exactly one correctness-supporting claim", () => {

@@ -1,8 +1,16 @@
 "use client";
 
-import { FormEvent, useMemo, useReducer, useState } from "react";
+import { FormEvent, useEffect, useMemo, useReducer, useState } from "react";
 import { StackRenderer } from "@/components/visualization/StackRenderer";
 import { buildFactorialTrace, type FactorialTraceFrame } from "@/lib/algorithms/factorialTrace";
+import {
+  canAutoplayAdvance,
+  initialPlaybackState,
+  playbackDelayMs,
+  playbackReducer,
+  playbackSpeeds,
+  type PlaybackSpeedId,
+} from "@/lib/visualization/playback";
 import { initialTimelineState, timelineReducer } from "@/lib/visualization/timeline";
 
 type PredictionAnswer = {
@@ -48,15 +56,41 @@ export function FactorialStackTrace() {
   const [draft, setDraft] = useState("4");
   const [error, setError] = useState("");
   const [timeline, dispatchTimeline] = useReducer(timelineReducer, initialTimelineState);
+  const [playback, dispatchPlayback] = useReducer(playbackReducer, initialPlaybackState);
   const [answers, setAnswers] = useState<Record<number, PredictionAnswer>>({});
 
   const frames = useMemo(() => buildFactorialTrace(n), [n]);
   const frame = frames[timeline.index];
+  const nextFrame = frames[timeline.index + 1];
+  const prediction = predictionFor(nextFrame);
+  const answer = answers[timeline.index];
+  const predictionLocked = Boolean(prediction && !answer?.correct);
+
+  useEffect(() => {
+    if (!canAutoplayAdvance({
+      state: playback,
+      index: timeline.index,
+      length: frames.length,
+      locked: predictionLocked,
+    })) {
+      if (playback.playing && frames.length > 0 && timeline.index >= frames.length - 1) {
+        dispatchPlayback({ type: "stop" });
+      }
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      dispatchTimeline({ type: "advance", length: frames.length, locked: predictionLocked });
+    }, playbackDelayMs(playback));
+
+    return () => window.clearTimeout(timer);
+  }, [frames.length, playback, predictionLocked, timeline.index]);
 
   if (!frame) return null;
 
   function resetTrace() {
     dispatchTimeline({ type: "reset" });
+    dispatchPlayback({ type: "stop" });
     setAnswers({});
   }
 
@@ -80,11 +114,6 @@ export function FactorialStackTrace() {
         ? `return ${frame.event.result}`
         : `complete = ${frame.event.result}`;
 
-  const nextFrame = frames[timeline.index + 1];
-  const prediction = predictionFor(nextFrame);
-  const answer = answers[timeline.index];
-  const predictionLocked = Boolean(prediction && !answer?.correct);
-
   function answerPrediction(optionId: string) {
     if (!prediction || answer?.correct) return;
     setAnswers((current) => ({
@@ -99,6 +128,18 @@ export function FactorialStackTrace() {
   function advance() {
     if (predictionLocked) return;
     dispatchTimeline({ type: "advance", length: frames.length });
+  }
+
+  function toggleAutoplay() {
+    if (playback.playing) {
+      dispatchPlayback({ type: "stop" });
+      return;
+    }
+    if (timeline.index >= frames.length - 1) {
+      dispatchTimeline({ type: "reset" });
+      setAnswers({});
+    }
+    dispatchPlayback({ type: "play" });
   }
 
   const stackItems = frame.stack.map((item) => ({
@@ -175,6 +216,9 @@ export function FactorialStackTrace() {
                 : "Use the current stack and ask whether another smaller call is required, the stopping case has been reached, or a suspended caller can now resume."}
             </p>
           ) : null}
+          {playback.playing && predictionLocked ? (
+            <p className="prediction-feedback">Autoplay is waiting for your prediction; it never skips a prediction gate.</p>
+          ) : null}
         </div>
       ) : null}
 
@@ -184,14 +228,27 @@ export function FactorialStackTrace() {
           min={0}
           max={Math.max(timeline.maxUnlocked, 0)}
           value={timeline.index}
-          onChange={(event) => dispatchTimeline({ type: "scrub", index: Number(event.target.value) })}
+          onChange={(event) => {
+            dispatchPlayback({ type: "stop" });
+            dispatchTimeline({ type: "scrub", index: Number(event.target.value) });
+          }}
           disabled={timeline.maxUnlocked === 0}
           aria-label="Scrub through visited recursive-call steps"
         />
       </div>
 
       <div className="lab-toolbar">
-        <button className="button" type="button" onClick={() => dispatchTimeline({ type: "back" })} disabled={timeline.index === 0}>← Back</button>
+        <button
+          className="button"
+          type="button"
+          onClick={() => {
+            dispatchPlayback({ type: "stop" });
+            dispatchTimeline({ type: "back" });
+          }}
+          disabled={timeline.index === 0}
+        >
+          ← Back
+        </button>
         <button
           className="button button--primary"
           type="button"
@@ -200,6 +257,19 @@ export function FactorialStackTrace() {
         >
           Apply next step →
         </button>
+        <button className="button" type="button" onClick={toggleAutoplay}>
+          {playback.playing ? "Pause autoplay" : timeline.index === frames.length - 1 ? "Replay automatically" : "Play automatically"}
+        </button>
+        <label>
+          <span className="sr-only">Autoplay speed</span>
+          <select
+            aria-label="Autoplay speed"
+            value={playback.speedId}
+            onChange={(event) => dispatchPlayback({ type: "set-speed", speedId: event.target.value as PlaybackSpeedId })}
+          >
+            {playbackSpeeds.map((speed) => <option value={speed.id} key={speed.id}>{speed.label}</option>)}
+          </select>
+        </label>
         <button className="button button--quiet" type="button" onClick={resetTrace}>Reset</button>
       </div>
     </div>

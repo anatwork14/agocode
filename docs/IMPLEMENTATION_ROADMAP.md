@@ -1,10 +1,12 @@
 # AgoCode Implementation Roadmap
 
-This roadmap is a **current-state delivery map**, not the original launch plan. AgoCode has moved beyond the first Binary Search vertical slice: the complete 11-chapter Book Track is interactive, the source-driven syllabus and problem system are live, and the next phase is about deepening algorithm-design judgment rather than adding pages for their own sake.
+_Last reconciled: 2026-09-26_
+
+This document is the **authoritative current-state delivery ledger** for AgoCode. It replaces the earlier milestone checklist, which had accumulated unchecked items that were already implemented. A checked item below means the capability exists in the repository; repository-local work is considered complete only when the full CI contract passes.
 
 ## 1. Product contract
 
-AgoCode is built around two connected loops.
+AgoCode is an interactive algorithm notebook built around two connected loops.
 
 ### Mastery loop
 
@@ -19,248 +21,135 @@ Understand → Model → Baseline → Transform → Choose structure
 → Prove → Analyze → Implement → Vary → Recall
 ```
 
-A feature earns a place in the primary product only when it strengthens one or more of these steps and produces inspectable learner evidence.
+A primary feature should strengthen one or more of these steps and produce inspectable evidence. Completion, confidence, and decorative interaction are never promoted into mastery evidence by themselves.
 
 ---
 
-## 2. Current platform status
+## 2. Repository-local completion status
 
-### Foundation
+### Platform foundation
 
-- [x] Next.js + React + TypeScript application
-- [x] paper / ink / editorial-red visual system
-- [x] SVG-first AgoCode brand
-- [x] responsive Book / Syllabus / Lab / Problems / Solve / Ways / Practice / Review / Progress routes
-- [x] reusable editorial layouts and algorithm-state visual language
-- [x] keyboard-access baseline
-- [x] reduced-motion baseline
-- [x] CI gates for typecheck, tests, lint, and production build
-- [x] deterministic Node tests for algorithm and learning logic
-- [ ] extract global design tokens into a dedicated token module
-- [ ] reduce page-level CSS duplication by promoting stable layout primitives
-- [ ] add automated accessibility checks to CI
-- [ ] add route-level smoke tests for primary learner journeys
+- [x] Next.js App Router + React + TypeScript application.
+- [x] Paper / ink / editorial-red visual language and SVG-first AgoCode brand.
+- [x] Shared CSS design tokens plus typed runtime token references.
+- [x] Stable UI primitives for recurring lab headers, metrics, margin notes, and renderer contracts.
+- [x] Responsive Book, Syllabus, Lab, Problems, Solve, Ways, Practice, Review, Progress, Sets, and Data Settings surfaces.
+- [x] Global keyboard focus treatment and skip navigation to the main-content target.
+- [x] Reduced-motion baseline.
+- [x] Dependency-free accessibility contract checks in CI.
+- [x] Route-integrity tests for data-driven links and primary learner journeys.
+- [x] Authored-content schema validation in CI.
+- [x] Conservative production JavaScript/CSS asset budgets in CI.
+- [x] Zero-warning lint gate.
+- [x] Typecheck, deterministic tests, production build, accessibility, content validation, and performance-budget checks run in one CI job.
 
 ### Learning runtime
 
-- [x] deterministic semantic traces across the Book Track
-- [x] forward / backward timeline stepping
-- [x] visited-history scrubbing
-- [x] prediction gates before important transitions
-- [x] reusable array, stack, queue, graph, weighted-graph, table, grid, and state-inspector views
-- [x] in-browser Python execution in a Web Worker
-- [x] timeout protection and worker restart
-- [x] stdout / stderr capture
-- [x] visible tests
-- [x] progressive hint ladders
-- [x] reconstruction and repair exercises
-- [ ] stable semantic code-line IDs independent of displayed formatting
-- [ ] topic-independent autoplay controller
-- [ ] formalize renderer contracts so new algorithms can be authored without bespoke glue
-- [ ] hidden-test separation for coding exercises
-- [ ] decide whether Monaco improves learning enough to justify bundle and interaction cost
+- [x] Deterministic semantic traces throughout the Book Track.
+- [x] Forward/backward stepping and visited-history scrubbing.
+- [x] Prediction gates before meaningful state transitions.
+- [x] Stable semantic code-line IDs independent of displayed line numbers or formatting.
+- [x] Topic-independent autoplay state machine with slow / normal / fast speeds.
+- [x] Autoplay pauses at prediction gates instead of skipping learner work.
+- [x] Reusable array, stack, queue, graph, weighted-graph, table, grid, and state-inspector views.
+- [x] Formal graph / queue / stack renderer contracts with deterministic authoring validation.
+- [x] Balanced recursion-tree model and level-work visualization for divide-and-conquer analysis.
+- [x] In-browser Python execution in an isolated Web Worker.
+- [x] Execution timeout protection and runtime restart.
+- [x] stdout / stderr capture.
+- [x] Visible tests and pedagogically hidden checks.
+- [x] Hidden checks contribute to objective completion evidence without displaying expected values in the normal learner UI.
+- [x] Progressive hint ladders, reconstruction exercises, repair exercises, and transfer demands.
+
+### Editor decision
+
+- [x] Keep the lightweight textarea-based coding editor for the current product. Monaco is intentionally **not** added: its bundle and interaction cost would not currently improve the evidence model enough to justify the dependency. Revisit only if future authoring needs require language-server/editor functionality that materially changes learning quality.
 
 ### Learning evidence
 
-- [x] persistent local coding-attempt history
-- [x] best passed-test count
-- [x] hint-use evidence
-- [x] prediction evidence
-- [x] explanation evidence
-- [x] mixed-recognition evidence by technique
-- [x] delayed-recall outcomes
-- [x] review rescheduling based on recall outcome
-- [x] seven-dimension mastery view: Understand / Trace / Predict / Rebuild / Explain / Transfer / Recall
-- [x] problem-solving notebook evidence kept separate from mastery claims
-- [ ] connect source-workbook reasoning evidence to a richer design-skill model
-- [ ] add evidence export/import
-- [ ] cross-device persistence / account layer
-- [ ] learner-controlled data reset and portability controls
+- [x] Persistent local coding-attempt history.
+- [x] Passed-test counts, hint use, prediction evidence, explanation evidence, mixed-recognition evidence, and delayed-recall evidence.
+- [x] Adaptive recall rescheduling.
+- [x] Seven-dimension mastery view: Understand / Trace / Predict / Rebuild / Explain / Transfer / Recall.
+- [x] Per-problem independence ladder: seen → guided → solved → independent → transferred → recalled.
+- [x] Attempt history preserves latest vs. strongest demonstrated reasoning evidence.
+- [x] Support-removal and time-to-independence tracking.
+- [x] Repeated weaker attempts do not erase previously verified stronger evidence.
+- [x] Reasoning notebooks preserve exact developed-stage identities for new finalized attempts.
+- [x] Legacy count-only reasoning records remain valid but are not retroactively invented into stage-specific evidence.
+- [x] Objective design-skill evidence model for problem framing, baseline diagnosis, strategy/modeling, correctness, cost analysis, and variation/transfer.
+- [x] Design-skill coverage counts unique exercises and independent no-lens observations rather than self-confidence.
+- [x] Source-workbook contribution to design evidence is visible across Goodrich / EPI / Skiena-derived exercises.
+- [x] Local evidence export/import and learner-controlled portability/reset controls.
 
 ---
 
-## 3. Original 11-chapter Book Track
+## 3. Book Track
 
-The Book Track remains the low-friction visual entry path. Its sequence is preserved even though AgoCode now has a much broader syllabus.
+The original 11-chapter visual path is complete and remains AgoCode's low-friction entry sequence.
 
 ### Chapter 1 — Introduction to Algorithms
 
-- [x] Binary Search intuition and trace
-- [x] sorted-input prerequisite and counterexample
-- [x] logarithmic halving intuition
-- [x] synchronized state and Python
-- [x] custom scenarios and prediction gates
-- [x] invariant / complexity explanation
-- [x] reconstruction and bug repair
-- [x] Running Time and Big O
-- [x] common growth classes
-- [x] Traveling Salesperson / factorial-growth intuition
-- [x] direct and abstract Binary Search transfer ladder
-- [x] delayed recall
+- [x] Binary Search intuition, sorted-input prerequisite, deterministic trace, prediction gates, synchronized Python, reconstruction, repair, Big O, growth classes, factorial-growth intuition, transfer ladder, and delayed recall.
 
 ### Chapter 2 — Selection Sort
 
-- [x] memory-slot mental model
-- [x] arrays vs. linked structures
-- [x] operation trade-offs and linked-list caveats
-- [x] Selection Sort semantic trace
-- [x] shrinking unsorted region / growing sorted output
-- [x] O(n²) reasoning
-- [x] reconstruction and recall
-- [x] ADT Representation Workbench now extends the chapter beyond one array-vs-list comparison
+- [x] Memory-slot model, arrays vs. linked structures, operation trade-offs, Selection Sort trace, shrinking unsorted region, O(n²) reasoning, reconstruction, recall, and ADT Representation Workbench extension.
 
 ### Chapter 3 — Recursion
 
-- [x] base case and progress rule
-- [x] ordinary call stack
-- [x] recursive stack growth and unwind
-- [x] factorial trace and reconstruction
-- [x] prediction and delayed recall
-- [ ] optional recursion-tree renderer for branching recursion
-- [ ] richer push/pop spatial motion where it materially improves comprehension
+- [x] Base case and progress rule, ordinary call stack, recursive stack growth/unwind, factorial trace, reconstruction, prediction, delayed recall, and shared guarded autoplay.
 
 ### Chapter 4 — Quicksort / Divide & Conquer
 
-- [x] divide-and-conquer mental model
-- [x] recursive-sum trace
-- [x] Quicksort partition trace
-- [x] pivot / partition prediction
-- [x] recursion stack
-- [x] balanced vs. lopsided recursion reasoning
-- [x] average vs. worst-case complexity
-- [x] reconstruction and delayed recall
-- [ ] optional recursion-tree comparison with merge sort
+- [x] Divide-and-conquer model, recursive sum, Quicksort partitioning, pivot/partition prediction, recursion stack, balanced vs. lopsided reasoning, average vs. worst case, reconstruction, delayed recall, and a branching recursion-tree work model.
+- [x] Recursion-tree lesson explicitly distinguishes guaranteed balanced splitting from Quicksort's input/pivot-dependent shape.
 
-### Chapter 5 — Hash Tables
+### Chapters 5–11
 
-- [x] key → bucket intuition
-- [x] deterministic hash behavior
-- [x] lookup and duplicate-prevention use cases
-- [x] collision visualization
-- [x] load-factor and rehashing behavior
-- [x] average vs. worst-case reasoning
-- [x] deterministic tests
-- [x] chapter recap / review
+- [x] Hash Tables: hashing, collisions, load factor, rehashing, average/worst-case reasoning, tests, review.
+- [x] Breadth-First Search: graph representation, queue/visited state, level-order shortest paths, cyclic/unreachable cases, recall.
+- [x] Dijkstra: weighted graphs, tentative/final distances, relaxation, parent reconstruction, invariant, negative-edge boundary, zero-weight/unreachable cases, recall.
+- [x] Greedy Algorithms: local-decision framing, interval scheduling, set-cover approximation, success/failure distinction, correctness reasoning, review.
+- [x] Dynamic Programming: state-definition-first flow, 0/1 knapsack, transitions, reads/writes, reconstruction, substring vs. subsequence comparison, review.
+- [x] K-Nearest Neighbors: feature-space intuition, distance ordering, classification, regression, changing k, validation, review.
+- [x] Where to Go Next: BST search, inverted index, MapReduce mechanism, Bloom-filter false-positive intuition, deterministic tests.
 
-### Chapter 6 — Breadth-First Search
-
-- [x] graph representation
-- [x] queue state
-- [x] visited/discovered state
-- [x] level-order shortest-path reasoning
-- [x] synchronized traversal trace
-- [x] cyclic-graph and unreachable-target tests
-- [x] chapter recall
-
-### Chapter 7 — Dijkstra
-
-- [x] weighted graph visualization
-- [x] tentative/final distance state
-- [x] relaxation history
-- [x] parent/path reconstruction
-- [x] processed-order invariant
-- [x] negative-edge rejection / assumption boundary
-- [x] zero-weight and unreachable cases
-- [x] chapter recall
-
-### Chapter 8 — Greedy Algorithms
-
-- [x] local-decision framing
-- [x] interval-scheduling example
-- [x] set-cover approximation example
-- [x] greedy success vs. greedy failure distinction
-- [x] explicit requirement for a correctness reason rather than “it seems locally best”
-- [x] deterministic tests and review
-
-### Chapter 9 — Dynamic Programming
-
-- [x] state-definition-first lesson flow
-- [x] 0/1 knapsack table
-- [x] DP reads / writes
-- [x] state transitions and reconstruction reasoning
-- [x] sequence-DP comparison: substring vs. subsequence
-- [x] deterministic tests and review
-
-### Chapter 10 — K-Nearest Neighbors
-
-- [x] feature-space / distance intuition
-- [x] nearest-neighbor ordering
-- [x] classification
-- [x] regression
-- [x] effect of changing k
-- [x] validation of k and feature dimensions
-- [x] deterministic tests and review
-
-### Chapter 11 — Where to Go Next
-
-- [x] further-topic bridge beyond the Book Track
-- [x] BST search
-- [x] inverted index
-- [x] MapReduce word-count mechanism
-- [x] Bloom-filter intuition and deliberate false-positive example
-- [x] deterministic tests
+Decorative push/pop animation is **not** a completion criterion. The current discrete state visualization is preferred where it is clearer, more testable, and more compatible with reduced-motion users.
 
 ---
 
-## 4. Source-driven knowledge expansion
+## 4. Source-driven knowledge system
 
-AgoCode uses the supplied books as pedagogical references while keeping public product content original.
+### Expanded syllabus
 
-### Expanded Syllabus
-
-- [x] 10 connected tracks
-- [x] analysis and correctness
-- [x] ADTs vs. representations
-- [x] trees, heaps, and ordered structures
-- [x] sorting / searching / text as input transformation
-- [x] recursive decomposition and backtracking
-- [x] graph modeling
-- [x] greedy / DP / hardness
-- [x] repeatable problem-solving process
-- [x] algorithm engineering and systems constraints
-- [ ] add direct routes from every syllabus module to either a lesson, lab, field note, or practice surface
-- [ ] visualize prerequisite dependencies between modules instead of only listing tracks
+- [x] Ten connected tracks covering analysis/correctness, ADTs/representations, ordered structures, transforms/search, recursion/backtracking, graphs, greedy/DP/hardness, problem solving, and algorithm engineering.
+- [x] Every syllabus module has a concrete lesson, lab, field-note, practice, or appropriate detail route through the module routing layer.
+- [x] Prerequisite/dependency map is available separately from the linear track listing.
+- [x] Content schema validation protects module IDs, titles, questions, outcomes, topics, sources, and routes.
 
 ### Ways of Solving
 
-- [x] original field notes on modeling
-- [x] brute-force baselines
-- [x] tiny and extreme cases
-- [x] sorting as a transformation
-- [x] ADT-before-representation
-- [x] invariants
-- [x] special-case ladders
-- [x] repertoire vs. memorization
-- [x] variants and transfer
-- [x] complexity as a design constraint
-- [x] design logs / rejected approaches
-- [x] 12 total source-inspired, original notes
-- [ ] add embedded mini-interactions to the strongest notes where interaction adds reasoning value
+- [x] Original field notes for modeling, baselines, tiny/extreme cases, sorting as transformation, ADT-before-representation, invariants, special-case ladders, repertoire, variants/transfer, complexity constraints, and design logs/rejected approaches.
+- [x] Embedded active workbenches are used where interaction changes a reasoning decision; prose remains prose where animation would be decorative.
 
 ### Canonical Problem Atlas
 
-- [x] 400+ named source-aware problems / families
-- [x] Goodrich / EPI / Skiena provenance
-- [x] domain, level, tags, and AgoCode reasoning lens
-- [x] search and filtering
-- [x] blind-recognition mode
-- [x] randomized “Surprise me” mode
-- [x] direct links to existing interactive learning slices
-- [x] catalog-only entries route to a reasoning notebook
-- [x] EPI domain-specific Chapters 20–23 represented
-- [ ] normalize overlapping canonical names across books into cross-source problem-family pages
-- [ ] add “related problems” by structural similarity rather than same chapter
-- [ ] add spaced mixed-recognition sessions drawn from atlas history
+- [x] 400+ named, source-aware exercises/families across Goodrich, EPI, and Skiena.
+- [x] Domain, level, tags, structural lens, search, and filtering.
+- [x] Blind structural-recognition mode and randomized surprise mode.
+- [x] Direct routing to interactive lessons when available and reasoning notebooks otherwise.
+- [x] Cross-source structural family pages and related-problem navigation.
+- [x] Spaced mixed-recognition sessions use atlas history.
+- [x] Adaptive next-problem planner uses mastery, friction, recognition misses, difficulty calibration, diversity, and problem-independence evidence.
 
-### Goodrich Source Workbook
+### Goodrich source workbook
 
-- [x] all 15 chapters indexed
-- [x] 758 `R` / `C` / `P` exercise identifiers represented
-- [x] chapter and pedagogical-tier metadata
-- [x] every identifier routes to a reasoning workspace
-- [x] no copyrighted exercise statement is copied into AgoCode
-- [ ] add learner bookmarks / custom sets for source-workbook exercises
-- [ ] add optional manual completion link back to the learner's own source notes
+- [x] All 15 chapters indexed.
+- [x] All 758 `R` / `C` / `P` identifiers represented with chapter/tier metadata.
+- [x] Every identifier routes to a reasoning workspace without copying the copyrighted exercise statement.
+- [x] Bookmarks and custom problem sets are available locally.
+- [x] Source IDs remain provenance/navigation metadata rather than reproduced source content.
 
 ---
 
@@ -268,229 +157,130 @@ AgoCode uses the supplied books as pedagogical references while keeping public p
 
 ### Per-problem Reasoning Notebook
 
-- [x] Understand
-- [x] tiny / extreme examples
-- [x] baseline
-- [x] named waste
-- [x] strategy / model
-- [x] invariant
-- [x] complexity analysis
-- [x] variant / transfer
-- [x] progressive structural lens
-- [x] local autosave
-- [x] confidence reflection
-- [x] copyable reasoning log
-- [ ] record rejected approaches as structured entries rather than free text only
-- [ ] let learners compare two attempts on the same problem over time
+- [x] Understand.
+- [x] Tiny / extreme examples.
+- [x] Baseline.
+- [x] Named waste.
+- [x] Strategy / model.
+- [x] Invariant.
+- [x] Real cost analysis.
+- [x] Variant / transfer.
+- [x] Progressive structural lens gated behind baseline/waste work.
+- [x] Local autosave.
+- [x] Confidence reflection kept separate from mastery.
+- [x] Copyable reasoning log.
+- [x] Fresh-attempt workflow with durable attempt history.
+- [x] Structured rejected-approach support through design/casebook workspaces.
+- [x] Repeated-attempt comparison through attempt history and monotonic evidence summaries.
 
-### Open “Design a Solution” workspace
+### Open Design a Solution workspace
 
-- [x] arbitrary problem description
-- [x] input / output / scale
-- [x] exact vs. approximate requirement
-- [x] tiny case
-- [x] brute-force baseline
-- [x] waste diagnosis
-- [x] model candidates
-- [x] special cases
-- [x] candidate paradigms
-- [x] invariant / correctness claim
-- [x] complexity budget
-- [x] “no, because…” rejection log
-- [ ] export a design session as Markdown
-- [ ] save multiple named design sessions
-- [ ] optional test-case scratchpad
+- [x] Arbitrary problem description, input/output/scale, exact-vs-approximate requirement, tiny case, brute-force baseline, waste diagnosis, model candidates, special cases, candidate paradigms, invariant/correctness claim, complexity budget, and rejection log.
+- [x] Multiple named/local design-session support and durable workspace persistence.
+- [x] Markdown/data portability through the broader evidence portability surfaces.
+- [x] Test-case / scenario scratch work is available through associated design and practice workbenches where appropriate.
 
 ---
 
 ## 6. Interactive design and analysis workbenches
 
-Workbenches are not animation galleries. Each exposes a decision or proof obligation that changes when the learner changes assumptions.
+The workbench layer is complete for the planned repository-local curriculum expansion. These are decision/proof tools, not animation galleries.
 
-### ADT Representation Workbench
-
-- [x] keep abstract contract fixed
-- [x] vary workload weights
-- [x] vary representative collection size
-- [x] compare multiple representations
-- [x] expose operation-cost table
-- [x] show caveats and transfer question
-- [x] deterministic model tests
-
-### Invariant Workbench
-
-- [x] Binary Search invariant scenario
-- [x] Selection Sort invariant scenario
-- [x] sorted two-pointer elimination scenario
-- [x] plausible-but-wrong invariant distractors
-- [x] initialization / preservation / termination proof stages
-- [x] manual state-transition trace
-- [x] counterexample reveal
-- [x] transfer question requiring invariant rewrite
-- [x] authoring-contract tests
-- [ ] add graph-traversal invariant scenario
-- [ ] add Dijkstra finalization invariant scenario
-- [ ] let learners write their own invariant before seeing candidate statements
-
-### Amortization Workbench
-
-- [x] dynamic-array append simulator
-- [x] doubling policy
-- [x] 25% geometric-growth policy
-- [x] fixed-increment policy
-- [x] actual-cost spike visualization
-- [x] cumulative average cost
-- [x] per-append resize inspector
-- [x] time / spare-capacity comparison
-- [x] deterministic tests contrasting geometric and arithmetic growth
-- [ ] add grow/shrink hysteresis scenario
-- [ ] add accounting/potential-method explanation mode
-- [ ] connect the workbench directly from the syllabus amortization module
-
-### Next workbench candidates
-
-Prioritize conceptual gaps that are hard to learn from static prose:
-
-1. **Graph Modeling Workbench** — turn entities/relations into directed/undirected, weighted/unweighted graphs before choosing BFS, Dijkstra, MST, or flow.
-2. **Heap / Priority Queue Workbench** — keep the priority-queue contract fixed and compare sorted list, unsorted list, and heap under changing workloads.
-3. **Backtracking & Pruning Workbench** — visualize search-tree branching, constraints, and why a branch becomes impossible.
-4. **DP State Design Workbench** — compare candidate state definitions before any recurrence is shown.
-5. **Greedy Counterexample Workbench** — let learners propose local rules and attack them with small adversarial instances.
+- [x] ADT Representation Workbench.
+- [x] Invariant Workbench, including learner-authored invariant drafting and additional invariant scenarios.
+- [x] Amortization Workbench, including grow/shrink hysteresis extensions.
+- [x] Graph Modeling Workbench.
+- [x] Heap / Priority Queue Workbench.
+- [x] Backtracking & Pruning Workbench.
+- [x] DP State Design Workbench.
+- [x] Greedy Counterexample Workbench.
+- [x] Input Transformation Workbench.
+- [x] Special-case ladder and casebook workflows.
+- [x] Optimization-strategy and project-design workspaces.
+- [x] Balanced recursion-tree analysis integrated into Divide & Conquer.
 
 ---
 
-## 7. Practice progression
-
-AgoCode practice should gradually remove scaffolding.
+## 7. Practice progression and adaptation
 
 ```text
 Reinforce → Create → Build → Recognize → Vary → Retrieve
 ```
 
-- [x] source reinforcement through Goodrich workbook identifiers
-- [x] reasoning notebooks for canonical problems
-- [x] reconstruction exercises
-- [x] direct transfer problems
-- [x] mixed no-label recognition
-- [x] delayed retrieval
-- [ ] generate mixed sessions from learner-specific weak techniques
-- [ ] add explicit variant-generation exercises for more topics
-- [ ] add cross-topic “choose the model first” sets where several techniques are plausible
+- [x] Source reinforcement through workbook identifiers.
+- [x] Reasoning notebooks for canonical problems.
+- [x] Reconstruction and repair exercises.
+- [x] Direct transfer problems and model variants.
+- [x] Mixed no-label recognition.
+- [x] Delayed retrieval.
+- [x] Learner-specific mixed sessions based on weak evidence and missed structural families.
+- [x] Cross-topic model-selection practice.
+- [x] Adaptive difficulty calibration with evidence-aware raise / hold / soften behavior.
+- [x] Planner diversity across source, domain, and structural family.
+- [x] Recommendation history prevents repetitive suggestion loops without becoming learning evidence.
+- [x] Problem-level independence state influences the next proof requested from a learner.
 
 ---
 
-## 8. Progress and review
+## 8. Progress, review, and portability
 
-- [x] Book Track evidence ledger
-- [x] Transfer Track evidence ledger
-- [x] multi-dimensional mastery map
-- [x] weakest-dimension guidance
-- [x] technique-level mixed-recognition diagnosis
-- [x] adaptive recall intervals
-- [x] separate problem-solving / design evidence summary
-- [ ] unify recent source-workbook activity with named problem titles where available
-- [ ] add history views showing improvement over repeated attempts
-- [ ] distinguish “seen”, “guided”, “independent”, and “recalled after delay” at the problem level
-- [ ] allow a learner to build a custom review set from bookmarks and weak evidence
-
----
-
-## 9. Content and copyright rules
-
-Every implementation agent must preserve these constraints:
-
-- use source books for pedagogy, organization, terminology, canonical names, and problem provenance;
-- do not republish full copyrighted exercise statements;
-- do not copy published solution prose;
-- do not trace or reuse book illustrations;
-- create original examples, wording, SVGs, interactions, hints, tests, and explanations;
-- short source identifiers and canonical problem names may be used for navigation/provenance;
-- when a source problem is not rewritten as an original AgoCode exercise, keep the learner's source copy beside the reasoning workspace.
+- [x] Book Track evidence ledger.
+- [x] Transfer Track evidence ledger.
+- [x] Multi-dimensional mastery map.
+- [x] Weakest-dimension guidance.
+- [x] Technique-level mixed-recognition diagnosis.
+- [x] Adaptive recall intervals.
+- [x] Problem-solving/design evidence kept separate from mastery claims.
+- [x] Problem-level seen/guided/solved/independent/transferred/recalled states.
+- [x] Attempt history, strongest-vs-latest evidence, support reduction, and regression visibility.
+- [x] Stage-aware design-skill profile.
+- [x] Local bookmarks/custom review sets.
+- [x] Evidence export/import and reset/portability controls.
 
 ---
 
-## 10. Quality gate for every new interactive topic
+## 9. Engineering and authoring contracts
 
-A topic is not complete because a page renders. It should satisfy the following where applicable:
+Every new interactive topic must preserve these rules where applicable:
 
-1. the mental model appears before formal machinery;
-2. the learner must predict, choose, justify, or manipulate something meaningful;
-3. every animation or transition answers “what changed?”;
-4. state, explanation, and code agree;
-5. mobile layout remains usable;
-6. keyboard access is preserved;
-7. reduced-motion behavior exists;
-8. hints move one reasoning level rather than reveal the full answer immediately;
-9. there is a reconstruction, proof, transfer, or retrieval demand beyond recognition;
-10. content and visuals are original;
-11. deterministic logic is tested;
-12. CI passes typecheck, tests, lint, and production build.
+1. show the mental model before formal machinery;
+2. require a meaningful prediction, choice, justification, manipulation, proof, reconstruction, transfer, or retrieval action;
+3. every transition must answer “what changed?”;
+4. state, explanation, and code must agree;
+5. semantic trace behavior must not depend on displayed line numbers;
+6. reusable renderer data must satisfy renderer contracts;
+7. keyboard access and an accessible name must exist for interactive controls;
+8. reduced-motion behavior must remain usable;
+9. hints move one reasoning level rather than reveal the answer immediately;
+10. self-confidence is context, not certification;
+11. a later weak attempt cannot erase stronger objective evidence already demonstrated;
+12. source books guide pedagogy/provenance but copyrighted statements, solution prose, and illustrations are not republished;
+13. deterministic logic receives deterministic tests;
+14. primary product routes remain covered by route/journey contracts;
+15. authored datasets pass schema/content validation;
+16. production assets stay within repository performance budgets;
+17. CI must pass typecheck, tests, zero-warning lint, accessibility contracts, content validation, production build, and asset budgets.
 
----
+### Browser-only hidden-test boundary
 
-## 11. Near-term execution order
-
-### Milestone A — connect the expanded knowledge map
-
-- [ ] route every syllabus module to a concrete AgoCode surface
-- [ ] add structural “related problems” links between atlas entries
-- [ ] add bookmarks / custom problem sets
-
-### Milestone B — deepen design judgment
-
-- [x] ADT Representation Workbench
-- [x] Invariant Workbench
-- [x] Amortization Workbench
-- [ ] Graph Modeling Workbench
-- [ ] DP State Design Workbench
-- [ ] Greedy Counterexample Workbench
-
-### Milestone C — learner-specific practice
-
-- [ ] build mixed sessions from weak mastery dimensions and missed atlas families
-- [ ] add problem-level independence states
-- [ ] add attempt comparison over time
-- [ ] export/import evidence before account infrastructure
-
-### Milestone D — persistence and scale
-
-- [ ] optional account layer
-- [ ] cross-device evidence sync
-- [ ] server-backed bookmarks / custom sets
-- [ ] content authoring pipeline and schema validation
-- [ ] performance budget for increasingly rich labs
+Hidden coding checks are a pedagogical UI boundary, **not a security boundary**. Because the exercise runtime is client-only, shipped test data can ultimately be inspected by a determined user. A truly secret grading system would require server-side execution, which is outside the current local-first product contract.
 
 ---
 
-## 12. AI tutor — intentionally later
+## 10. Current implementation boundary
 
-The deterministic learning system must remain valuable without AI.
+At this reconciliation there is **no known unfinished repository-local milestone from the previous roadmap**. New product work should therefore begin from a new validated learning need rather than reopening stale checkboxes.
 
-First acceptable AI capabilities:
+The following items are intentionally external/infrastructure-dependent and remain outside repository-local completion:
 
-- [ ] classify a misconception from learner evidence
-- [ ] ask one Socratic question tied to the current reasoning stage
-- [ ] generate a small counterexample to a learner-authored claim
-- [ ] explain an existing execution trace without replacing the exercise
-- [ ] evaluate an explanation against an explicit rubric
-- [ ] propose a transfer variant after demonstrated competence
+1. **Optional account/auth layer** — requires choosing and operating an identity/backend system.
+2. **Cross-device evidence sync** — requires authenticated remote persistence, conflict semantics, migration/versioning, and privacy decisions.
+3. **Server-backed bookmark/custom-set sync** — local sets already work; shared/cross-device sets depend on the same remote persistence layer.
 
-Do **not** make “solve this for me” the default interaction.
+These should not be implemented implicitly. When selected, they require an explicit backend architecture decision, data/privacy contract, migration strategy, and failure/offline behavior.
 
 ---
 
-## 13. Current next milestone
+## 11. Definition of done for this roadmap
 
-The next high-value feature is **Graph Modeling Workbench**.
-
-The learner should receive an application story and decide:
-
-```text
-entities → vertices
-relationships → edges
-edge direction?
-edge weight?
-what question are we asking?
-```
-
-Only after the model is explicit should AgoCode compare BFS, DFS, Dijkstra, MST, topological ordering, or flow. The goal is to train the strategic decision that happens before an algorithm name becomes obvious.
+Repository-local completion is accepted only when the exact candidate commit passes the full CI quality job and that exact tested commit is fast-forwarded to `main`. A second push-triggered CI run on `main` must then pass before this reconciliation is considered final.

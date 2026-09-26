@@ -1,4 +1,4 @@
-import { getCanonicalExercise, type ExerciseSource } from "@/lib/knowledge/all-exercises";
+import { getCanonicalExercise, type ExerciseSource } from "../knowledge/all-exercises.ts";
 import { classifyReasoningAttempt, type ReasoningAttemptHistory } from "./reasoning-attempts.ts";
 import type { ReasoningStageId } from "./reasoning-stages.ts";
 

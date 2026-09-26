@@ -1,28 +1,13 @@
-export type GraphRendererNode = {
-  id: string;
-  label: string;
-  x: number;
-  y: number;
-};
+import {
+  graphEdgeKey,
+  type GraphRendererContract,
+  type GraphRendererEdge,
+  type GraphRendererNode,
+} from "@/lib/visualization/renderer-contracts";
 
-export type GraphRendererEdge = {
-  from: string;
-  to: string;
-  directed?: boolean;
-  label?: string | number;
-};
+export type { GraphRendererEdge, GraphRendererNode };
 
-type GraphRendererProps = {
-  nodes: readonly GraphRendererNode[];
-  edges: readonly GraphRendererEdge[];
-  ariaLabel: string;
-  currentId?: string | null;
-  targetId?: string | null;
-  queuedIds?: readonly string[];
-  visitedIds?: readonly string[];
-  pathIds?: readonly string[];
-  activeEdgeKeys?: readonly string[];
-};
+type GraphRendererProps = GraphRendererContract;
 
 export function GraphRenderer({
   nodes,
@@ -39,7 +24,9 @@ export function GraphRenderer({
   const queued = new Set(queuedIds);
   const visited = new Set(visitedIds);
   const path = new Set(pathIds);
-  const pathEdges = new Set(pathIds.slice(0, -1).map((nodeId, index) => `${nodeId}->${pathIds[index + 1]}`));
+  const pathEdges = new Set(
+    pathIds.slice(0, -1).map((nodeId, index) => graphEdgeKey(nodeId, pathIds[index + 1])),
+  );
   const activeEdges = new Set(activeEdgeKeys);
 
   return (
@@ -55,8 +42,9 @@ export function GraphRenderer({
           const from = byId.get(edge.from);
           const to = byId.get(edge.to);
           if (!from || !to) return null;
-          const edgeKey = `${edge.from}->${edge.to}`;
-          const active = pathEdges.has(edgeKey) || pathEdges.has(`${edge.to}->${edge.from}`) || activeEdges.has(edgeKey);
+          const edgeKey = graphEdgeKey(edge.from, edge.to);
+          const reverseEdgeKey = graphEdgeKey(edge.to, edge.from);
+          const active = pathEdges.has(edgeKey) || pathEdges.has(reverseEdgeKey) || activeEdges.has(edgeKey);
           const midX = (from.x + to.x) / 2;
           const midY = (from.y + to.y) / 2;
           return (

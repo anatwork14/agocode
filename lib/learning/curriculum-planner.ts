@@ -274,9 +274,9 @@ export function buildAdaptiveCurriculumPlan(input: {
   });
 
   const counts: Record<CurriculumModuleState, number> = { mastered: 0, developing: 0, ready: 0, blocked: 0 };
-  for (const module of modules) counts[module.state] += 1;
+  for (const moduleProfile of modules) counts[moduleProfile.state] += 1;
   const nextModules = modules
-    .filter((module) => module.state === "developing" || module.state === "ready")
+    .filter((moduleProfile) => moduleProfile.state === "developing" || moduleProfile.state === "ready")
     .sort((a, b) => b.priority - a.priority || a.title.localeCompare(b.title))
     .slice(0, 6);
 

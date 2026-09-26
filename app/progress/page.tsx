@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ProblemSolvingFriction } from "@/components/progress/ProblemSolvingFriction";
 import { ProgressDashboard } from "@/components/progress/ProgressDashboard";
 import { ProblemSolvingProgress } from "@/components/progress/ProblemSolvingProgress";
@@ -14,6 +15,10 @@ export default function ProgressPage() {
           AgoCode tracks reconstruction, recall, transfer, problem-design evidence, and the places where you explicitly ask for help.
           Completion counts and friction are useful signals, but they are deliberately kept separate from claims of mastery.
         </p>
+        <div className="action-row" style={{ marginTop: 22 }}>
+          <Link className="button button--primary" href="/practice/next">Use this evidence to choose my next problem →</Link>
+          <Link className="button" href="/review">Open spaced review</Link>
+        </div>
 
         <section className="section" style={{ paddingTop: 44 }}>
           <ProgressDashboard />

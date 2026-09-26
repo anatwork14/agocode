@@ -59,6 +59,7 @@ import "./next-problem.css";
 import "./completion-features.css";
 import "./daily-session.css";
 import "./session-debrief.css";
+import "./curriculum-plan.css";
 import "./advanced-workbenches.css";
 import "./workspace-completion.css";
 

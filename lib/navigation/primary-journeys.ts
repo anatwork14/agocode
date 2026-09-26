@@ -16,6 +16,11 @@ export const primaryLearnerJourneys = [
     routes: ["/exercises", "/practice/next", "/practice/session", "/progress"],
   },
   {
+    id: "adaptive-curriculum",
+    label: "Diagnostic → adaptive curriculum → daily practice → progress",
+    routes: ["/diagnostic", "/plan", "/practice/session", "/progress"],
+  },
+  {
     id: "syllabus-to-workbench",
     label: "Syllabus → prerequisite map → workbench → design canvas",
     routes: ["/syllabus", "/syllabus/map", "/lab", "/solve"],

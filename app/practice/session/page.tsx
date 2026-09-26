@@ -13,6 +13,10 @@ export default function AdaptiveMixedSessionPage() {
         <p className="lede">
           AgoCode combines retrieval debt, support removal, recognition repair, transfer, and current mastery gaps into a bounded six-problem session. The plan persists directly in this browser for the local calendar day, then reconciles against fresh objective evidence whenever you return.
         </p>
+        <div className="action-row" style={{ marginTop: 22 }}>
+          <Link className="button" href="/plan">View weekly curriculum mission →</Link>
+          <Link className="button" href="/progress">Inspect evidence</Link>
+        </div>
         <section className="section">
           <AdaptiveMixedSession />
         </section>

@@ -18,7 +18,8 @@ export default function ProgressPage() {
           Completion counts and friction are useful signals, but they are deliberately kept separate from claims of mastery.
         </p>
         <div className="action-row" style={{ marginTop: 22 }}>
-          <Link className="button button--primary" href="/practice/next">Choose my next problem →</Link>
+          <Link className="button button--primary" href="/plan">Open adaptive curriculum →</Link>
+          <Link className="button" href="/practice/next">Choose my next problem</Link>
           <Link className="button" href="/practice/session">Build a mixed session</Link>
           <Link className="button" href="/review">Open spaced review</Link>
           <Link className="button" href="/settings/data">Export / import learning data</Link>

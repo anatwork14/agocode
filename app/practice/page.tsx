@@ -70,6 +70,12 @@ export default function PracticePage() {
               <Link className="button" href="/practice/atlas">Start Atlas recognition →</Link>
             </article>
             <article className="practice-domain-card">
+              <div className="practice-domain-card__meta"><span>model first</span><span>assumption shifts</span></div>
+              <h3>Structural variant mutations</h3>
+              <p>Change one assumption at a time and decide whether the old family survives, a new family takes over, or more constraint information is required.</p>
+              <Link className="button" href="/practice/variants">Practice model variants →</Link>
+            </article>
+            <article className="practice-domain-card">
               <div className="practice-domain-card__meta"><span>7 challenges</span><span>code gated</span></div>
               <h3>Cross-chapter coding transfer</h3>
               <p>Each editor stays locked until you identify the technique from the problem structure. Tests then expose whether the implementation preserves the invariant.</p>
@@ -139,6 +145,7 @@ export default function PracticePage() {
             <Link className="button" href="/learn">Reconnect to Book Track</Link>
             <Link className="button" href="/review">Open spaced review</Link>
             <Link className="button" href="/practice/atlas">Test the full Atlas</Link>
+            <Link className="button" href="/practice/variants">Mutate the model</Link>
             <Link className="button button--primary" href="/practice/next">Choose the next problem →</Link>
           </div>
         </section>

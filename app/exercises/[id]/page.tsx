@@ -2,12 +2,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { StuckRouter } from "@/components/blog/StuckRouter";
 import { DifficultyCalibration } from "@/components/exercises/DifficultyCalibration";
+import { ModelVariantPractice } from "@/components/practice/ModelVariantPractice";
 import { ProblemSetControl } from "@/components/exercises/ProblemSetControl";
 import { ProjectWorkspace } from "@/components/exercises/ProjectWorkspace";
 import { ReasoningNotebook } from "@/components/exercises/ReasoningNotebook";
 import { RejectedApproaches } from "@/components/exercises/RejectedApproaches";
 import { getCanonicalExercise, sourceLabels } from "@/lib/knowledge/all-exercises";
 import { getGoodrichExerciseRef } from "@/lib/knowledge/goodrich-workbook";
+import { classifyAtlasExercise } from "@/lib/practice/atlas-recognition";
 import { getRelatedAtlasProblems } from "@/lib/practice/related-atlas-problems";
 
 type ExercisePageProps = { params: Promise<{ id: string }> };
@@ -31,6 +33,7 @@ export default async function ExercisePage({ params }: ExercisePageProps) {
   const level = exercise?.level ?? goodrichRef!.tierLabel;
   const lens = exercise?.lens ?? goodrichLens[goodrichRef!.tier];
   const isProjectTier = goodrichRef?.tier === "P";
+  const classified = exercise ? classifyAtlasExercise(exercise) : null;
   const relatedProblems = exercise ? getRelatedAtlasProblems(exercise.id, 4) : [];
 
   return (
@@ -134,14 +137,31 @@ export default async function ExercisePage({ params }: ExercisePageProps) {
           </section>
         ) : null}
 
+        {classified ? (
+          <section className="section worksheet">
+            <div className="section-heading">
+              <div className="section-heading__index">MODEL VARIANTS</div>
+              <div>
+                <h2>Now change an assumption, not just the story.</h2>
+                <p>
+                  Decide whether the current structural family survives a change in ordering, updates, objective, resource model,
+                  or guarantee. AgoCode reveals the consequence only after you commit a model explanation.
+                </p>
+              </div>
+            </div>
+            <ModelVariantPractice exerciseId={exercise!.id} />
+          </section>
+        ) : null}
+
         <section className="worksheet-next">
           <div>
             <span className="eyebrow">After the first solution</span>
             <h2>Transfer is the real completion condition.</h2>
-            <p>Try a structural neighbor above or return to the Atlas in blind mode so the technique label disappears again.</p>
+            <p>Try a structural neighbor, mutate an assumption, or return to the Atlas in blind mode so the technique label disappears again.</p>
           </div>
           <div className="action-row">
             <Link className="button" href="/practice/atlas">Run Atlas recognition</Link>
+            <Link className="button" href="/practice/variants">Practice model mutations</Link>
             <Link className="button" href="/sets">Open my sets</Link>
             <Link className="button" href="/blog#diagnose">Diagnose another obstacle</Link>
             <Link className="button button--primary" href="/exercises">Choose another problem →</Link>

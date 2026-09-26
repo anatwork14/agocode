@@ -45,14 +45,13 @@ export function StuckRouter({ returnHref, returnLabel = "Return to the current p
         </div>
       </div>
 
-      <div className="stuck-router__grid" role="list" aria-label="Problem-solving obstacles">
+      <div className="stuck-router__grid" aria-label="Problem-solving obstacles">
         {stuckDiagnoses.map((item, index) => (
           <button
             className={selectedId === item.id ? "stuck-router__choice stuck-router__choice--selected" : "stuck-router__choice"}
             type="button"
             onClick={() => chooseObstacle(item.id)}
             aria-pressed={selectedId === item.id}
-            role="listitem"
             key={item.id}
           >
             <span className="mono">{String(index + 1).padStart(2, "0")}</span>

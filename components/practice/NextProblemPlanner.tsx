@@ -158,11 +158,6 @@ export function NextProblemPlanner() {
     );
   }
 
-  const calibrationLabel = snapshot.calibration.bias > 0
-    ? "Raise challenge"
-    : snapshot.calibration.bias < 0
-      ? "Gentler step"
-      : "Hold steady";
   const primaryIndependence = snapshot.independence.states[primary.exercise.id];
   const primaryReview = snapshot.review.statuses[primary.exercise.id];
   const dueNow = snapshot.review.due + snapshot.review.overdue;

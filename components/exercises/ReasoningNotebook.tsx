@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { getReasoningStageHelp } from "@/lib/knowledge/notebook-help";
 import { recordReasoningNotebookEvidence } from "@/lib/learning/evidence";
+import { recordReasoningAttempt } from "@/lib/learning/reasoning-attempts";
 
 const REASONING_EVIDENCE_KEY = "agocode.progress.design.reasoning-notebooks";
 
@@ -76,6 +77,8 @@ type NotebookState = {
   confidence?: Confidence;
   completedAt?: string;
   updatedAt?: string;
+  attemptId: string;
+  startedAt: string;
 };
 
 const emptyResponses = Object.fromEntries(notebookSteps.map((step) => [step.id, ""])) as Record<NotebookStepId, string>;
@@ -84,11 +87,31 @@ function storageKey(exerciseId: string) {
   return `agocode:reasoning-notebook:${exerciseId}`;
 }
 
+function createAttemptIdentity(exerciseId: string) {
+  const startedAt = new Date().toISOString();
+  const random = typeof window !== "undefined" && window.crypto?.randomUUID
+    ? window.crypto.randomUUID()
+    : Math.random().toString(36).slice(2);
+  return { attemptId: `${exerciseId}:${startedAt}:${random}`, startedAt };
+}
+
+function blankState(exerciseId: string): NotebookState {
+  const identity = createAttemptIdentity(exerciseId);
+  return {
+    version: 1,
+    responses: { ...emptyResponses },
+    revealedLens: false,
+    ...identity,
+  };
+}
+
 export function ReasoningNotebook({ exerciseId, lens }: { exerciseId: string; lens: string }) {
   const [state, setState] = useState<NotebookState>({
     version: 1,
     responses: emptyResponses,
     revealedLens: false,
+    attemptId: "",
+    startedAt: "",
   });
   const [hydrated, setHydrated] = useState(false);
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
@@ -99,6 +122,9 @@ export function ReasoningNotebook({ exerciseId, lens }: { exerciseId: string; le
         const raw = window.localStorage.getItem(storageKey(exerciseId));
         if (raw) {
           const parsed = JSON.parse(raw) as Partial<NotebookState>;
+          const identity = parsed.attemptId && parsed.startedAt
+            ? { attemptId: parsed.attemptId, startedAt: parsed.startedAt }
+            : createAttemptIdentity(exerciseId);
           setState({
             version: 1,
             responses: { ...emptyResponses, ...(parsed.responses ?? {}) },
@@ -106,10 +132,13 @@ export function ReasoningNotebook({ exerciseId, lens }: { exerciseId: string; le
             confidence: parsed.confidence,
             completedAt: parsed.completedAt,
             updatedAt: parsed.updatedAt,
+            ...identity,
           });
+        } else {
+          setState(blankState(exerciseId));
         }
       } catch {
-        // Keep the in-memory notebook usable when storage is unavailable or malformed.
+        setState(blankState(exerciseId));
       } finally {
         setHydrated(true);
       }
@@ -133,6 +162,7 @@ export function ReasoningNotebook({ exerciseId, lens }: { exerciseId: string; le
   );
   const completion = Math.round((completedSteps / notebookSteps.length) * 100);
   const lensReady = Boolean(state.responses.baseline.trim() && state.responses.waste.trim());
+  const meaningfulAttempt = completedSteps > 0 || state.revealedLens || Boolean(state.confidence) || Boolean(state.completedAt);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -150,6 +180,22 @@ export function ReasoningNotebook({ exerciseId, lens }: { exerciseId: string; le
     return () => window.clearTimeout(evidenceTimer);
   }, [completedSteps, exerciseId, hydrated, state.completedAt, state.confidence, state.revealedLens]);
 
+  function finalizeAttempt(snapshot: NotebookState, finalizedAt = new Date().toISOString()) {
+    if (!snapshot.attemptId || !snapshot.startedAt) return;
+    const developedStages = notebookSteps.filter((step) => snapshot.responses[step.id].trim().length >= 12).length;
+    recordReasoningAttempt(window.localStorage, {
+      attemptId: snapshot.attemptId,
+      exerciseId,
+      startedAt: snapshot.startedAt,
+      finalizedAt,
+      developedStages,
+      totalStages: notebookSteps.length,
+      lensRevealed: snapshot.revealedLens,
+      confidence: snapshot.confidence,
+      completedAt: snapshot.completedAt,
+    });
+  }
+
   const updateResponse = (id: NotebookStepId, value: string) => {
     setState((current) => ({
       ...current,
@@ -159,17 +205,17 @@ export function ReasoningNotebook({ exerciseId, lens }: { exerciseId: string; le
   };
 
   const markComplete = () => {
-    setState((current) => ({ ...current, completedAt: new Date().toISOString() }));
+    if (state.completedAt) return;
+    const completedAt = new Date().toISOString();
+    const next = { ...state, completedAt };
+    finalizeAttempt(next, completedAt);
+    setState(next);
   };
 
-  const reset = () => {
-    if (!window.confirm("Clear this reasoning notebook? This cannot be undone.")) return;
-    setState({ version: 1, responses: emptyResponses, revealedLens: false });
-    try {
-      window.localStorage.removeItem(storageKey(exerciseId));
-    } catch {
-      // Ignore storage failures; the in-memory state has already reset.
-    }
+  const startFreshAttempt = () => {
+    if (meaningfulAttempt && !window.confirm("Start a fresh attempt? The current attempt will be preserved in your evidence history before the notebook is cleared.")) return;
+    if (meaningfulAttempt) finalizeAttempt(state);
+    setState(blankState(exerciseId));
   };
 
   const copyNotebook = async () => {
@@ -195,7 +241,7 @@ export function ReasoningNotebook({ exerciseId, lens }: { exerciseId: string; le
         <div className="reasoning-notebook__meter" aria-label={`${completion}% of reasoning stages developed`}>
           <span style={{ width: `${completion}%` }} />
         </div>
-        <span className="mono">{hydrated ? "autosaves locally · contributes bounded mastery evidence" : "loading notebook…"}</span>
+        <span className="mono">{hydrated ? "autosaves locally · finalized attempts become durable evidence" : "loading notebook…"}</span>
       </div>
 
       <div className="reasoning-notebook__steps">
@@ -284,9 +330,9 @@ export function ReasoningNotebook({ exerciseId, lens }: { exerciseId: string; le
         <button className="button" type="button" onClick={copyNotebook}>
           {copyState === "copied" ? "Copied" : copyState === "failed" ? "Copy failed" : "Copy reasoning log"}
         </button>
-        <button className="button" type="button" onClick={reset}>Reset</button>
-        <button className="button button--primary" type="button" onClick={markComplete} disabled={completedSteps < 6}>
-          {state.completedAt ? "Marked complete" : completedSteps < 6 ? "Develop at least 6 stages" : "Mark reasoning complete"}
+        <button className="button" type="button" onClick={startFreshAttempt}>Start fresh attempt</button>
+        <button className="button button--primary" type="button" onClick={markComplete} disabled={completedSteps < 6 || Boolean(state.completedAt)}>
+          {state.completedAt ? "Attempt recorded" : completedSteps < 6 ? "Develop at least 6 stages" : "Mark reasoning complete"}
         </button>
       </div>
     </div>

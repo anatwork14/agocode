@@ -16,12 +16,12 @@ export type TracePrediction = {
   explanation: string;
 };
 
-export type ArrayTraceFrame = {
+export type ArrayTraceFrame<CodeLineId extends string = string> = {
   event: SemanticEvent;
   low: number;
   high: number;
   mid: number | null;
-  activeLine: number;
+  activeCodeLineId: CodeLineId;
   note: string;
   comparison?: string;
   found?: boolean;

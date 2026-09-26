@@ -3,8 +3,8 @@ import {
   collectAgoCodeData,
   isAgoCodeStorageKey,
   type PortableStorage,
-} from "./data-portability";
-import { progressEvidenceKeys } from "./progressCatalog";
+} from "./data-portability.ts";
+import { progressEvidenceKeys } from "./progressCatalog.ts";
 
 export const AGOCODE_STORAGE_SCHEMA_VERSION = 1 as const;
 export const AGOCODE_STORAGE_RECOVERY_KEY = "agocode.system.storage-recovery.v1";

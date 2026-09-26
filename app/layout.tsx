@@ -72,8 +72,11 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
   return (
     <html lang="en" className={`${editorial.variable} ${reading.variable} ${mono.variable}`}>
       <body>
+        <a className="skip-link" href="#main-content">Skip to main content</a>
         <SiteHeader />
-        {children}
+        <div id="main-content" tabIndex={-1}>
+          {children}
+        </div>
         <footer className="site-footer">
           <div className="site-shell">AgoCode · an interactive algorithm notebook · understand, model, build, transfer, recall.</div>
         </footer>

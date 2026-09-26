@@ -25,6 +25,7 @@ import {
   recordRecommendationChoice,
   type AdaptiveRecommendation,
 } from "@/lib/learning/recommendations";
+import { readReasoningAttemptHistory } from "@/lib/learning/reasoning-attempts";
 
 const REASONING_EVIDENCE_KEY = "agocode.progress.design.reasoning-notebooks";
 const ATLAS_RECOGNITION_KEY = "agocode.progress.transfer.atlas-recognition";
@@ -44,10 +45,14 @@ function collectPlannerSnapshot(): PlannerSnapshot {
   for (const key of progressEvidenceKeys) evidenceMap[key] = readLearningEvidence(window.localStorage, key);
 
   const reasoning = readLearningEvidence(window.localStorage, REASONING_EVIDENCE_KEY);
-  const recentExerciseIds = Object.entries(reasoning?.reasoning?.byExercise ?? {})
+  const attemptHistory = readReasoningAttemptHistory(window.localStorage);
+  const latestAttemptIds = [...attemptHistory.entries]
+    .sort((a, b) => b.finalizedAt.localeCompare(a.finalizedAt))
+    .map((entry) => entry.exerciseId);
+  const latestNotebookIds = Object.entries(reasoning?.reasoning?.byExercise ?? {})
     .sort(([, a], [, b]) => b.updatedAt.localeCompare(a.updatedAt))
-    .map(([exerciseId]) => exerciseId)
-    .slice(0, 10);
+    .map(([exerciseId]) => exerciseId);
+  const recentExerciseIds = Array.from(new Set([...latestAttemptIds, ...latestNotebookIds])).slice(0, 10);
 
   const atlasRecognition = readLearningEvidence(window.localStorage, ATLAS_RECOGNITION_KEY);
   const missedExerciseIds = atlasRecognition?.recognition?.recentMissedScenarioIds ?? [];
@@ -59,6 +64,7 @@ function collectPlannerSnapshot(): PlannerSnapshot {
   const calibration = buildDifficultyCalibrationProfile(readDifficultyCalibrationHistory(window.localStorage));
   const independence = buildProblemIndependenceProfile({
     reasoning: reasoning?.reasoning,
+    reasoningAttempts: attemptHistory,
     recommendationHistory,
     recognitionHistory: readProblemRecognitionHistory(window.localStorage),
   });
@@ -124,7 +130,7 @@ export function NextProblemPlanner() {
   }
 
   if (!snapshot) {
-    return <div className="next-problem__loading">Reading mastery, friction, calibration, independence, transfer misses, and recent practice from this browser…</div>;
+    return <div className="next-problem__loading">Reading mastery, friction, calibration, attempt history, independence, transfer misses, and recent practice from this browser…</div>;
   }
 
   if (!primary) {
@@ -201,7 +207,7 @@ export function NextProblemPlanner() {
           <span className="eyebrow">Why this problem?</span>
           <p>
             The planner does not recommend the globally “best” exercise. It chooses a useful next attempt from your local
-            evidence: weakest learning dimension, repeated help requests, calibrated difficulty, problem-level independence,
+            evidence: weakest learning dimension, repeated help requests, calibrated difficulty, best-ever problem independence,
             recent blind misses, and source/domain/family diversity.
           </p>
           <button className="atlas-reset" type="button" onClick={() => setMix((value) => value + 1)}>show a different mix</button>
@@ -244,8 +250,8 @@ export function NextProblemPlanner() {
         <p>
           AgoCode shows the signals behind every recommendation and keeps the scoring deterministic. Friction is used as a routing
           clue, not as a penalty; self-authored notebook confidence is not treated as mastery; difficulty ratings only affect
-          sequencing after they are cross-checked against recorded attempt evidence; problem-level states require observable
-          support removal, transfer, or delayed recognition; and already recalled problems are down-weighted instead of repeated immediately.
+          sequencing after they are cross-checked against recorded attempt evidence; problem-level states are derived from the
+          strongest finalized attempt, so a later weak retry remains diagnostically visible without erasing independence already proved.
         </p>
         <div className="action-row">
           <Link className="button" href="/progress">Inspect your evidence →</Link>

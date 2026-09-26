@@ -26,10 +26,14 @@ export function DiagnosticAssessment() {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    const state = readDiagnosticState(window.localStorage);
-    setActive(state.active ?? null);
-    setLatest(getLatestDiagnosticResult(state));
-    setHydrated(true);
+    const hydrate = () => {
+      const state = readDiagnosticState(window.localStorage);
+      setActive(state.active ?? null);
+      setLatest(getLatestDiagnosticResult(state));
+      setHydrated(true);
+    };
+    const timer = window.setTimeout(hydrate, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   const currentIndex = useMemo(() => {

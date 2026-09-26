@@ -8,6 +8,12 @@ const tests: PythonTestCase[] = [
   { label: "handles an empty array", args: [[], 9], expected: null },
 ];
 
+const hiddenTests: PythonTestCase[] = [
+  { label: "hidden: finds a negative interior value", args: [[-12, -7, -1, 4, 15], -7], expected: 1 },
+  { label: "hidden: finds the final boundary", args: [[2, 6, 10, 14], 14], expected: 3 },
+  { label: "hidden: rejects a target above the range", args: [[1, 2, 3], 9], expected: null },
+];
+
 const guidedStarterCode = `def binary_search(nums, target):
     # Rebuild the algorithm from the invariant:
     # if target exists, it must stay inside the candidate interval.
@@ -48,11 +54,12 @@ export function BinarySearchRebuild({ mode = "guided" }: BinarySearchRebuildProp
       functionName="binary_search"
       starterCode={blank ? blankStarterCode : guidedStarterCode}
       tests={tests}
+      hiddenTests={hiddenTests}
       hints={hints}
       successMessage={
         blank
           ? "You rebuilt the core algorithm from a blank implementation surface."
-          : "You rebuilt the core algorithm against edge cases."
+          : "You rebuilt the core algorithm against visible and hidden edge cases."
       }
       storageKey={
         blank

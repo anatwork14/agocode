@@ -242,3 +242,38 @@ test("learning-system audit derives recommendation and diagnostic signals withou
   await expect(page.getByText("Experimental running-time study", { exact: true }).last()).toBeVisible();
   expect(await readAgoCodeStorage(page)).toEqual(seededState);
 });
+
+test("adaptive planner snapshots the visible rationale inside existing recommendation history", async ({ page }) => {
+  await page.goto("/practice/next");
+
+  const hero = page.locator(".next-problem__hero");
+  const chooseButton = hero.getByRole("button", { name: /I'll solve this/ });
+  await expect(chooseButton).toBeVisible();
+
+  const reasons = await hero.locator(".next-problem__reasons li").allTextContents();
+  expect(reasons.length).toBeGreaterThan(0);
+
+  await chooseButton.click();
+  await expect(page).toHaveURL(/\/exercises\/[^/]+$/);
+
+  const exerciseId = new URL(page.url()).pathname.split("/").pop();
+  expect(exerciseId).toBeTruthy();
+
+  const storedBeforeReload = await page.evaluate((key) => localStorage.getItem(key), RECOMMENDATION_HISTORY_KEY);
+  expect(storedBeforeReload).not.toBeNull();
+
+  const history = JSON.parse(storedBeforeReload ?? "null");
+  const last = history.entries.at(-1);
+  expect(last.exerciseId).toBe(exerciseId);
+  expect(last.reasons).toEqual(reasons);
+  expect(typeof last.targetDimension).toBe("string");
+  expect(typeof last.score).toBe("number");
+  expect(typeof last.familyId).toBe("string");
+
+  const separatePolicyState = await page.evaluate(() => localStorage.getItem("agocode.progress.recommendation-policy"));
+  expect(separatePolicyState).toBeNull();
+
+  await page.reload();
+  const storedAfterReload = await page.evaluate((key) => localStorage.getItem(key), RECOMMENDATION_HISTORY_KEY);
+  expect(storedAfterReload).toBe(storedBeforeReload);
+});

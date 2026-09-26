@@ -28,7 +28,7 @@ function requireTextList(values, label) {
 
 requireUnique(syllabusTracks.map((track) => track.id), "syllabus tracks");
 const syllabusModules = syllabusTracks.flatMap((track) => track.modules);
-requireUnique(syllabusModules.map((module) => module.id), "syllabus modules");
+requireUnique(syllabusModules.map((syllabusModule) => syllabusModule.id), "syllabus modules");
 
 for (const track of syllabusTracks) {
   requireText(track.id, "syllabus track id");
@@ -37,15 +37,15 @@ for (const track of syllabusTracks) {
   requireText(track.purpose, `syllabus track ${track.id} purpose`);
   if (!track.modules.length) errors.push(`syllabus track ${track.id} must contain modules.`);
 
-  for (const module of track.modules) {
-    requireText(module.id, `syllabus module id in ${track.id}`);
-    requireText(module.title, `syllabus module ${module.id} title`);
-    requireText(module.question, `syllabus module ${module.id} question`);
-    requireTextList(module.outcomes, `syllabus module ${module.id} outcomes`);
-    requireTextList(module.topics, `syllabus module ${module.id} topics`);
-    requireTextList(module.sources, `syllabus module ${module.id} sources`);
-    if (module.route && !module.route.startsWith("/")) {
-      errors.push(`syllabus module ${module.id} route must be an internal absolute path.`);
+  for (const syllabusModule of track.modules) {
+    requireText(syllabusModule.id, `syllabus module id in ${track.id}`);
+    requireText(syllabusModule.title, `syllabus module ${syllabusModule.id} title`);
+    requireText(syllabusModule.question, `syllabus module ${syllabusModule.id} question`);
+    requireTextList(syllabusModule.outcomes, `syllabus module ${syllabusModule.id} outcomes`);
+    requireTextList(syllabusModule.topics, `syllabus module ${syllabusModule.id} topics`);
+    requireTextList(syllabusModule.sources, `syllabus module ${syllabusModule.id} sources`);
+    if (syllabusModule.route && !syllabusModule.route.startsWith("/")) {
+      errors.push(`syllabus module ${syllabusModule.id} route must be an internal absolute path.`);
     }
   }
 }

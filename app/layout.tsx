@@ -35,6 +35,7 @@ import "./practice-progression.css";
 import "./solve.css";
 import "./adt-workbench.css";
 import "./invariant-workbench.css";
+import "./invariant-draft.css";
 import "./amortization-workbench.css";
 import "./graph-modeling-workbench.css";
 import "./dp-state-workbench.css";

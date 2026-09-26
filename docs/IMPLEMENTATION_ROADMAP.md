@@ -214,6 +214,9 @@ Reinforce → Create → Build → Recognize → Vary → Retrieve
 - [x] Mixed no-label recognition.
 - [x] Delayed retrieval.
 - [x] Learner-specific mixed sessions based on weak evidence and missed structural families.
+- [x] Stable daily adaptive session frozen per local calendar day in versioned browser `localStorage`, with same-day resume, explicit regeneration, and bounded 30-session local history.
+- [x] Role-specific objective session contracts automatically clear rows only from fresh post-entry evidence; stale evidence and merely opening a page cannot satisfy the plan.
+- [x] Manual session clearing remains a workflow override, is reported separately from objective completion, and never creates mastery evidence.
 - [x] Cross-topic model-selection practice.
 - [x] Adaptive difficulty calibration with evidence-aware raise / hold / soften behavior.
 - [x] Planner diversity across source, domain, and structural family.
@@ -234,6 +237,7 @@ Reinforce → Create → Build → Recognize → Vary → Retrieve
 - [x] Problem-level seen/guided/solved/independent/transferred/recalled states.
 - [x] Attempt history, strongest-vs-latest evidence, support reduction, and regression visibility.
 - [x] Stage-aware design-skill profile.
+- [x] Daily-session history distinguishes objective completion, manual workflow clearing, and skipped work without folding those counts into mastery.
 - [x] Local bookmarks/custom review sets.
 - [x] Evidence export/import and reset/portability controls.
 
@@ -270,6 +274,8 @@ Hidden coding checks are a pedagogical UI boundary, **not a security boundary**.
 ## 10. Current implementation boundary
 
 At this reconciliation there is **no known unfinished repository-local milestone from the previous roadmap**. New product work should therefore begin from a new validated learning need rather than reopening stale checkboxes.
+
+The current product intentionally remains **browser-local and offline-capable** for learner evidence, daily-session orchestration, bookmarks, custom sets, and portability. An account is not required for the completed learning loop.
 
 The following items are intentionally external/infrastructure-dependent and remain outside repository-local completion:
 

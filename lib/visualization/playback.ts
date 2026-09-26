@@ -1,4 +1,4 @@
-import { designTokens } from "@/lib/ui/tokens";
+import { designTokens } from "../ui/tokens.ts";
 
 export type PlaybackSpeedId = "slow" | "normal" | "fast";
 

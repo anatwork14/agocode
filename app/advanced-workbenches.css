@@ -1,0 +1,128 @@
+.advanced-workbench {
+  display: grid;
+  gap: 28px;
+}
+
+.advanced-workbench__panel {
+  display: grid;
+  gap: 16px;
+  padding: 24px 0;
+  border-top: 1px solid var(--ink);
+}
+
+.advanced-workbench__panel h2 {
+  margin: 0;
+  max-width: 900px;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 1.7rem;
+}
+
+.advanced-workbench__panel p,
+.advanced-rule-card span,
+.advanced-comparison__row span,
+.advanced-comparison__row small {
+  color: var(--ink-secondary);
+  line-height: 1.55;
+}
+
+.advanced-workbench__sliders { display: grid; gap: 8px; }
+.advanced-workbench__sliders label {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(160px, 1fr) 36px;
+  gap: 14px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.advanced-workbench__sliders label > div { display: grid; gap: 2px; }
+.advanced-workbench__sliders label span { color: var(--muted); font-size: .76rem; }
+.advanced-workbench__sliders output { text-align: right; }
+.advanced-workbench__sizes,
+.advanced-workbench__tabs,
+.advanced-workbench__prediction { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.advanced-rule-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.advanced-rule-card {
+  display: grid;
+  gap: 7px;
+  min-height: 130px;
+  padding: 16px;
+  text-align: left;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+}
+.advanced-rule-card:hover { border-color: var(--ink); }
+.advanced-rule-card--selected { border: 2px solid var(--accent); }
+.advanced-rule-card span { font-size: .8rem; }
+
+.advanced-comparison { display: grid; gap: 10px; }
+.advanced-comparison__row {
+  display: grid;
+  grid-template-columns: minmax(180px, .7fr) minmax(280px, 1.3fr) minmax(120px, .5fr);
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+.advanced-comparison__row--best { border-color: var(--accent); }
+.advanced-comparison__row > div:first-child { display: grid; gap: 4px; }
+.advanced-comparison__costs { display: flex; flex-wrap: wrap; gap: 6px 12px; align-content: start; }
+.advanced-comparison__costs span { font-size: .64rem; }
+.advanced-comparison__bar { align-self: center; height: 7px; background: var(--border); overflow: hidden; }
+.advanced-comparison__bar span { display: block; height: 100%; background: var(--accent); }
+.advanced-comparison__row small,
+.advanced-comparison__row p { grid-column: 1 / -1; margin: 0; }
+
+.advanced-workbench__takeaway,
+.advanced-verdict,
+.advanced-workbench__story,
+.advanced-workbench__search-results {
+  display: grid;
+  gap: 7px;
+  padding: 16px 18px;
+  border-left: 3px solid var(--accent);
+  background: var(--surface);
+}
+.advanced-verdict { border-left-color: var(--ink); }
+.advanced-verdict--valid { border-left-color: var(--accent); }
+.advanced-workbench__story p,
+.advanced-workbench__takeaway p,
+.advanced-verdict p { margin: 0; }
+
+.advanced-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.advanced-metrics > div { display: grid; gap: 4px; padding: 14px; border-right: 1px solid var(--border); }
+.advanced-metrics > div:first-child { padding-left: 0; }
+.advanced-metrics > div:last-child { border-right: 0; }
+.advanced-metrics span { color: var(--muted); font-size: .66rem; text-transform: uppercase; letter-spacing: .05em; }
+.advanced-metrics strong { font-family: var(--font-editorial), Georgia, serif; font-size: 1.45rem; }
+.advanced-workbench__search-results { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.advanced-workbench__search-results > div { display: grid; gap: 5px; }
+.advanced-workbench__search-results .mono { color: var(--muted); font-size: .62rem; }
+
+@media (max-width: 820px) {
+  .advanced-rule-grid,
+  .advanced-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .advanced-comparison__row { grid-template-columns: 1fr; }
+  .advanced-comparison__row small,
+  .advanced-comparison__row p { grid-column: auto; }
+}
+
+@media (max-width: 620px) {
+  .advanced-rule-grid,
+  .advanced-metrics,
+  .advanced-workbench__search-results { grid-template-columns: 1fr; }
+  .advanced-workbench__sliders label { grid-template-columns: 1fr 48px; }
+  .advanced-workbench__sliders label > div { grid-column: 1 / -1; }
+}

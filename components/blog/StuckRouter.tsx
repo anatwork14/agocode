@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { diagnosticPatterns } from "@/lib/knowledge/diagnostic-patterns";
 import { stuckDiagnoses, type StuckStateId } from "@/lib/knowledge/stuck-router";
 
 const actionOrder = { read: 0, workbench: 1, workspace: 2, practice: 3 } as const;
@@ -17,6 +18,7 @@ export function StuckRouter({ returnHref, returnLabel = "Return to the current p
     () => stuckDiagnoses.find((item) => item.id === selectedId) ?? null,
     [selectedId],
   );
+  const relatedPatterns = selected ? diagnosticPatterns[selected.id] : [];
 
   return (
     <section className="stuck-router" id="diagnose" aria-labelledby="stuck-router-title">
@@ -26,8 +28,8 @@ export function StuckRouter({ returnHref, returnLabel = "Return to the current p
           <h2 id="stuck-router-title">Where exactly are you stuck?</h2>
           <p>
             Do not ask AgoCode for a technique before you know what kind of obstacle you have. Choose the sentence that
-            best describes the current failure. The router sends you to a question set, a workbench, and a transfer task
-            chosen for that obstacle.
+            best describes the current failure. The router sends you to a question set, a workbench, structural families,
+            and transfer practice chosen for that obstacle.
           </p>
         </div>
         <div className="stuck-router__rule">
@@ -85,6 +87,19 @@ export function StuckRouter({ returnHref, returnLabel = "Return to the current p
                   <span aria-hidden="true">→</span>
                 </Link>
               ))}
+
+            <div className="stuck-router__patterns">
+              <span className="mono">RELATED STRUCTURAL FAMILIES</span>
+              {relatedPatterns.map((pattern) => (
+                <Link href={`/patterns/${pattern.id}`} key={pattern.id}>
+                  <strong>{pattern.label}</strong><span aria-hidden="true">→</span>
+                </Link>
+              ))}
+              <Link href="/patterns">
+                <strong>Browse all 16 families</strong><span aria-hidden="true">→</span>
+              </Link>
+            </div>
+
             {returnHref ? (
               <Link className="stuck-router__return" href={returnHref}>
                 <span className="mono">RETURN</span>

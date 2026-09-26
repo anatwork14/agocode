@@ -8,6 +8,7 @@ import type { ProblemIndependenceState } from "./independence.ts";
 import type { MasterySnapshot } from "./mastery.ts";
 import type { EvidenceDimension } from "./progressCatalog.ts";
 import { getMostFrequentObstacles, type ObstacleEvidence } from "./obstacles.ts";
+import type { ProblemReviewStatus } from "./problem-review.ts";
 
 export const RECOMMENDATION_HISTORY_KEY = "agocode.progress.next-problem-history";
 
@@ -29,6 +30,7 @@ export type AdaptiveRecommendationInput = {
   recommendationHistoryIds?: readonly string[];
   difficultyCalibration?: DifficultyCalibrationProfile | null;
   problemIndependence?: Record<string, ProblemIndependenceState>;
+  problemReview?: Record<string, ProblemReviewStatus>;
   limit?: number;
   seed?: string;
 };
@@ -150,6 +152,8 @@ function scoreCandidate(
   const calibrationBias = input.difficultyCalibration?.bias ?? 0;
   const calibratedLevel = getCalibratedTargetLevel(input.mastery.overall, calibrationBias);
   const independence = input.problemIndependence?.[item.exercise.id];
+  const review = input.problemReview?.[item.exercise.id];
+  const retrievalDue = review?.dueState === "due" || review?.dueState === "overdue";
   let score = 20;
 
   score += candidateKindScore(item.exercise, targetDimension);
@@ -168,15 +172,28 @@ function scoreCandidate(
     score += 15;
     reasons.push("retries a solved problem without support to establish independence");
   } else if (independence?.stage === "independent") {
-    score += targetDimension === "recall" ? 5 : -3;
+    score += targetDimension === "recall" && retrievalDue ? 7 : -3;
   } else if (independence?.stage === "transferred") {
-    score += targetDimension === "recall" ? 10 : -8;
-    if (targetDimension === "recall") reasons.push("is ready for delayed structural retrieval");
+    score += targetDimension === "recall" && retrievalDue ? 12 : -8;
+    if (targetDimension === "recall" && retrievalDue) reasons.push("is ready for delayed structural retrieval");
   } else if (independence?.stage === "recalled") {
-    score -= 20;
+    score += retrievalDue ? 4 : -20;
   } else if (!independence && targetDimension === "transfer" && independentFamilies.has(item.family.id)) {
     score += 12;
     reasons.push("changes the surface story within a family already solved independently");
+  }
+
+  if (review?.dueState === "overdue") {
+    score += 24;
+    reasons.push("retrieval evidence is overdue");
+  } else if (review?.dueState === "due") {
+    score += 18;
+    reasons.push("the spacing interval says retrieval is due now");
+  } else if (review?.dueState === "due-soon") {
+    score += targetDimension === "recall" ? 8 : 3;
+    if (targetDimension === "recall") reasons.push("approaches its next retrieval window");
+  } else if (review?.dueState === "fresh" && targetDimension === "recall") {
+    score -= 8;
   }
 
   if (dimensionFamilyAffinity[targetDimension].includes(item.family.id)) {
@@ -202,11 +219,11 @@ function scoreCandidate(
   }
 
   const wasRecent = recentIds.has(item.exercise.id);
-  if (targetDimension === "recall" && wasRecent) {
+  if (targetDimension === "recall" && wasRecent && !review) {
     score += 13;
     reasons.push("retrieves a recently studied problem from memory");
   } else if (wasRecent) {
-    score -= 14;
+    score -= targetDimension === "recall" ? 6 : 14;
   }
 
   if (historyIds.has(item.exercise.id)) score -= 12;

@@ -1,4 +1,36 @@
+import type { SemanticCodeLine } from "@/lib/visualization/code-sync";
 import type { ArrayTraceFrame, TracePrediction } from "@/lib/visualization/types";
+
+export type BinarySearchCodeLineId =
+  | "signature"
+  | "init-low"
+  | "init-high"
+  | "loop"
+  | "choose-mid"
+  | "read-guess"
+  | "compare-target"
+  | "return-found"
+  | "compare-high"
+  | "discard-right"
+  | "else-low"
+  | "discard-left"
+  | "return-missing";
+
+export const binarySearchCodeLines: readonly SemanticCodeLine<BinarySearchCodeLineId>[] = [
+  { id: "signature", text: "def binary_search(nums, target):" },
+  { id: "init-low", text: "    low = 0" },
+  { id: "init-high", text: "    high = len(nums) - 1" },
+  { id: "loop", text: "    while low <= high:" },
+  { id: "choose-mid", text: "        mid = (low + high) // 2" },
+  { id: "read-guess", text: "        guess = nums[mid]" },
+  { id: "compare-target", text: "        if guess == target:" },
+  { id: "return-found", text: "            return mid" },
+  { id: "compare-high", text: "        if guess > target:" },
+  { id: "discard-right", text: "            high = mid - 1" },
+  { id: "else-low", text: "        else:" },
+  { id: "discard-left", text: "            low = mid + 1" },
+  { id: "return-missing", text: "    return None" },
+] as const;
 
 function predictionFor(guess: number, target: number): TracePrediction {
   const relation = guess === target ? "equal" : guess > target ? "high" : "low";
@@ -21,10 +53,13 @@ function predictionFor(guess: number, target: number): TracePrediction {
   };
 }
 
-export function buildBinarySearchTrace(values: number[], target: number): ArrayTraceFrame[] {
+export function buildBinarySearchTrace(
+  values: number[],
+  target: number,
+): ArrayTraceFrame<BinarySearchCodeLineId>[] {
   if (!values.length) return [];
 
-  const frames: ArrayTraceFrame[] = [];
+  const frames: ArrayTraceFrame<BinarySearchCodeLineId>[] = [];
   let low = 0;
   let high = values.length - 1;
 
@@ -33,7 +68,7 @@ export function buildBinarySearchTrace(values: number[], target: number): ArrayT
     low,
     high,
     mid: null,
-    activeLine: 2,
+    activeCodeLineId: "init-low",
     note: "Begin with the whole sorted array as the candidate interval.",
   });
 
@@ -47,7 +82,7 @@ export function buildBinarySearchTrace(values: number[], target: number): ArrayT
       low,
       high,
       mid,
-      activeLine: 5,
+      activeCodeLineId: "choose-mid",
       note: "Choose the midpoint of the current candidate interval.",
     });
 
@@ -56,7 +91,7 @@ export function buildBinarySearchTrace(values: number[], target: number): ArrayT
       low,
       high,
       mid,
-      activeLine: 7,
+      activeCodeLineId: "compare-target",
       comparison: `${guess} ${operator} ${target}`,
       note:
         guess === target
@@ -74,7 +109,7 @@ export function buildBinarySearchTrace(values: number[], target: number): ArrayT
         low,
         high,
         mid,
-        activeLine: 8,
+        activeCodeLineId: "return-found",
         comparison: `return ${mid}`,
         note: "Return the position. The search is complete.",
         found: true,
@@ -89,7 +124,7 @@ export function buildBinarySearchTrace(values: number[], target: number): ArrayT
         low,
         high,
         mid: null,
-        activeLine: 10,
+        activeCodeLineId: "discard-right",
         note: "Discard the midpoint and everything to its right. Move high to mid - 1.",
       });
     } else {
@@ -99,7 +134,7 @@ export function buildBinarySearchTrace(values: number[], target: number): ArrayT
         low,
         high,
         mid: null,
-        activeLine: 12,
+        activeCodeLineId: "discard-left",
         note: "Discard the midpoint and everything to its left. Move low to mid + 1.",
       });
     }
@@ -110,7 +145,7 @@ export function buildBinarySearchTrace(values: number[], target: number): ArrayT
     low,
     high,
     mid: null,
-    activeLine: 13,
+    activeCodeLineId: "return-missing",
     comparison: "return None",
     note: "The candidate interval is empty, so the target is not present.",
   });

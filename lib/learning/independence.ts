@@ -1,6 +1,7 @@
 import { classifiedAtlasExercises } from "../practice/atlas-recognition.ts";
 import type { ReasoningEvidence, StorageLike } from "./evidence.ts";
 import type { RecommendationHistory } from "./recommendations.ts";
+import { buildMonotonicReasoningEvidence, type ReasoningAttemptHistory } from "./reasoning-attempts.ts";
 
 export const PROBLEM_RECOGNITION_HISTORY_KEY = "agocode.progress.problem-recognition-history";
 
@@ -41,6 +42,7 @@ export type ProblemIndependenceProfile = {
 
 type BuildProblemIndependenceInput = {
   reasoning?: ReasoningEvidence;
+  reasoningAttempts?: ReasoningAttemptHistory | null;
   recommendationHistory?: RecommendationHistory | null;
   recognitionHistory?: ProblemRecognitionHistory | null;
   recallDelayMs?: number;
@@ -132,7 +134,10 @@ function stageState(
 }
 
 export function buildProblemIndependenceProfile(input: BuildProblemIndependenceInput): ProblemIndependenceProfile {
-  const reasoningByExercise = input.reasoning?.byExercise ?? {};
+  const reasoningByExercise = buildMonotonicReasoningEvidence(
+    input.reasoningAttempts ?? { version: 1, entries: [] },
+    input.reasoning,
+  )?.byExercise ?? {};
   const recommendations = input.recommendationHistory?.entries ?? [];
   const recognitionEntries = input.recognitionHistory?.entries ?? [];
   const recallDelayMs = Math.max(0, input.recallDelayMs ?? DEFAULT_RECALL_DELAY_MS);

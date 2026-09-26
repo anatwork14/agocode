@@ -151,7 +151,8 @@
   border-bottom: 1px solid var(--border);
 }
 
-.stuck-router__action {
+.stuck-router__action,
+.stuck-router__return {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 4px 16px;
@@ -160,7 +161,8 @@
   color: var(--ink);
 }
 
-.stuck-router__action .mono {
+.stuck-router__action .mono,
+.stuck-router__return .mono {
   grid-column: 1 / -1;
   color: var(--muted);
   font-size: .58rem;
@@ -168,11 +170,23 @@
   text-transform: uppercase;
 }
 
-.stuck-router__action strong {
+.stuck-router__action strong,
+.stuck-router__return strong {
   font-size: .86rem;
 }
 
-.stuck-router__action:hover strong {
+.stuck-router__action:hover strong,
+.stuck-router__return:hover strong {
+  color: var(--accent);
+}
+
+.stuck-router__return {
+  margin-top: 10px;
+  border-top: 1px solid var(--ink);
+  border-bottom-color: var(--ink);
+}
+
+.stuck-router__return .mono {
   color: var(--accent);
 }
 

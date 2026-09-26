@@ -1,72 +1,213 @@
 # AgoCode
 
-AgoCode is a visual-first algorithm learning platform designed to help learners **understand algorithms, model unfamiliar problems, re-implement mechanisms from memory, and transfer that understanding to new contexts**.
+AgoCode is a visual-first algorithm learning platform for **understanding algorithms, modeling unfamiliar problems, rebuilding mechanisms from memory, and transferring that understanding across contexts**.
 
-The original Book Track follows the pedagogical progression of *Grokking Algorithms*. The broader AgoCode syllabus combines that visual-first path with original learning structures synthesized from *Data Structures & Algorithms in Python* (Goodrich, Tamassia, Goldwasser), *Elements of Programming Interviews in Python* (Aziz, Lee, Prakash), and *The Algorithm Design Manual* (Skiena).
+The original Book Track follows the pedagogical progression of *Grokking Algorithms*. The broader syllabus synthesizes teaching perspectives from *Data Structures & Algorithms in Python* (Goodrich, Tamassia, Goldwasser), *Elements of Programming Interviews in Python* (Aziz, Lee, Prakash), and *The Algorithm Design Manual* (Skiena) into original AgoCode lessons, workbenches, problem families, reasoning tools, and practice systems.
 
-AgoCode does **not** reproduce those books. It transforms their teaching perspectives into original interactive lessons, field notes, reasoning notebooks, visualizations, design tools, workbenches, case studies, and transfer practice.
+AgoCode does **not** reproduce those books. Source material is used for pedagogy, provenance, terminology, and canonical problem names while AgoCode creates original explanations, examples, interactions, tests, hints, and visuals.
 
 ## Product principle
 
+Problem-solving loop:
+
 > Understand → Model → Baseline → Transform → Choose structure → Prove → Analyze → Implement → Vary → Recall
 
-The shorter mastery loop remains:
+Mastery loop:
 
 > Understand → Predict → Trace → Rebuild → Explain → Transfer → Recall
 
-## What is implemented
+The platform is intentionally evidence-first: confidence, ratings, recommendation clicks, and elapsed time do not become mastery by themselves.
 
-- Next.js + React + TypeScript application foundation
-- paper / ink / editorial-red visual system and SVG-first AgoCode brand
-- responsive Book / Syllabus / Lab / Problems / Solve / Ways / Casebook / Review / Progress experiences
-- interactive learning slices across all 11 original Book Track chapters
-- deterministic traces and reusable array, stack, queue, graph, weighted-graph, table, grid, and state-inspector primitives
-- in-browser Python execution in a Web Worker with timeout protection, tests, stdout/stderr, progressive hints, and Python-friendly indentation
-- Transfer Track with direct coding challenges and no-label mixed recognition
-- local evidence for coding attempts, hint use, prediction, explanation, recognition, and delayed recall
-- seven-dimension mastery model: Understand / Trace / Predict / Rebuild / Explain / Transfer / Recall
-- adaptive review scheduling based on actual recall outcomes
-- **Expanded Syllabus**: 10 connected tracks covering analysis/correctness, ADTs and representations, trees/heaps/search structures, sorting/search/text, recursive search, graph modeling, optimization/hardness, problem-solving method, and algorithm engineering
-- syllabus modules route into relevant design labs so the broader map is increasingly executable rather than static
-- **Practice progression**: Reinforce → Create → Build → Recognize → Vary → Retrieve
-- **Ways of Solving**: 12 original field notes about modeling, brute force, invariants, sorting as a transformation, ADT choice, special cases, repertoire, variants, complexity, and design logs
-- **Algorithm Design Casebook**: original progressive-reveal application stories that preserve raw request → baseline → model → rejected approach → pivot → design → verification → postmortem
-- **Canonical Problem Atlas**: 400+ named, source-aware entries with search/filtering, blind recognition, randomized “Surprise me” practice, and an original AgoCode reasoning lens
-- **Complete Goodrich source-workbook index**: 758 numbered `R`, `C`, and `P` references from the supplied PDF across Chapters 1–15, each routed to an AgoCode reasoning workspace without reproducing the copyrighted prompt
-- **EPI source coverage**: named problem/design coverage across every problem chapter 4–24 in the supplied edition
-- **Skiena source coverage**: all 75 catalog problems represented across data structures, numerical, combinatorial, graph, geometry, set, and string sections
-- source-coverage tests lock those boundaries so later refactors cannot silently remove major source areas
-- per-problem **persistent Reasoning Notebook**: understand, tiny/extreme cases, baseline, named waste, strategy, invariant, cost, and variant; autosaved locally with progressive structural hints
-- Goodrich `P` references additionally open a persistent **Project Workspace** for interfaces, invariants, milestones, tests, complexity budgets, experiments, failure logs, and transfer retrospectives
-- open-ended **Design a Solution** workspace for arbitrary problems that are not already in the atlas, including exact-vs-approximate requirements, scale, model candidates, special cases, candidate paradigms, invariants, and a “no, because…” rejection log
-- **ADT Representation Workbench**: keep the abstract contract fixed, vary operation frequencies and collection size, then compare representation trade-offs
-- **Invariant Workbench**: choose a correctness claim, defend initialization / preservation / termination, inspect state transitions, break weak claims with counterexamples, and rewrite the invariant for a transfer variant
-- **Amortization Workbench**: compare dynamic-array capacity rules, inspect expensive resize spikes, measure cumulative average work, and contrast geometric growth with fixed-increment growth
-- **Graph Modeling Workbench**: turn application stories into vertices, edges, direction, weights, and objectives before choosing a graph algorithm
-- **DP State Design Workbench**: define subproblem meaning, dimensions, dependencies, and base cases before revealing a recurrence
-- **Input Transformation Workbench**: compare sorting, hashing, heaps, and staged preprocessing by the relation they expose and the waste they remove
-- **Special-Case Ladder**: solve a restricted problem, remove one assumption, identify the failed proof/structure, then add only the machinery the general case requires
-- **Optimization Strategy Workbench**: compare exact, bounded-approximation, and heuristic strategies against quality requirements, scale, assumptions, and tiny exact oracles
-- CI gates for typecheck, tests, lint, and production build
+## Core v1 status
 
-## Knowledge architecture
+The deterministic local-first learning loop is complete end-to-end:
 
-AgoCode separates six complementary views:
+```text
+Learn
+  ↓
+Predict / trace / rebuild
+  ↓
+Reason and finalize attempts
+  ↓
+Solve independently
+  ↓
+Transfer across surface changes
+  ↓
+Retrieve after delay
+  ↓
+Objective evidence updates spacing
+  ↓
+Adaptive next problem / mixed session
+  ↺
+```
 
-1. **Book Track** — guided visual intuition in a deliberate chapter order.
-2. **Expanded Syllabus** — a dependency and perspective map across the broader DSA curriculum.
-3. **Problem Atlas** — a repertoire of canonical problem names and families for recognition and transfer.
-4. **Ways of Solving** — reusable problem-solving questions for the moment before the technique is obvious.
-5. **Design Workspace** — a blank problem-solving canvas for turning a new problem into explicit models, baselines, trade-offs, and proof obligations.
-6. **Algorithm Design Casebook** — original application stories that preserve the reasoning path normally erased by a polished final solution.
+### Learning and knowledge architecture
 
-The Lab layer cuts across these views. Trace labs make algorithm state inspectable; design workbenches make representation choices, correctness arguments, amortized cost, graph models, DP state, input transformations, special-case generalization, and hard-optimization trade-offs inspectable.
+- complete 11-chapter visual-first Book Track
+- expanded 10-track syllabus with concrete routes for every module
+- prerequisite/dependency syllabus map
+- 12 original Ways of Solving field notes
+- 400+ source-aware canonical problem entries
+- complete Goodrich `R/C/P` reference index from the supplied edition
+- broad EPI and Skiena canonical problem coverage
+- cross-source structural-family pages and related-problem links
+- copyright-safe source indexing without republishing full prompts or published solutions
 
-This prevents the product from collapsing into a static textbook, an animation gallery, or a random problem list.
+### Interactive runtime
+
+- deterministic semantic traces
+- forward/backward timeline navigation and prediction gates
+- reusable array, stack, queue, graph, weighted-graph, table, grid, and inspector renderers
+- formalized renderer contracts for reusable visualizations
+- in-browser Python execution in a Web Worker
+- timeout protection and worker restart
+- stdout/stderr capture
+- visible and hidden test separation
+- progressive hints, reconstruction, and bug-repair exercises
+
+### Algorithm-design workbenches
+
+- ADT Representation
+- Invariant, including learner-authored claims and graph/Dijkstra scenarios
+- Amortization, including grow/shrink hysteresis
+- Graph Modeling
+- DP State Design
+- Priority Queue / Heap trade-offs
+- Backtracking & Pruning
+- Greedy Counterexample
+- Input Transformation
+- Special-Case Ladder
+- Optimization Strategy
+
+These workbenches train the decision or proof obligation **before** an algorithm name becomes obvious.
+
+### Problem-solving workspaces
+
+Per-problem Reasoning Notebook:
+
+- understand the problem
+- solve tiny/extreme cases
+- establish a baseline
+- name the waste
+- choose a strategy/model
+- write an invariant
+- analyze real cost
+- vary one assumption
+- reveal a structural lens only after baseline work
+- record structured rejected approaches
+- finalize immutable attempt snapshots
+
+Open **Design a Solution** workspace:
+
+- arbitrary problem descriptions
+- exact vs approximate requirement
+- scale and constraints
+- candidate models/paradigms
+- rejection log
+- invariant/correctness claim
+- complexity budget
+- test-case scratchpad
+- named saved sessions
+- Markdown export
+
+### Practice system
+
+Practice progressively removes scaffolding:
+
+> Reinforce → Create → Build → Recognize → Vary → Retrieve
+
+Implemented modes include:
+
+- source-workbook reinforcement
+- canonical reasoning notebooks
+- direct transfer exercises
+- reconstruction and repair
+- blind/no-label Atlas recognition
+- model-first variant practice
+- adaptive mixed sessions
+- deterministic adaptive next-problem planning
+
+The planner combines weakest mastery dimension, repeated friction, difficulty calibration, finalized attempt history, problem independence, retrieval freshness, blind-recognition misses, and source/domain/family diversity. Every recommendation exposes reasons rather than hiding them behind an opaque score.
+
+### Attempt history and problem independence
+
+Finalized reasoning attempts are stored separately from the editable notebook.
+
+AgoCode derives a monotonic evidence ladder:
+
+> Seen → Guided → Solved → Independent → Transferred → Recalled
+
+Key boundaries:
+
+- later weak retries remain diagnostic but do not erase stronger prior proof;
+- independence requires substantial completed reasoning without the structural lens;
+- transfer requires an independently solved structural neighbor across a changed source or domain;
+- recall requires delayed first-try blind structural recognition;
+- self-confidence and difficulty ratings never advance this ladder alone.
+
+Attempt summaries expose latest vs best attempt, support removal, attempts-to-independence, time-to-independence, and below-peak retries.
+
+### Retrieval scheduling
+
+Historical proof and memory freshness are separate:
+
+```text
+proof:      Independent → Transferred → Recalled
+freshness:  Fresh → Due soon → Due → Overdue
+```
+
+AgoCode schedules problem retrieval using deterministic spacing:
+
+- stronger evidence can start with a longer initial interval;
+- successful retrieval expands the interval up to a bounded maximum;
+- needs-work retrieval contracts the interval;
+- first-try blind Atlas recognition updates spacing objectively;
+- later finalized reasoning attempts also update spacing objectively;
+- the attempt that first established independence cannot count as its own retrieval;
+- canonical classified problems have a closed-loop objective retrieval route;
+- manual review outcomes remain scheduling-only fallbacks for source-workbook items without reliable structural classification.
+
+Staleness never demotes an earned independence state. It changes only retrieval priority.
+
+### Learner control
+
+- bookmarks
+- named custom problem sets
+- Sets workspace
+- local evidence export
+- import with schema validation/migration rules
+- learner-controlled reset/data portability
+- no account required for the deterministic core
+
+## Core product modes
+
+- **Book** — guided visual intuition in the original chapter order
+- **Syllabus** — expanded dependency map across the broader DSA curriculum
+- **Lab** — trace labs plus algorithm-design workbenches
+- **Problems** — canonical repertoire, source references, structural families, and reasoning workspaces
+- **Solve** — open-ended design canvas for unfamiliar problems
+- **Ways** — original problem-solving field notes
+- **Casebook** — progressive application stories that preserve modeling pivots and rejected approaches
+- **Practice** — next-problem planning, mixed sessions, variants, reconstruction, and blind recognition
+- **Sets** — bookmarks and named learner-defined study groups
+- **Review** — adaptive spaced retrieval and objective problem-review sessions
+- **Progress** — mastery, independence, attempt progression, retrieval freshness, and friction evidence
+
+## Evidence boundaries
+
+AgoCode deliberately distinguishes data that **guides sequencing** from data that can **support a learning claim**.
+
+- confidence → reflection only
+- difficulty rating → sequencing only, after objective cross-checking
+- recommendation history → diversity/recency only
+- manual recall outcome → scheduling only
+- finalized reasoning attempts → objective problem-solving evidence
+- delayed first-try blind recognition → recall evidence
+- time elapsed → retrieval priority, never mastery decay
 
 ## Copyright boundary
 
-The source books are used as pedagogical references. AgoCode may index short problem titles, chapter/topic names, exercise identifiers, and source provenance, but it does not republish full copyrighted exercise statements, published solutions, or book illustrations. Interactive exercises, workbenches, case studies, examples, explanations, and visuals are original AgoCode transformations.
+The source books are pedagogical references. AgoCode may index short problem titles, chapter/topic names, exercise identifiers, and source provenance, but it does not republish full copyrighted exercise statements, published solutions, or book illustrations.
 
 The Goodrich preface describes roughly 750 exercises; the supplied PDF yields 758 indexed `R/C/P` identifiers in AgoCode's extraction. The site presents that as an indexing detail rather than changing the source's own stated count.
 
@@ -86,6 +227,8 @@ pnpm lint
 pnpm build
 ```
 
+CI requires all four gates to pass.
+
 ## Documentation
 
 - [Product Blueprint](docs/PRODUCT_BLUEPRINT.md)
@@ -98,35 +241,17 @@ pnpm build
 - [Content & Copyright Policy](docs/CONTENT_COPYRIGHT_POLICY.md)
 - [Agent/Contributor Guardrails](AGENTS.md)
 
-## Original Book Track
+## Intentionally deferred post-core work
 
-1. Introduction to Algorithms — Binary Search, Running Time, Big O, Traveling Salesperson
-2. Selection Sort — Memory, Arrays vs. Linked Lists, Selection Sort
-3. Recursion — Base/Recursive Case, Stack, Call Stack
-4. Quicksort — Divide & Conquer, Quicksort, Big O Revisited
-5. Hash Tables
-6. Breadth-First Search
-7. Dijkstra’s Algorithm
-8. Greedy Algorithms
-9. Dynamic Programming
-10. K-Nearest Neighbors
-11. Where to Go Next
+The local deterministic product must remain useful without these additions:
 
-The Book Track is intentionally preserved rather than overwritten. The expanded syllabus grows around it.
+- optional account / cross-device synchronization;
+- server-backed collaboration where a concrete learner need justifies it;
+- broader browser-level accessibility/performance automation as the surface grows;
+- constrained AI tutoring for misconception diagnosis, Socratic prompts, counterexamples, rubric-based explanation feedback, and transfer variants.
 
-## Core product modes
-
-- **Read** — illustrated editorial lessons and interactive analogies
-- **Syllabus** — prerequisite/perspective map with direct links into relevant workbenches
-- **Lab** — synchronized traces plus cross-cutting design workbenches
-- **Problems** — canonical repertoire, complete source-workbook references, blind recognition, reasoning notebooks, and Project-tier engineering workspaces
-- **Solve** — open-ended algorithm design canvas for unfamiliar problems
-- **Ways** — original problem-solving field notes
-- **Casebook** — progressive original application stories that expose modeling pivots and rejected approaches
-- **Practice** — reconstruction and progressively less-labeled transfer problems
-- **Review** — spaced retrieval rescheduled by actual recall outcome
-- **Progress** — evidence ledger plus multi-dimensional mastery diagnosis
+AI should not make “solve this for me” the default AgoCode interaction.
 
 ## Reference milestone
 
-A learning slice is successful when a learner can leave, return after a delay, rebuild the mechanism, explain why it works, diagnose a plausible bug, recognize the same idea after the surface story changes, justify why the chosen representation or algorithm fits the real constraints, and identify which assumption would force the design to change.
+A learning slice succeeds when a learner can leave, return after a delay, rebuild the mechanism, explain why it works, diagnose a plausible bug, recognize the same structure after the surface story changes, justify why the selected representation or algorithm fits the real constraints, and identify which changed assumption would force the design to change.

@@ -29,9 +29,10 @@ type QueueSnapshot = {
 function collectSnapshot(): QueueSnapshot {
   const reasoning = readLearningEvidence(window.localStorage, REASONING_EVIDENCE_KEY)?.reasoning;
   const recognitionHistory = readProblemRecognitionHistory(window.localStorage);
+  const attemptHistory = readReasoningAttemptHistory(window.localStorage);
   const independence = buildProblemIndependenceProfile({
     reasoning,
-    reasoningAttempts: readReasoningAttemptHistory(window.localStorage),
+    reasoningAttempts: attemptHistory,
     recommendationHistory: readRecommendationHistory(window.localStorage),
     recognitionHistory,
   });
@@ -42,6 +43,7 @@ function collectSnapshot(): QueueSnapshot {
       independence,
       reviewHistory: readProblemReviewHistory(window.localStorage),
       recognitionHistory,
+      reasoningAttempts: attemptHistory,
       now,
     }),
   };
@@ -164,7 +166,7 @@ export function ProblemReviewQueue() {
       <div className="problem-review-boundary">
         <span className="eyebrow">Scheduling boundary</span>
         <p>
-          Retrieval freshness never demotes historical independence. Classified canonical problems now use a closed-loop structural-recognition session that writes objective first-try evidence automatically. Manual outcomes remain only as a scheduling fallback for source-workbook items without reliable structural classification.
+          Retrieval freshness never demotes historical independence. Classified canonical problems use a closed-loop structural-recognition session, and later finalized reasoning attempts also update spacing automatically. Manual outcomes remain only as a scheduling fallback for source-workbook items without reliable structural classification.
         </p>
       </div>
     </div>

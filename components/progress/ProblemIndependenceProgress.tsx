@@ -50,6 +50,7 @@ function collectProfile(): IndependenceView {
       independence: profile,
       reviewHistory: readProblemReviewHistory(window.localStorage),
       recognitionHistory,
+      reasoningAttempts: attemptHistory,
       now: Date.now(),
     }),
   };
@@ -222,7 +223,7 @@ export function ProblemIndependenceProgress() {
       <div className="independence-boundary">
         <span className="eyebrow">Evidence boundary</span>
         <p>
-          Time never erases a demonstrated independence state. Instead, retrieval freshness decays on a separate clock and only changes scheduling priority. Manual recall outcomes change cadence, while blind first-try recognition supplies stronger objective retrieval evidence.
+          Time never erases a demonstrated independence state. Instead, retrieval freshness decays on a separate clock. Later finalized reasoning attempts and blind first-try recognition update that clock objectively, while legacy manual outcomes remain scheduling metadata only.
         </p>
       </div>
     </section>

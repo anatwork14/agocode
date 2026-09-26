@@ -78,6 +78,7 @@ function collectPlannerSnapshot(): PlannerSnapshot {
   const review = buildProblemReviewProfile({
     independence,
     recognitionHistory,
+    reasoningAttempts: attemptHistory,
     reviewHistory: readProblemReviewHistory(window.localStorage),
     now: Date.now(),
   });
@@ -260,7 +261,7 @@ export function NextProblemPlanner() {
           AgoCode shows the signals behind every recommendation and keeps the scoring deterministic. Friction is used as a routing
           clue, not as a penalty; self-authored notebook confidence is not treated as mastery; best-ever independence is never
           demoted by time; instead, a separate spacing clock makes stale evidence eligible for retrieval while fresh evidence is
-          down-weighted so the planner does not turn practice into immediate repetition.
+          down-weighted. Finalized reasoning retries and blind recognition update that clock objectively.
         </p>
         <div className="action-row">
           <Link className="button" href="/review">Open retrieval queue →</Link>

@@ -107,3 +107,48 @@ test("recommendation history persists choices without becoming mastery evidence"
   assert.deepEqual(history.entries.map((entry) => entry.exerciseId), ["problem-a", "problem-b"]);
   assert.equal(history.version, 1);
 });
+
+test("an overdue recalled problem becomes eligible for adaptive retrieval again", () => {
+  const candidate = classifiedAtlasExercises.find((item) => item.exercise.level !== "advanced");
+  assert.ok(candidate);
+  const exerciseId = candidate.exercise.id;
+  const recommendations = buildAdaptiveRecommendations({
+    mastery: mastery("recall", 52),
+    problemIndependence: {
+      [exerciseId]: {
+        exerciseId,
+        stage: "recalled",
+        rank: 6,
+        label: "Recalled",
+        explanation: "",
+        nextRequirement: "",
+        familyId: candidate.family.id,
+        completedAt: "2026-09-01T00:00:00.000Z",
+        recognitionAt: "2026-09-03T00:00:00.000Z",
+      },
+    },
+    problemReview: {
+      [exerciseId]: {
+        exerciseId,
+        independenceStage: "recalled",
+        anchorAt: "2026-09-03T00:00:00.000Z",
+        nextReviewAt: "2026-09-10T00:00:00.000Z",
+        intervalDays: 7,
+        sessions: 0,
+        successful: 0,
+        failed: 0,
+        dueState: "overdue",
+        freshness: 0,
+        overdueMs: 3 * 24 * 60 * 60 * 1000,
+        priority: 103,
+        recommendedMode: "blind-recognition",
+        explanation: "",
+      },
+    },
+    limit: 8,
+    seed: "overdue-retrieval",
+  });
+  const retrieval = recommendations.find((item) => item.exercise.id === exerciseId);
+  assert.ok(retrieval, "expected overdue recalled evidence to re-enter the shortlist");
+  assert.ok(retrieval.reasons.some((reason) => reason.includes("overdue")));
+});

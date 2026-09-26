@@ -180,6 +180,35 @@
   color: var(--accent);
 }
 
+.stuck-router__patterns {
+  display: grid;
+  gap: 0;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--ink);
+}
+
+.stuck-router__patterns > .mono {
+  padding-bottom: 8px;
+  color: var(--accent);
+  font-size: .57rem;
+  letter-spacing: .08em;
+}
+
+.stuck-router__patterns a {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--ink);
+  font-size: .78rem;
+}
+
+.stuck-router__patterns a:hover strong {
+  color: var(--accent);
+}
+
 .stuck-router__return {
   margin-top: 10px;
   border-top: 1px solid var(--ink);

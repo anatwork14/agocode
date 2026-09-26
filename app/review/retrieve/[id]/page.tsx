@@ -19,7 +19,7 @@ export default async function ProblemRetrievalPage({ params }: PageProps) {
         <div className="eyebrow">Closed-loop retrieval</div>
         <h1 className="editorial-title editorial-title--compact">Retrieve the structure before reopening the explanation.</h1>
         <p className="lede">
-          This session writes objective first-try recognition evidence directly into AgoCode's problem history. A correct first response expands spacing; a miss shortens the next interval without erasing historical independence.
+          This session writes objective first-try recognition evidence directly into AgoCode&apos;s problem history. A correct first response expands spacing; a miss shortens the next interval without erasing historical independence.
         </p>
         <section className="section">
           <ObjectiveProblemRetrieval exerciseId={id} />

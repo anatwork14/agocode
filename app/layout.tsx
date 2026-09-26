@@ -52,6 +52,7 @@ import "./friction-progress.css";
 import "./next-problem.css";
 import "./completion-features.css";
 import "./advanced-workbenches.css";
+import "./workspace-completion.css";
 
 const editorial = Fraunces({ subsets: ["latin"], variable: "--font-editorial", display: "swap" });
 const reading = Source_Sans_3({ subsets: ["latin"], variable: "--font-reading", display: "swap" });

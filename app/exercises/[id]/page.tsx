@@ -5,6 +5,7 @@ import { DifficultyCalibration } from "@/components/exercises/DifficultyCalibrat
 import { ProblemSetControl } from "@/components/exercises/ProblemSetControl";
 import { ProjectWorkspace } from "@/components/exercises/ProjectWorkspace";
 import { ReasoningNotebook } from "@/components/exercises/ReasoningNotebook";
+import { RejectedApproaches } from "@/components/exercises/RejectedApproaches";
 import { getCanonicalExercise, sourceLabels } from "@/lib/knowledge/all-exercises";
 import { getGoodrichExerciseRef } from "@/lib/knowledge/goodrich-workbook";
 import { getRelatedAtlasProblems } from "@/lib/practice/related-atlas-problems";
@@ -79,6 +80,7 @@ export default async function ExercisePage({ params }: ExercisePageProps) {
           </div>
 
           <ReasoningNotebook exerciseId={id} lens={lens} />
+          <RejectedApproaches exerciseId={id} />
           <DifficultyCalibration exerciseId={id} />
         </section>
 

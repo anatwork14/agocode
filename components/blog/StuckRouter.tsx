@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { diagnosticPatterns } from "@/lib/knowledge/diagnostic-patterns";
 import { stuckDiagnoses, type StuckStateId } from "@/lib/knowledge/stuck-router";
+import { recordObstacleSelection } from "@/lib/learning/obstacles";
 
 const actionOrder = { read: 0, workbench: 1, workspace: 2, practice: 3 } as const;
 
@@ -19,6 +20,11 @@ export function StuckRouter({ returnHref, returnLabel = "Return to the current p
     [selectedId],
   );
   const relatedPatterns = selected ? diagnosticPatterns[selected.id] : [];
+
+  function chooseObstacle(id: StuckStateId) {
+    if (id !== selectedId) recordObstacleSelection(window.localStorage, id, window.location.pathname);
+    setSelectedId(id);
+  }
 
   return (
     <section className="stuck-router" id="diagnose" aria-labelledby="stuck-router-title">
@@ -44,7 +50,7 @@ export function StuckRouter({ returnHref, returnLabel = "Return to the current p
           <button
             className={selectedId === item.id ? "stuck-router__choice stuck-router__choice--selected" : "stuck-router__choice"}
             type="button"
-            onClick={() => setSelectedId(item.id)}
+            onClick={() => chooseObstacle(item.id)}
             aria-pressed={selectedId === item.id}
             role="listitem"
             key={item.id}

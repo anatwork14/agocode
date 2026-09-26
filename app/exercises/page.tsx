@@ -71,10 +71,11 @@ export default function ExercisesPage() {
             <div className="section-heading__index">ATLAS</div>
             <div>
               <h2>Named canonical problems and algorithm families</h2>
-              <p>Filter by source or domain, or switch on blind recognition so the structure labels stop giving away the method.</p>
+              <p>Filter by source or domain, switch on blind recognition, or let AgoCode choose an explainable next problem from your learning evidence.</p>
             </div>
           </div>
           <div className="action-row" style={{ marginBottom: 20 }}>
+            <Link className="button button--primary" href="/practice/next">Choose my next problem →</Link>
             <Link className="button" href="/patterns">Open 16 structural families</Link>
             <Link className="button" href="/practice/atlas">Run mixed recognition</Link>
           </div>

@@ -37,6 +37,26 @@ function independence(stage, completedAt = "2026-09-01T00:00:00.000Z", extra = {
   };
 }
 
+function attempt({
+  attemptId,
+  finalizedAt,
+  developedStages = 8,
+  totalStages = 8,
+  lensRevealed = false,
+  completedAt = finalizedAt,
+}) {
+  return {
+    attemptId,
+    exerciseId: "problem",
+    startedAt: finalizedAt,
+    finalizedAt,
+    developedStages,
+    totalStages,
+    lensRevealed,
+    completedAt,
+  };
+}
+
 test("independent problems start with a two-day retrieval interval", () => {
   const profile = buildProblemReviewProfile({
     independence: independence("independent"),
@@ -108,6 +128,72 @@ test("later blind recognition automatically updates retrieval spacing", () => {
   assert.equal(status.failed, 1);
   assert.equal(status.intervalDays, 1);
   assert.equal(status.nextReviewAt, "2026-09-08T00:00:00.000Z");
+});
+
+test("a later independent reasoning attempt objectively expands retrieval spacing", () => {
+  const profile = buildProblemReviewProfile({
+    independence: independence("independent"),
+    reasoningAttempts: {
+      version: 1,
+      entries: [attempt({ attemptId: "retry-independent", finalizedAt: "2026-09-03T00:00:00.000Z" })],
+    },
+    now: "2026-09-03T01:00:00.000Z",
+  });
+  const status = profile.statuses.problem;
+  assert.equal(status.sessions, 1);
+  assert.equal(status.successful, 1);
+  assert.equal(status.failed, 0);
+  assert.equal(status.intervalDays, 4);
+  assert.equal(status.nextReviewAt, "2026-09-07T00:00:00.000Z");
+});
+
+test("a later supported reasoning retry objectively resets spacing to one day", () => {
+  const profile = buildProblemReviewProfile({
+    independence: independence("independent"),
+    reasoningAttempts: {
+      version: 1,
+      entries: [attempt({
+        attemptId: "retry-supported",
+        finalizedAt: "2026-09-03T00:00:00.000Z",
+        lensRevealed: true,
+      })],
+    },
+    now: "2026-09-03T01:00:00.000Z",
+  });
+  const status = profile.statuses.problem;
+  assert.equal(status.sessions, 1);
+  assert.equal(status.successful, 0);
+  assert.equal(status.failed, 1);
+  assert.equal(status.intervalDays, 1);
+  assert.equal(status.nextReviewAt, "2026-09-04T00:00:00.000Z");
+});
+
+test("the attempt that established independence does not count as its own retrieval", () => {
+  const profile = buildProblemReviewProfile({
+    independence: independence("independent", "2026-09-01T00:00:00.000Z"),
+    reasoningAttempts: {
+      version: 1,
+      entries: [attempt({ attemptId: "establishing-attempt", finalizedAt: "2026-09-01T00:00:00.000Z" })],
+    },
+    now: "2026-09-01T12:00:00.000Z",
+  });
+  const status = profile.statuses.problem;
+  assert.equal(status.sessions, 0);
+  assert.equal(status.intervalDays, 2);
+  assert.equal(status.nextReviewAt, "2026-09-03T00:00:00.000Z");
+});
+
+test("duplicate reasoning attempt ids are counted once by the retrieval profile", () => {
+  const duplicate = attempt({ attemptId: "same-attempt", finalizedAt: "2026-09-03T00:00:00.000Z" });
+  const profile = buildProblemReviewProfile({
+    independence: independence("independent"),
+    reasoningAttempts: { version: 1, entries: [duplicate, duplicate] },
+    now: "2026-09-03T01:00:00.000Z",
+  });
+  const status = profile.statuses.problem;
+  assert.equal(status.sessions, 1);
+  assert.equal(status.successful, 1);
+  assert.equal(status.intervalDays, 4);
 });
 
 test("recalled problems anchor the next schedule at the recall event", () => {

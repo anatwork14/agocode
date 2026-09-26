@@ -43,6 +43,7 @@ import "./project-workspace.css";
 import "./syllabus-atlas.css";
 import "./atlas-recognition.css";
 import "./contextual-help.css";
+import "./reasoning-help.css";
 
 const editorial = Fraunces({ subsets: ["latin"], variable: "--font-editorial", display: "swap" });
 const reading = Source_Sans_3({ subsets: ["latin"], variable: "--font-reading", display: "swap" });

@@ -27,4 +27,7 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm lint
+      - run: pnpm check:a11y
+      - run: pnpm check:content
       - run: pnpm build
+      - run: pnpm check:budgets

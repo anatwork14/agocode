@@ -86,15 +86,43 @@ test("all generated structural and syllabus detail links have backing dynamic ro
   assertRoutesExist("syllabus detail", syllabusTracks.flatMap((track) => track.modules.map((module) => `/syllabus/${module.id}`)));
 });
 
-test("route discovery includes critical product surfaces", () => {
+test("route discovery includes every core product mode", () => {
   const critical = [
-    "/practice/variants",
-    "/practice/next",
-    "/practice/atlas",
+    "/learn",
+    "/syllabus",
     "/syllabus/map",
-    "/settings/data",
+    "/lab",
+    "/exercises",
+    "/exercises/families/search-selection",
+    "/patterns/search-selection",
     "/solve",
+    "/blog",
+    "/practice/next",
+    "/practice/session",
+    "/practice/variants",
+    "/practice/atlas",
+    "/sets",
+    "/review",
+    "/review/retrieve/epi-two-sum",
     "/progress",
+    "/settings/data",
+    "/roadmap",
   ];
-  assertRoutesExist("critical surface", critical);
+  assertRoutesExist("core product surface", critical);
+});
+
+test("advanced design workbenches remain routable", () => {
+  assertRoutesExist("advanced workbench", [
+    "/lab/adt-workbench",
+    "/lab/invariants",
+    "/lab/amortization",
+    "/lab/graph-modeling",
+    "/lab/dp-state-design",
+    "/lab/priority-queues",
+    "/lab/backtracking",
+    "/lab/greedy-counterexamples",
+    "/lab/optimization-strategies",
+    "/lab/transformations",
+    "/lab/special-cases",
+  ]);
 });

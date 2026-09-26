@@ -15,6 +15,53 @@ function collectFiles(directory, files = []) {
   return files;
 }
 
+function extractOpeningTags(source, tagName) {
+  const tags = [];
+  const matcher = new RegExp(`<${tagName}\\b`, "g");
+  let match;
+
+  while ((match = matcher.exec(source))) {
+    let braceDepth = 0;
+    let quote = null;
+    let escaped = false;
+    let closed = false;
+
+    for (let index = match.index; index < source.length; index += 1) {
+      const char = source[index];
+
+      if (quote) {
+        if (escaped) escaped = false;
+        else if (char === "\\") escaped = true;
+        else if (char === quote) quote = null;
+        continue;
+      }
+
+      if (char === '"' || char === "'" || char === "`") {
+        quote = char;
+        continue;
+      }
+      if (char === "{") {
+        braceDepth += 1;
+        continue;
+      }
+      if (char === "}" && braceDepth > 0) {
+        braceDepth -= 1;
+        continue;
+      }
+      if (char === ">" && braceDepth === 0) {
+        tags.push(source.slice(match.index, index + 1));
+        matcher.lastIndex = index + 1;
+        closed = true;
+        break;
+      }
+    }
+
+    if (!closed) break;
+  }
+
+  return tags;
+}
+
 function hasAccessibleName(tag) {
   return /\baria-label\s*=/.test(tag) || /\baria-labelledby\s*=/.test(tag);
 }
@@ -24,13 +71,13 @@ for (const scanRoot of scanRoots) {
     const source = readFileSync(file, "utf8");
     const display = relative(root, file);
 
-    for (const tag of source.match(/<input\b[\s\S]*?>/g) ?? []) {
+    for (const tag of extractOpeningTags(source, "input")) {
       if (/\btype\s*=\s*["']range["']/.test(tag) && !hasAccessibleName(tag)) {
         errors.push(`${display}: range input requires aria-label or aria-labelledby.`);
       }
     }
 
-    for (const tag of source.match(/<svg\b[\s\S]*?>/g) ?? []) {
+    for (const tag of extractOpeningTags(source, "svg")) {
       if (/\brole\s*=\s*["']img["']/.test(tag) && !hasAccessibleName(tag)) {
         errors.push(`${display}: SVG with role=img requires aria-label or aria-labelledby.`);
       }

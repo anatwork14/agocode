@@ -1,8 +1,8 @@
 import type {
   GraphRendererEdge,
   GraphRendererNode,
-} from "@/lib/visualization/renderer-contracts";
-import { designTokens } from "@/lib/ui/tokens";
+} from "../visualization/renderer-contracts.ts";
+import { designTokens } from "../ui/tokens.ts";
 
 export type RecursionTreeLevel = {
   depth: number;

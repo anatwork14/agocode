@@ -13,7 +13,7 @@ export const DEFAULT_POLICY_MIN_MATURE_CHOICES = 8;
 export const DEFAULT_POLICY_MIN_REASON_CHOICES = 5;
 export const DEFAULT_POLICY_PRIOR_WEIGHT = 4;
 export const DEFAULT_POLICY_LIFT_THRESHOLD = 12;
-export const MAX_POLICY_PREVIEW_DELTA = 2;
+export const MAX_POLICY_PREVIEW_DELTA = 2 as const;
 
 export type RecommendationReasonId =
   | "difficulty-calibration"

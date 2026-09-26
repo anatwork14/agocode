@@ -32,6 +32,7 @@ export default function ExercisesPage() {
               AgoCode catalogs short problem names, exercise identifiers, and source provenance. It does not reproduce the books&apos;
               full exercise statements, published solutions, or illustrations. Use your copy of the source beside the AgoCode notebook.
             </p>
+            <Link href="/patterns">Browse by structural family →</Link>
             <Link href="/blog#repertoire-not-memorization">Why repertoire matters →</Link>
           </aside>
         </div>
@@ -72,6 +73,10 @@ export default function ExercisesPage() {
               <h2>Named canonical problems and algorithm families</h2>
               <p>Filter by source or domain, or switch on blind recognition so the structure labels stop giving away the method.</p>
             </div>
+          </div>
+          <div className="action-row" style={{ marginBottom: 20 }}>
+            <Link className="button" href="/patterns">Open 16 structural families</Link>
+            <Link className="button" href="/practice/atlas">Run mixed recognition</Link>
           </div>
           <ExerciseCatalog />
         </section>

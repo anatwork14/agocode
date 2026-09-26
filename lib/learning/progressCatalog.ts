@@ -150,7 +150,8 @@ export const transferProgressItems: readonly TransferProgressItem[] = [
   { number: "05", key: "agocode.progress.transfer.dp-budget", title: "Optimization under a hard budget", technique: "Dynamic programming", href: "/practice/dp-budget", kind: "code", dimensions: ["transfer", "rebuild"] },
   { number: "06", key: "agocode.progress.transfer.knn-classify", title: "Classification from nearby examples", technique: "K-nearest neighbors", href: "/practice/knn-classify", kind: "code", dimensions: ["transfer", "rebuild"] },
   { number: "07", key: "agocode.progress.transfer.recursion-folder-size", title: "Aggregate a nested folder tree", technique: "Recursion", href: "/practice/recursion-folder-size", kind: "code", dimensions: ["transfer", "rebuild"] },
-  { number: "08", key: "agocode.progress.transfer.mixed-recognition", title: "No-label mixed recognition", technique: "Interleaved", href: "/practice/mixed", kind: "recognition", dimensions: ["transfer", "predict"], weight: 1.2 },
+  { number: "08", key: "agocode.progress.transfer.mixed-recognition", title: "No-label mixed recognition", technique: "Interleaved original scenarios", href: "/practice/mixed", kind: "recognition", dimensions: ["transfer", "predict"], weight: 1.2 },
+  { number: "09", key: "agocode.progress.transfer.atlas-recognition", title: "Atlas-wide structural recognition", technique: "Interleaved canonical repertoire", href: "/practice/atlas", kind: "recognition", dimensions: ["understand", "predict", "transfer"], weight: 1.3 },
 ];
 
 export const designEvidenceItems: readonly ProgressEvidenceItem[] = [

@@ -4,6 +4,7 @@ import { ProjectWorkspace } from "@/components/exercises/ProjectWorkspace";
 import { ReasoningNotebook } from "@/components/exercises/ReasoningNotebook";
 import { getCanonicalExercise, sourceLabels } from "@/lib/knowledge/all-exercises";
 import { getGoodrichExerciseRef } from "@/lib/knowledge/goodrich-workbook";
+import { getRelatedAtlasProblems } from "@/lib/practice/related-atlas-problems";
 
 type ExercisePageProps = { params: Promise<{ id: string }> };
 
@@ -26,6 +27,7 @@ export default async function ExercisePage({ params }: ExercisePageProps) {
   const level = exercise?.level ?? goodrichRef!.tierLabel;
   const lens = exercise?.lens ?? goodrichLens[goodrichRef!.tier];
   const isProjectTier = goodrichRef?.tier === "P";
+  const relatedProblems = exercise ? getRelatedAtlasProblems(exercise.id, 4) : [];
 
   return (
     <main className="page">
@@ -90,13 +92,46 @@ export default async function ExercisePage({ params }: ExercisePageProps) {
           </section>
         ) : null}
 
+        {relatedProblems.length ? (
+          <section className="section worksheet">
+            <div className="section-heading">
+              <div className="section-heading__index">TRANSFER NEIGHBORS</div>
+              <div>
+                <h2>Hold the deep structure constant. Change the surface story.</h2>
+                <p>
+                  These problems share the same strongest structural family, but AgoCode prefers a different source or domain when
+                  possible. Solve one without carrying over the previous implementation line by line.
+                </p>
+              </div>
+            </div>
+
+            <div className="practice-ladder">
+              {relatedProblems.map(({ item, crossSource, crossDomain }, index) => (
+                <Link className="practice-ladder__row" href={`/exercises/${item.exercise.id}`} key={item.exercise.id}>
+                  <span className="practice-ladder__number">T{index + 1}</span>
+                  <div>
+                    <strong>{item.exercise.title}</strong>
+                    <span>
+                      {sourceLabels[item.exercise.source]} · {item.family.label}
+                      {crossSource ? " · new source" : ""}
+                      {crossDomain ? " · new domain" : ""}
+                    </span>
+                  </div>
+                  <span className="practice-ladder__status practice-ladder__status--live">Transfer</span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
         <section className="worksheet-next">
           <div>
             <span className="eyebrow">After the first solution</span>
             <h2>Transfer is the real completion condition.</h2>
-            <p>Return to the atlas in blind mode and solve a neighboring problem without filtering by technique first.</p>
+            <p>Try a structural neighbor above or return to the Atlas in blind mode so the technique label disappears again.</p>
           </div>
           <div className="action-row">
+            <Link className="button" href="/practice/atlas">Run Atlas recognition</Link>
             <Link className="button" href="/blog">Open Ways of Solving</Link>
             <Link className="button button--primary" href="/exercises">Choose another problem →</Link>
           </div>

@@ -40,28 +40,34 @@ export default function PracticePage() {
 
         <section className="section">
           <div className="section-heading">
-            <div className="section-heading__index">MIXED</div>
+            <div className="section-heading__index">ADAPTIVE</div>
             <div>
-              <h2>Recognize before you implement.</h2>
+              <h2>Do not pick the next problem at random.</h2>
               <p>
-                Start with original no-label scenarios, then remove even more support by mixing canonical source problems from
-                the expanded Atlas. In both modes, first-try recognition is tracked separately from eventual recovery.
+                AgoCode can now combine your weakest learning dimension, repeated problem-solving friction, recent recognition
+                misses, and source/domain diversity into an explainable next-problem shortlist.
               </p>
             </div>
           </div>
 
           <div className="practice-domain-grid">
             <article className="practice-domain-card">
+              <div className="practice-domain-card__meta"><span>personalized</span><span>explainable</span></div>
+              <h3>What should I solve next?</h3>
+              <p>Get a ranked canonical shortlist with visible reasons instead of a black-box recommendation or a random exercise.</p>
+              <Link className="button button--primary" href="/practice/next">Choose my next problem →</Link>
+            </article>
+            <article className="practice-domain-card">
               <div className="practice-domain-card__meta"><span>10 scenarios</span><span>original transfer</span></div>
               <h3>No-label pattern recognition</h3>
               <p>Read the constraints, choose an invariant, see why plausible alternatives fail, then reconnect to the relevant Book Track lesson.</p>
-              <Link className="button button--primary" href="/practice/mixed">Start mixed recognition →</Link>
+              <Link className="button" href="/practice/mixed">Start mixed recognition →</Link>
             </article>
             <article className="practice-domain-card">
               <div className="practice-domain-card__meta"><span>12 per set</span><span>canonical atlas</span></div>
               <h3>Atlas-wide structural recognition</h3>
               <p>Interleave source-aware canonical problems across data structures, graph families, optimization, correctness, text, and system design without exposing their chapter labels.</p>
-              <Link className="button button--primary" href="/practice/atlas">Start Atlas recognition →</Link>
+              <Link className="button" href="/practice/atlas">Start Atlas recognition →</Link>
             </article>
             <article className="practice-domain-card">
               <div className="practice-domain-card__meta"><span>7 challenges</span><span>code gated</span></div>
@@ -132,8 +138,8 @@ export default function PracticePage() {
           <div className="action-row">
             <Link className="button" href="/learn">Reconnect to Book Track</Link>
             <Link className="button" href="/review">Open spaced review</Link>
-            <Link className="button" href="/practice/mixed">Original mixed drill</Link>
-            <Link className="button button--primary" href="/practice/atlas">Test the full Atlas →</Link>
+            <Link className="button" href="/practice/atlas">Test the full Atlas</Link>
+            <Link className="button button--primary" href="/practice/next">Choose the next problem →</Link>
           </div>
         </section>
       </div>

@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { getReasoningStageHelp } from "@/lib/knowledge/notebook-help";
 import { recordReasoningNotebookEvidence } from "@/lib/learning/evidence";
 
 const REASONING_EVIDENCE_KEY = "agocode.progress.design.reasoning-notebooks";
@@ -197,24 +199,40 @@ export function ReasoningNotebook({ exerciseId, lens }: { exerciseId: string; le
       </div>
 
       <div className="reasoning-notebook__steps">
-        {notebookSteps.map((step) => (
-          <section className="reasoning-step" key={step.id}>
-            <div className="reasoning-step__head">
-              <span className="mono">{step.number}</span>
-              <div>
-                <h3>{step.title}</h3>
-                <p>{step.prompt}</p>
+        {notebookSteps.map((step) => {
+          const help = getReasoningStageHelp(step.id);
+          return (
+            <section className="reasoning-step" key={step.id}>
+              <div className="reasoning-step__head">
+                <span className="mono">{step.number}</span>
+                <div>
+                  <h3>{step.title}</h3>
+                  <p>{step.prompt}</p>
+                </div>
               </div>
-            </div>
-            <textarea
-              aria-label={`${step.title} notes`}
-              value={state.responses[step.id]}
-              onChange={(event) => updateResponse(step.id, event.target.value)}
-              placeholder={step.placeholder}
-              rows={5}
-            />
-          </section>
-        ))}
+              <textarea
+                aria-label={`${step.title} notes`}
+                value={state.responses[step.id]}
+                onChange={(event) => updateResponse(step.id, event.target.value)}
+                placeholder={step.placeholder}
+                rows={5}
+              />
+              {help ? (
+                <details className="reasoning-step__help">
+                  <summary>Stuck at this stage?</summary>
+                  <div>
+                    <span className="mono">FIRST MOVE</span>
+                    <p>{help.firstMove}</p>
+                    <div className="reasoning-step__help-actions">
+                      {help.read ? <Link href={help.read.href}>{help.read.label} →</Link> : null}
+                      {help.active ? <Link href={help.active.href}>{help.active.label} →</Link> : null}
+                    </div>
+                  </div>
+                </details>
+              ) : null}
+            </section>
+          );
+        })}
       </div>
 
       <section className={state.revealedLens ? "structural-lens structural-lens--open" : "structural-lens"}>

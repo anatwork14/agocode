@@ -14,7 +14,7 @@ env:
 jobs:
   quality:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7.0.1
       - uses: pnpm/action-setup@v6.1.0
@@ -31,4 +31,6 @@ jobs:
       - run: pnpm check:content
       - run: pnpm check:pwa
       - run: pnpm build
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
       - run: pnpm check:budgets

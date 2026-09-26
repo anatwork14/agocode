@@ -11,6 +11,7 @@
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit",
     "test": "node --test tests/*.test.mjs",
+    "test:e2e": "playwright test",
     "check:a11y": "node scripts/check-a11y-contracts.mjs",
     "check:content": "node scripts/validate-content.mjs",
     "check:pwa": "node scripts/check-pwa-contracts.mjs",
@@ -22,6 +23,7 @@
     "react-dom": "19.3.0"
   },
   "devDependencies": {
+    "@playwright/test": "1.63.0",
     "@tailwindcss/postcss": "^4.1.13",
     "@types/node": "^24.5.2",
     "@types/react": "^19.1.14",

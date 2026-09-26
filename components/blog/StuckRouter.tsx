@@ -6,7 +6,12 @@ import { stuckDiagnoses, type StuckStateId } from "@/lib/knowledge/stuck-router"
 
 const actionOrder = { read: 0, workbench: 1, workspace: 2, practice: 3 } as const;
 
-export function StuckRouter() {
+type StuckRouterProps = {
+  returnHref?: string;
+  returnLabel?: string;
+};
+
+export function StuckRouter({ returnHref, returnLabel = "Return to the current problem" }: StuckRouterProps = {}) {
   const [selectedId, setSelectedId] = useState<StuckStateId | null>(null);
   const selected = useMemo(
     () => stuckDiagnoses.find((item) => item.id === selectedId) ?? null,
@@ -80,6 +85,13 @@ export function StuckRouter() {
                   <span aria-hidden="true">→</span>
                 </Link>
               ))}
+            {returnHref ? (
+              <Link className="stuck-router__return" href={returnHref}>
+                <span className="mono">RETURN</span>
+                <strong>{returnLabel}</strong>
+                <span aria-hidden="true">↩</span>
+              </Link>
+            ) : null}
             <button className="atlas-reset" type="button" onClick={() => setSelectedId(null)}>
               choose a different obstacle
             </button>

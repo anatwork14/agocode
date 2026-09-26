@@ -1,27 +1,17 @@
 "use client";
 
-import { KeyboardEvent, useEffect, useRef, useState } from "react";
+import { KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
 import { recordLearningAttempt } from "@/lib/learning/evidence";
+import {
+  countPassedTests,
+  didCompletePythonSuite,
+  preparePythonTestSuite,
+  splitPythonTestResults,
+  type PythonExerciseReport,
+  type PythonTestCase,
+} from "@/lib/runtime/python-exercise";
 
-export type PythonTestCase = {
-  label: string;
-  args: unknown[];
-  expected: unknown;
-};
-
-type TestResult = {
-  label: string;
-  passed: boolean;
-  actual: unknown;
-  expected: unknown;
-};
-
-type ExerciseReport = {
-  tests: TestResult[];
-  stdout: string;
-  stderr: string;
-  error: string | null;
-};
+export type { PythonTestCase } from "@/lib/runtime/python-exercise";
 
 type PythonExerciseProps = {
   id: string;
@@ -30,6 +20,7 @@ type PythonExerciseProps = {
   functionName: string;
   starterCode: string;
   tests: PythonTestCase[];
+  hiddenTests?: PythonTestCase[];
   hints: string[];
   successMessage: string;
   storageKey?: string;
@@ -54,6 +45,7 @@ export function PythonExercise({
   functionName,
   starterCode,
   tests,
+  hiddenTests,
   hints,
   successMessage,
   storageKey,
@@ -61,13 +53,15 @@ export function PythonExercise({
   const [code, setCode] = useState(starterCode);
   const [runtimeStatus, setRuntimeStatus] = useState<RuntimeStatus>("loading");
   const [runtimeMessage, setRuntimeMessage] = useState("Loading Python in an isolated browser worker…");
-  const [report, setReport] = useState<ExerciseReport | null>(null);
+  const [report, setReport] = useState<PythonExerciseReport | null>(null);
   const [hintIndex, setHintIndex] = useState(-1);
   const [runtimeNonce, setRuntimeNonce] = useState(0);
   const workerRef = useRef<Worker | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const runIdRef = useRef(0);
   const hintCountRef = useRef(0);
+  const allTests = useMemo(() => preparePythonTestSuite(tests, hiddenTests), [hiddenTests, tests]);
+  const hiddenTestCount = hiddenTests?.length ?? 0;
 
   useEffect(() => {
     const worker = new Worker("/workers/python-runner.worker.js");
@@ -91,23 +85,20 @@ export function PythonExercise({
       if (message.type === "result" && message.runId === runIdRef.current) {
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
-        const nextReport = message.result as ExerciseReport;
+        const nextReport = message.result as PythonExerciseReport;
         setReport(nextReport);
         setRuntimeStatus("ready");
         setRuntimeMessage("Python is ready. Edit and run again whenever you want.");
 
-        const passedCount = nextReport.tests.filter((test) => test.passed).length;
-        const passedAll =
-          Boolean(nextReport.tests.length) &&
-          passedCount === nextReport.tests.length &&
-          !nextReport.error;
+        const passedCount = countPassedTests(nextReport.tests);
+        const passedAll = didCompletePythonSuite(nextReport, allTests.length);
 
         if (storageKey) {
           recordLearningAttempt(localStorage, storageKey, {
             exerciseId: id,
             passed: passedAll,
             passedCount,
-            totalTests: tests.length,
+            totalTests: allTests.length,
             hintCount: hintCountRef.current,
             runtimeError: Boolean(nextReport.error),
           });
@@ -127,7 +118,7 @@ export function PythonExercise({
       worker.terminate();
       workerRef.current = null;
     };
-  }, [id, runtimeNonce, storageKey, tests]);
+  }, [allTests, id, runtimeNonce, storageKey]);
 
   function runCode() {
     if (runtimeStatus !== "ready" || !workerRef.current) return;
@@ -143,7 +134,7 @@ export function PythonExercise({
       runId,
       code,
       functionName,
-      tests,
+      tests: allTests,
     });
 
     timeoutRef.current = setTimeout(() => {
@@ -154,7 +145,7 @@ export function PythonExercise({
           exerciseId: id,
           passed: false,
           passedCount: 0,
-          totalTests: tests.length,
+          totalTests: allTests.length,
           hintCount: hintCountRef.current,
           runtimeError: true,
         });
@@ -192,8 +183,11 @@ export function PythonExercise({
     });
   }
 
-  const passedCount = report?.tests.filter((test) => test.passed).length ?? 0;
-  const passedAll = Boolean(report?.tests.length) && passedCount === report?.tests.length && !report?.error;
+  const passedCount = report ? countPassedTests(report.tests) : 0;
+  const passedAll = didCompletePythonSuite(report, allTests.length);
+  const groupedResults = report ? splitPythonTestResults(report.tests, tests.length) : { visible: [], hidden: [] };
+  const visiblePassedCount = countPassedTests(groupedResults.visible);
+  const hiddenPassedCount = countPassedTests(groupedResults.hidden);
 
   return (
     <div className="code-exercise">
@@ -290,15 +284,19 @@ export function PythonExercise({
           {report ? (
             <div className="test-report" aria-live="polite">
               <div className="test-report__summary">
-                <strong>{passedAll ? "All tests passed" : `${passedCount}/${report.tests.length} tests passed`}</strong>
+                <strong>
+                  {passedAll
+                    ? "All checks passed"
+                    : `${passedCount}/${allTests.length} checks passed`}
+                </strong>
                 {passedAll ? <span>{successMessage}</span> : null}
               </div>
 
               {report.error ? <pre className="runtime-error">{report.error}</pre> : null}
 
-              {report.tests.length ? (
+              {groupedResults.visible.length ? (
                 <ul className="test-list">
-                  {report.tests.map((test) => (
+                  {groupedResults.visible.map((test) => (
                     <li className={test.passed ? "test-row test-row--pass" : "test-row test-row--fail"} key={test.label}>
                       <span>{test.passed ? "✓" : "×"} {test.label}</span>
                       <code>
@@ -307,6 +305,19 @@ export function PythonExercise({
                     </li>
                   ))}
                 </ul>
+              ) : null}
+
+              {hiddenTestCount ? (
+                <div className="test-report__summary">
+                  <strong>{hiddenPassedCount}/{hiddenTestCount} hidden checks passed</strong>
+                  <span>
+                    Hidden checks affect completion evidence but keep their inputs and expected values out of the normal learner interface.
+                  </span>
+                </div>
+              ) : null}
+
+              {!passedAll && groupedResults.visible.length ? (
+                <small>{visiblePassedCount}/{tests.length} visible checks passed.</small>
               ) : null}
 
               {report.stdout ? (
@@ -319,8 +330,13 @@ export function PythonExercise({
             </div>
           ) : (
             <div className="test-report test-report--idle">
-              <strong>{tests.length} checks are waiting.</strong>
-              <span>Run the suite to test normal behavior and edge cases without leaving the page.</span>
+              <strong>
+                {tests.length} visible check{tests.length === 1 ? "" : "s"}
+                {hiddenTestCount ? ` + ${hiddenTestCount} hidden check${hiddenTestCount === 1 ? "" : "s"}` : ""} waiting.
+              </strong>
+              <span>
+                Run the suite to test normal behavior and edge cases without leaving the page. Hidden checks are UI-hidden, not a security boundary in this client-only runtime.
+              </span>
             </div>
           )}
         </aside>

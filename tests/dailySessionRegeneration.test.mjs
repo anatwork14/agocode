@@ -44,12 +44,13 @@ test("regeneration keeps completion only when the exercise keeps the same object
   );
   assert.equal(sameRole.items[0].status, "done");
 
+  const changedAt = new Date(2026, 8, 26, 9, 15, 0);
   const changedRole = regenerateDailyPracticeSession(
     store,
     plan("changed-role", "transfer"),
-    new Date(2026, 8, 26, 9, 15, 0),
+    changedAt,
   );
   assert.equal(changedRole.items[0].status, "pending");
   assert.equal(changedRole.items[0].completionMode, undefined);
-  assert.equal(changedRole.items[0].enteredAt, "2026-09-26T02:15:00.000Z");
+  assert.equal(changedRole.items[0].enteredAt, changedAt.toISOString());
 });

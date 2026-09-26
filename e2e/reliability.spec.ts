@@ -35,17 +35,23 @@ test("daily practice state survives a real browser reload", async ({ page }) => 
   const clearManually = page.getByRole("button", { name: "clear manually" }).first();
   await expect(clearManually).toBeVisible();
 
-  const row = clearManually.locator("xpath=ancestor::article[1]");
-  const title = await row.getByRole("heading", { level: 3 }).innerText();
+  const originalRow = clearManually.locator("xpath=ancestor::article[1]");
+  const title = await originalRow.getByRole("heading", { level: 3 }).innerText();
   await clearManually.click();
-  await expect(row.getByText("Manual done", { exact: true })).toBeVisible();
+
+  const completedRow = page
+    .locator("article.mixed-session__row")
+    .filter({ has: page.getByRole("heading", { level: 3, name: title }) });
+  await expect(completedRow.getByText("Manual done", { exact: true })).toBeVisible();
 
   const beforeReload = await page.evaluate((key) => localStorage.getItem(key), DAILY_SESSION_KEY);
   expect(beforeReload).not.toBeNull();
 
   await page.reload();
   await expect(page.getByRole("heading", { level: 2, name: /Resume the same evidence plan all day|Today's queue is cleared/ })).toBeVisible();
-  const restoredRow = page.getByRole("heading", { level: 3, name: title }).locator("xpath=ancestor::article[1]");
+  const restoredRow = page
+    .locator("article.mixed-session__row")
+    .filter({ has: page.getByRole("heading", { level: 3, name: title }) });
   await expect(restoredRow.getByText("Manual done", { exact: true })).toBeVisible();
 
   const afterReload = await page.evaluate((key) => localStorage.getItem(key), DAILY_SESSION_KEY);

@@ -174,9 +174,9 @@ function parseSummary(value: unknown): DailyPracticeSessionSummary | null {
   const summary = value as Partial<DailyPracticeSessionSummary>;
   if (!isString(summary.dayKey) || !isString(summary.startedAt) || !isString(summary.updatedAt)) return null;
   const done = nonNegativeInteger(summary.done);
-  const objectiveDone = nonNegativeInteger(summary.objectiveDone);
+  const objectiveDone = Math.min(done, nonNegativeInteger(summary.objectiveDone));
   const manualDone = typeof summary.manualDone === "number"
-    ? nonNegativeInteger(summary.manualDone)
+    ? Math.min(Math.max(0, done - objectiveDone), nonNegativeInteger(summary.manualDone))
     : Math.max(0, done - objectiveDone);
   return {
     dayKey: summary.dayKey,
@@ -254,7 +254,7 @@ function archive(history: DailyPracticeSessionSummary[], session: DailyPracticeS
 
 function snapshotItem(item: MixedSessionItem, enteredAt: string, previous?: DailyPracticeSession): DailyPracticeSessionItem {
   const old = previous?.items.find((candidate) => candidate.exerciseId === item.exerciseId);
-  if (old?.status === "done") {
+  if (old?.status === "done" && old.role === item.role) {
     return {
       exerciseId: item.exerciseId,
       title: item.title,
@@ -279,7 +279,7 @@ function snapshotItem(item: MixedSessionItem, enteredAt: string, previous?: Dail
     role: item.role,
     reason: item.reason,
     href: item.href,
-    // Regeneration gives pending/skipped work a fresh evidence window; old events cannot clear the new row.
+    // Regeneration gives new-role, pending, or skipped work a fresh evidence window.
     status: "pending",
     enteredAt,
   };
@@ -328,7 +328,7 @@ export function ensureDailyPracticeSession(
   return current;
 }
 
-/** Explicitly rebuilds the remaining daily mix. Completed items stay completed when reused. */
+/** Explicitly rebuilds the remaining daily mix. Completed items stay completed when reused under the same role. */
 export function regenerateDailyPracticeSession(
   storage: StorageLike,
   mixed: MixedPracticeSession,

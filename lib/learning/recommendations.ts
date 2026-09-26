@@ -1,7 +1,8 @@
-import { canonicalExercises, type CanonicalExercise } from "../knowledge/all-exercises.ts";
+import { canonicalExercises, type CanonicalExercise, type ExerciseLevel } from "../knowledge/all-exercises.ts";
 import { diagnosticPatterns } from "../knowledge/diagnostic-patterns.ts";
 import { stuckDiagnoses, type StuckStateId } from "../knowledge/stuck-router.ts";
 import { classifiedAtlasExercises, type AtlasPatternId, type ClassifiedAtlasExercise } from "../practice/atlas-recognition.ts";
+import type { DifficultyCalibrationProfile, DifficultyBias } from "./calibration.ts";
 import type { StorageLike } from "./evidence.ts";
 import type { MasterySnapshot } from "./mastery.ts";
 import type { EvidenceDimension } from "./progressCatalog.ts";
@@ -25,6 +26,7 @@ export type AdaptiveRecommendationInput = {
   recentExerciseIds?: readonly string[];
   missedExerciseIds?: readonly string[];
   recommendationHistoryIds?: readonly string[];
+  difficultyCalibration?: DifficultyCalibrationProfile | null;
   limit?: number;
   seed?: string;
 };
@@ -53,6 +55,8 @@ const dimensionFamilyAffinity: Record<EvidenceDimension, readonly AtlasPatternId
   transfer: ["search-selection", "hashing", "recursive-search", "graph-traversal", "weighted-graphs", "dynamic-programming", "greedy-approximation", "text-indexing"],
   recall: [],
 };
+
+const difficultyLevels: readonly ExerciseLevel[] = ["foundation", "core", "advanced"];
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
@@ -102,14 +106,26 @@ function candidateKindScore(exercise: CanonicalExercise, dimension: EvidenceDime
   return 4;
 }
 
-function candidateLevelScore(exercise: CanonicalExercise, overall: number) {
-  if (overall < 35) {
-    return exercise.level === "foundation" ? 9 : exercise.level === "core" ? 4 : -6;
-  }
-  if (overall < 70) {
-    return exercise.level === "core" ? 8 : exercise.level === "foundation" ? 4 : 2;
-  }
-  return exercise.level === "advanced" ? 9 : exercise.level === "core" ? 6 : 2;
+export function getCalibratedTargetLevel(
+  overall: number,
+  bias: DifficultyBias = 0,
+): ExerciseLevel {
+  const baseIndex = overall < 35 ? 0 : overall < 70 ? 1 : 2;
+  return difficultyLevels[clamp(baseIndex + bias, 0, difficultyLevels.length - 1)];
+}
+
+function candidateLevelScore(
+  exercise: CanonicalExercise,
+  overall: number,
+  bias: DifficultyBias,
+) {
+  const targetLevel = getCalibratedTargetLevel(overall, bias);
+  const targetIndex = difficultyLevels.indexOf(targetLevel);
+  const candidateIndex = difficultyLevels.indexOf(exercise.level);
+  const distance = Math.abs(candidateIndex - targetIndex);
+  if (distance === 0) return 10;
+  if (distance === 1) return 4;
+  return -6;
 }
 
 function obstaclePatternIds(id: StuckStateId) {
@@ -128,10 +144,18 @@ function scoreCandidate(
 ) {
   const targetDimension = input.mastery.weakest.id;
   const reasons: string[] = [];
+  const calibrationBias = input.difficultyCalibration?.bias ?? 0;
+  const calibratedLevel = getCalibratedTargetLevel(input.mastery.overall, calibrationBias);
   let score = 20;
 
   score += candidateKindScore(item.exercise, targetDimension);
-  score += candidateLevelScore(item.exercise, input.mastery.overall);
+  score += candidateLevelScore(item.exercise, input.mastery.overall, calibrationBias);
+
+  if (calibrationBias !== 0 && item.exercise.level === calibratedLevel) {
+    reasons.push(calibrationBias > 0
+      ? "difficulty calibration supports a harder next step"
+      : "difficulty calibration favors a gentler next step");
+  }
 
   if (dimensionFamilyAffinity[targetDimension].includes(item.family.id)) {
     score += 8;

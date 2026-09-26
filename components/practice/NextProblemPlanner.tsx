@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { sourceLabels } from "@/lib/knowledge/all-exercises";
 import { stuckDiagnoses } from "@/lib/knowledge/stuck-router";
+import {
+  buildDifficultyCalibrationProfile,
+  readDifficultyCalibrationHistory,
+  type DifficultyCalibrationProfile,
+} from "@/lib/learning/calibration";
 import { readLearningEvidence, type LearningEvidence } from "@/lib/learning/evidence";
 import { buildMasterySnapshot, type MasterySnapshot } from "@/lib/learning/mastery";
 import { getMostFrequentObstacles, readObstacleEvidence, type ObstacleEvidence } from "@/lib/learning/obstacles";
@@ -25,6 +30,7 @@ type PlannerSnapshot = {
   recentExerciseIds: string[];
   missedExerciseIds: string[];
   recommendationHistoryIds: string[];
+  calibration: DifficultyCalibrationProfile;
 };
 
 function collectPlannerSnapshot(): PlannerSnapshot {
@@ -43,6 +49,7 @@ function collectPlannerSnapshot(): PlannerSnapshot {
     .slice(-12)
     .reverse()
     .map((entry) => entry.exerciseId);
+  const calibration = buildDifficultyCalibrationProfile(readDifficultyCalibrationHistory(window.localStorage));
 
   return {
     mastery: buildMasterySnapshot(evidenceMap),
@@ -50,6 +57,7 @@ function collectPlannerSnapshot(): PlannerSnapshot {
     recentExerciseIds,
     missedExerciseIds,
     recommendationHistoryIds,
+    calibration,
   };
 }
 
@@ -79,6 +87,7 @@ export function NextProblemPlanner() {
       recentExerciseIds: snapshot.recentExerciseIds,
       missedExerciseIds: snapshot.missedExerciseIds,
       recommendationHistoryIds: snapshot.recommendationHistoryIds,
+      difficultyCalibration: snapshot.calibration,
       limit: 5,
       seed: `planner-mix-${mix}`,
     });
@@ -101,7 +110,7 @@ export function NextProblemPlanner() {
   }
 
   if (!snapshot) {
-    return <div className="next-problem__loading">Reading mastery, friction, transfer misses, and recent practice from this browser…</div>;
+    return <div className="next-problem__loading">Reading mastery, friction, calibration, transfer misses, and recent practice from this browser…</div>;
   }
 
   if (!primary) {
@@ -113,6 +122,12 @@ export function NextProblemPlanner() {
       </div>
     );
   }
+
+  const calibrationLabel = snapshot.calibration.bias > 0
+    ? "Raise challenge"
+    : snapshot.calibration.bias < 0
+      ? "Gentler step"
+      : "Hold steady";
 
   return (
     <div className="next-problem">
@@ -128,9 +143,13 @@ export function NextProblemPlanner() {
           <small>{frequentObstacle ? `${frequentObstacle.count} explicit help request${frequentObstacle.count === 1 ? "" : "s"}` : "use contextual help during a real attempt"}</small>
         </div>
         <div>
-          <span>Recent practice</span>
-          <strong>{snapshot.recentExerciseIds.length}</strong>
-          <small>reasoning notebooks considered for novelty</small>
+          <span>Difficulty calibration</span>
+          <strong>{calibrationLabel}</strong>
+          <small>
+            {snapshot.calibration.evidenceSamples
+              ? `${snapshot.calibration.evidenceSamples} rated recommendation${snapshot.calibration.evidenceSamples === 1 ? "" : "s"} cross-checked with attempt evidence`
+              : "rate a recommended problem after attempting it"}
+          </small>
         </div>
         <div>
           <span>Recognition misses</span>
@@ -153,6 +172,7 @@ export function NextProblemPlanner() {
           <div className="next-problem__tags">
             <span>{primary.familyLabel}</span>
             <span>targets {snapshot.mastery.weakest.label}</span>
+            {snapshot.calibration.bias !== 0 ? <span>calibrated {snapshot.calibration.direction}</span> : null}
             {primary.novelty.source ? <span>new source</span> : null}
             {primary.novelty.domain ? <span>new domain</span> : null}
           </div>
@@ -165,7 +185,8 @@ export function NextProblemPlanner() {
           <span className="eyebrow">Why this problem?</span>
           <p>
             The planner does not recommend the globally “best” exercise. It chooses a useful next attempt from your local
-            evidence: weakest learning dimension, repeated help requests, recent blind misses, and source/domain/family diversity.
+            evidence: weakest learning dimension, repeated help requests, calibrated difficulty, recent blind misses, and
+            source/domain/family diversity.
           </p>
           <button className="atlas-reset" type="button" onClick={() => setMix((value) => value + 1)}>show a different mix</button>
         </aside>
@@ -206,8 +227,9 @@ export function NextProblemPlanner() {
         <h2>Adaptive does not mean opaque.</h2>
         <p>
           AgoCode shows the signals behind every recommendation and keeps the scoring deterministic. Friction is used as a routing
-          clue, not as a penalty; self-authored notebook confidence is not treated as mastery; and recent recommendations are
-          down-weighted so the planner does not repeat the same exercise forever.
+          clue, not as a penalty; self-authored notebook confidence is not treated as mastery; difficulty ratings only affect
+          sequencing after they are cross-checked against recorded attempt evidence; and recent recommendations are down-weighted
+          so the planner does not repeat the same exercise forever.
         </p>
         <div className="action-row">
           <Link className="button" href="/progress">Inspect your evidence →</Link>

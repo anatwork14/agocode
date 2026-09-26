@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { StuckRouter } from "@/components/blog/StuckRouter";
+import { DifficultyCalibration } from "@/components/exercises/DifficultyCalibration";
 import { ProjectWorkspace } from "@/components/exercises/ProjectWorkspace";
 import { ReasoningNotebook } from "@/components/exercises/ReasoningNotebook";
 import { getCanonicalExercise, sourceLabels } from "@/lib/knowledge/all-exercises";
@@ -75,6 +76,7 @@ export default async function ExercisePage({ params }: ExercisePageProps) {
           </div>
 
           <ReasoningNotebook exerciseId={id} lens={lens} />
+          <DifficultyCalibration exerciseId={id} />
         </section>
 
         <StuckRouter returnHref={`/exercises/${id}`} returnLabel={`Return to ${title}`} />

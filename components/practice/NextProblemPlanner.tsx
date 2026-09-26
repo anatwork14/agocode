@@ -20,6 +20,11 @@ import { buildMasterySnapshot, type MasterySnapshot } from "@/lib/learning/maste
 import { getMostFrequentObstacles, readObstacleEvidence, type ObstacleEvidence } from "@/lib/learning/obstacles";
 import { progressEvidenceKeys } from "@/lib/learning/progressCatalog";
 import {
+  buildProblemReviewProfile,
+  readProblemReviewHistory,
+  type ProblemReviewProfile,
+} from "@/lib/learning/problem-review";
+import {
   buildAdaptiveRecommendations,
   readRecommendationHistory,
   recordRecommendationChoice,
@@ -38,6 +43,7 @@ type PlannerSnapshot = {
   recommendationHistoryIds: string[];
   calibration: DifficultyCalibrationProfile;
   independence: ProblemIndependenceProfile;
+  review: ProblemReviewProfile;
 };
 
 function collectPlannerSnapshot(): PlannerSnapshot {
@@ -62,11 +68,18 @@ function collectPlannerSnapshot(): PlannerSnapshot {
     .reverse()
     .map((entry) => entry.exerciseId);
   const calibration = buildDifficultyCalibrationProfile(readDifficultyCalibrationHistory(window.localStorage));
+  const recognitionHistory = readProblemRecognitionHistory(window.localStorage);
   const independence = buildProblemIndependenceProfile({
     reasoning: reasoning?.reasoning,
     reasoningAttempts: attemptHistory,
     recommendationHistory,
-    recognitionHistory: readProblemRecognitionHistory(window.localStorage),
+    recognitionHistory,
+  });
+  const review = buildProblemReviewProfile({
+    independence,
+    recognitionHistory,
+    reviewHistory: readProblemReviewHistory(window.localStorage),
+    now: Date.now(),
   });
 
   return {
@@ -77,6 +90,7 @@ function collectPlannerSnapshot(): PlannerSnapshot {
     recommendationHistoryIds,
     calibration,
     independence,
+    review,
   };
 }
 
@@ -108,6 +122,7 @@ export function NextProblemPlanner() {
       recommendationHistoryIds: snapshot.recommendationHistoryIds,
       difficultyCalibration: snapshot.calibration,
       problemIndependence: snapshot.independence.states,
+      problemReview: snapshot.review.statuses,
       limit: 5,
       seed: `planner-mix-${mix}`,
     });
@@ -130,7 +145,7 @@ export function NextProblemPlanner() {
   }
 
   if (!snapshot) {
-    return <div className="next-problem__loading">Reading mastery, friction, calibration, attempt history, independence, transfer misses, and recent practice from this browser…</div>;
+    return <div className="next-problem__loading">Reading mastery, friction, calibration, attempt history, retrieval freshness, independence, transfer misses, and recent practice from this browser…</div>;
   }
 
   if (!primary) {
@@ -149,6 +164,8 @@ export function NextProblemPlanner() {
       ? "Gentler step"
       : "Hold steady";
   const primaryIndependence = snapshot.independence.states[primary.exercise.id];
+  const primaryReview = snapshot.review.statuses[primary.exercise.id];
+  const dueNow = snapshot.review.due + snapshot.review.overdue;
 
   return (
     <div className="next-problem">
@@ -164,13 +181,9 @@ export function NextProblemPlanner() {
           <small>{frequentObstacle ? `${frequentObstacle.count} explicit help request${frequentObstacle.count === 1 ? "" : "s"}` : "use contextual help during a real attempt"}</small>
         </div>
         <div>
-          <span>Difficulty calibration</span>
-          <strong>{calibrationLabel}</strong>
-          <small>
-            {snapshot.calibration.evidenceSamples
-              ? `${snapshot.calibration.evidenceSamples} rated recommendation${snapshot.calibration.evidenceSamples === 1 ? "" : "s"} cross-checked with attempt evidence`
-              : "rate a recommended problem after attempting it"}
-          </small>
+          <span>Retrieval due</span>
+          <strong>{dueNow}</strong>
+          <small>{snapshot.review.overdue} overdue · {snapshot.review.dueSoon} due soon</small>
         </div>
         <div>
           <span>Problem independence</span>
@@ -194,6 +207,7 @@ export function NextProblemPlanner() {
             <span>{primary.familyLabel}</span>
             <span>targets {snapshot.mastery.weakest.label}</span>
             {primaryIndependence ? <span>{primaryIndependence.label.toLowerCase()} evidence</span> : <span>new problem</span>}
+            {primaryReview ? <span>retrieval {primaryReview.dueState.replace("-", " ")}</span> : null}
             {snapshot.calibration.bias !== 0 ? <span>calibrated {snapshot.calibration.direction}</span> : null}
             {primary.novelty.source ? <span>new source</span> : null}
             {primary.novelty.domain ? <span>new domain</span> : null}
@@ -207,8 +221,8 @@ export function NextProblemPlanner() {
           <span className="eyebrow">Why this problem?</span>
           <p>
             The planner does not recommend the globally “best” exercise. It chooses a useful next attempt from your local
-            evidence: weakest learning dimension, repeated help requests, calibrated difficulty, best-ever problem independence,
-            recent blind misses, and source/domain/family diversity.
+            evidence: weakest learning dimension, repeated help requests, calibrated difficulty, best-ever independence,
+            retrieval freshness, blind misses, and source/domain/family diversity.
           </p>
           <button className="atlas-reset" type="button" onClick={() => setMix((value) => value + 1)}>show a different mix</button>
         </aside>
@@ -249,14 +263,14 @@ export function NextProblemPlanner() {
         <h2>Adaptive does not mean opaque.</h2>
         <p>
           AgoCode shows the signals behind every recommendation and keeps the scoring deterministic. Friction is used as a routing
-          clue, not as a penalty; self-authored notebook confidence is not treated as mastery; difficulty ratings only affect
-          sequencing after they are cross-checked against recorded attempt evidence; problem-level states are derived from the
-          strongest finalized attempt, so a later weak retry remains diagnostically visible without erasing independence already proved.
+          clue, not as a penalty; self-authored notebook confidence is not treated as mastery; best-ever independence is never
+          demoted by time; instead, a separate spacing clock makes stale evidence eligible for retrieval while fresh evidence is
+          down-weighted so the planner does not turn practice into immediate repetition.
         </p>
         <div className="action-row">
+          <Link className="button" href="/review">Open retrieval queue →</Link>
           <Link className="button" href="/progress">Inspect your evidence →</Link>
           <Link className="button" href="/practice/atlas">Run blind recognition →</Link>
-          <Link className="button" href="/exercises">Browse manually →</Link>
         </div>
       </section>
     </div>

@@ -71,6 +71,12 @@ function roleFor(
   };
 }
 
+export function getMixedSessionItemHref(role: MixedSessionRole, exerciseId: string) {
+  return role === "retrieve" || role === "repair-recognition"
+    ? `/review/retrieve/${exerciseId}`
+    : `/exercises/${exerciseId}`;
+}
+
 export function buildMixedPracticeSession(input: BuildMixedSessionInput): MixedPracticeSession {
   const size = Math.max(3, Math.min(8, Math.floor(input.sessionSize ?? 6)));
   const seed = input.seed ?? "mixed-session";
@@ -94,7 +100,7 @@ export function buildMixedPracticeSession(input: BuildMixedSessionInput): MixedP
       familyLabel: item.family.label,
       role: "retrieve",
       reason: status.explanation,
-      href: `/review/retrieve/${status.exerciseId}`,
+      href: getMixedSessionItemHref("retrieve", status.exerciseId),
     });
   }
 
@@ -117,7 +123,7 @@ export function buildMixedPracticeSession(input: BuildMixedSessionInput): MixedP
       familyLabel: recommendation.familyLabel,
       role,
       reason: recommendation.reasons[0] ?? reason,
-      href: role === "retrieve" ? `/review/retrieve/${recommendation.exercise.id}` : `/exercises/${recommendation.exercise.id}`,
+      href: getMixedSessionItemHref(role, recommendation.exercise.id),
       recommendation,
     });
   }
@@ -133,7 +139,7 @@ export function buildMixedPracticeSession(input: BuildMixedSessionInput): MixedP
         familyLabel: item.family.label,
         role: "diversify",
         reason: "Adds a different structural family when the evidence-driven shortlist is smaller than the requested session.",
-        href: `/exercises/${item.exercise.id}`,
+        href: getMixedSessionItemHref("diversify", item.exercise.id),
       });
     }
   }

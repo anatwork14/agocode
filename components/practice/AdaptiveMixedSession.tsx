@@ -6,7 +6,7 @@ import { sourceLabels } from "@/lib/knowledge/all-exercises";
 import { buildDifficultyCalibrationProfile, readDifficultyCalibrationHistory } from "@/lib/learning/calibration";
 import { readLearningEvidence, type LearningEvidence } from "@/lib/learning/evidence";
 import { buildProblemIndependenceProfile, readProblemRecognitionHistory } from "@/lib/learning/independence";
-import { buildMasterySnapshot, type MasterySnapshot } from "@/lib/learning/mastery";
+import { buildMasterySnapshot } from "@/lib/learning/mastery";
 import { readObstacleEvidence } from "@/lib/learning/obstacles";
 import { buildProblemReviewProfile, readProblemReviewHistory, type ProblemReviewProfile } from "@/lib/learning/problem-review";
 import { progressEvidenceKeys } from "@/lib/learning/progressCatalog";
@@ -19,11 +19,16 @@ import {
   getLocalDayKey,
   readDailyPracticeState,
   regenerateDailyPracticeSession,
+  saveCurrentDailyPracticeSession,
   updateDailyPracticeItemStatus,
   type DailyPracticeItemStatus,
   type DailyPracticeSession,
   type DailyPracticeSessionSummary,
 } from "@/lib/practice/daily-session";
+import {
+  getDailyPracticeObjectiveRequirement,
+  reconcileDailyPracticeSession,
+} from "@/lib/practice/daily-session-objectives";
 import { buildMixedPracticeSession } from "@/lib/practice/mixed-session";
 import { classifiedAtlasExercises } from "@/lib/practice/atlas-recognition";
 
@@ -32,9 +37,9 @@ const ATLAS_RECOGNITION_KEY = "agocode.progress.transfer.atlas-recognition";
 
 type MixedSnapshot = {
   session: DailyPracticeSession;
-  mastery: MasterySnapshot;
   review: ProblemReviewProfile;
   history: DailyPracticeSessionSummary[];
+  reconciledExerciseIds: string[];
 };
 
 function collect(seed: string, regenerate = false): MixedSnapshot {
@@ -55,6 +60,7 @@ function collect(seed: string, regenerate = false): MixedSnapshot {
     independence,
     reviewHistory: readProblemReviewHistory(window.localStorage),
     recognitionHistory,
+    reasoningAttempts: attempts,
   });
   const recentExerciseIds = [...attempts.entries]
     .sort((a, b) => b.finalizedAt.localeCompare(a.finalizedAt))
@@ -78,11 +84,19 @@ function collect(seed: string, regenerate = false): MixedSnapshot {
   });
 
   const now = new Date();
-  const session = regenerate
+  const stored = regenerate
     ? regenerateDailyPracticeSession(window.localStorage, mixed, now)
     : ensureDailyPracticeSession(window.localStorage, mixed, now);
+  const reconciliation = reconcileDailyPracticeSession(stored, {
+    reasoningAttempts: attempts,
+    recognitionHistory,
+    independence,
+  }, now.toISOString());
+  const session = reconciliation.updatedExerciseIds.length
+    ? saveCurrentDailyPracticeSession(window.localStorage, reconciliation.session)
+    : stored;
   const state = readDailyPracticeState(window.localStorage);
-  return { session, mastery, review, history: state.history };
+  return { session, review, history: state.history, reconciledExerciseIds: reconciliation.updatedExerciseIds };
 }
 
 const roleLabels = {
@@ -94,11 +108,11 @@ const roleLabels = {
   diversify: "Diversify",
 } as const;
 
-const statusLabels: Record<DailyPracticeItemStatus, string> = {
-  pending: "Pending",
-  done: "Done today",
-  skipped: "Skipped",
-};
+function statusLabel(item: DailyPracticeSession["items"][number]) {
+  if (item.status === "pending") return "Pending";
+  if (item.status === "skipped") return "Skipped";
+  return item.completionMode === "objective" ? "Objective done" : "Manual done";
+}
 
 export function AdaptiveMixedSession() {
   const [snapshot, setSnapshot] = useState<MixedSnapshot | null>(null);
@@ -109,10 +123,18 @@ export function AdaptiveMixedSession() {
     const handleStorage = (event: StorageEvent) => {
       if (!event.key || event.key === DAILY_PRACTICE_SESSION_KEY || event.key.startsWith("agocode.")) hydrate();
     };
+    const handleFocus = () => hydrate();
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") hydrate();
+    };
     window.addEventListener("storage", handleStorage);
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibility);
     return () => {
       window.clearTimeout(timer);
       window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibility);
     };
   }, []);
 
@@ -130,7 +152,7 @@ export function AdaptiveMixedSession() {
   function updateStatus(exerciseId: string, status: DailyPracticeItemStatus) {
     const session = updateDailyPracticeItemStatus(window.localStorage, exerciseId, status);
     if (!session) return;
-    setSnapshot((current) => current ? { ...current, session } : current);
+    setSnapshot((current) => current ? { ...current, session, reconciledExerciseIds: [] } : current);
   }
 
   function regenerate() {
@@ -146,13 +168,18 @@ export function AdaptiveMixedSession() {
             {progress.isComplete ? "Today&apos;s queue is cleared." : "Resume the same evidence plan all day."}
           </h2>
           <p>
-            This plan is frozen in your browser for the local calendar day. Refreshing or leaving the page will not silently reshuffle it.
-            Session status is only workflow bookkeeping; mastery still comes from objective evidence recorded inside each linked activity.
+            The plan is frozen in this browser for the local calendar day. AgoCode now re-checks objective evidence whenever this page returns to focus:
+            a row clears automatically only when new evidence satisfies that row&apos;s role-specific requirement.
           </p>
+          {snapshot.reconciledExerciseIds.length ? (
+            <p className="mixed-session__reconciled" aria-live="polite">
+              Objective evidence just cleared {snapshot.reconciledExerciseIds.length} session {snapshot.reconciledExerciseIds.length === 1 ? "row" : "rows"}.
+            </p>
+          ) : null}
         </div>
         <div className="mixed-session__today-action">
           <strong>{progress.cleared}/{progress.total}</strong>
-          <span>{progress.pending} remaining · {progress.done} done · {progress.skipped} skipped</span>
+          <span>{progress.pending} remaining · {progress.objectiveDone} objective · {progress.manualDone} manual · {progress.skipped} skipped</span>
           <progress max={Math.max(1, progress.total)} value={progress.cleared} aria-label="Daily practice session progress" />
           {nextPending ? (
             <Link className="button button--primary" href={nextPending.href}>Continue next task →</Link>
@@ -164,25 +191,26 @@ export function AdaptiveMixedSession() {
 
       <div className="mixed-session__summary">
         <div><span>Problems</span><strong>{progress.total}</strong><small>bounded daily session</small></div>
-        <div><span>Cleared</span><strong>{progress.cleared}</strong><small>{progress.done} done · {progress.skipped} skipped</small></div>
-        <div><span>Families</span><strong>{snapshot.session.familyCount}</strong><small>{snapshot.session.sourceCount} source surfaces</small></div>
+        <div><span>Objective</span><strong>{progress.objectiveDone}</strong><small>verified from fresh evidence</small></div>
+        <div><span>Manual / skipped</span><strong>{progress.manualDone + progress.skipped}</strong><small>{progress.manualDone} manual · {progress.skipped} skipped</small></div>
         <div><span>Due retrieval</span><strong>{snapshot.session.dueRetrievalCount}</strong><small>{snapshot.review.overdue} total overdue</small></div>
       </div>
 
       <div className="mixed-session__intro">
         <div>
           <span className="eyebrow">Adaptive interleaving</span>
-          <h2>One session, several kinds of evidence.</h2>
+          <h2>One session, several evidence contracts.</h2>
         </div>
         <p>
-          The session deliberately mixes overdue retrieval, recent recognition misses, support removal, transfer, and your weakest mastery dimension.
-          Completed rows stay stable locally; a manual rebuild only changes the remaining mix and preserves completed items that reappear.
+          Retrieval needs a fresh recognition result. Support removal needs a fresh independent no-lens attempt. Transfer needs fresh independence on transferred-or-recalled evidence.
+          Other rows require a fresh completed reasoning attempt. Old history and page visits never auto-clear today&apos;s work.
         </p>
       </div>
 
       <div className="mixed-session__list">
         {snapshot.session.items.map((item, index) => {
           const classified = classifiedById.get(item.exerciseId);
+          const retrievalSurface = item.role === "retrieve" || item.role === "repair-recognition";
           return (
             <article className={`mixed-session__row mixed-session__row--${item.role} mixed-session__row--status-${item.status}`} key={item.exerciseId}>
               <div className="mixed-session__index mono">{String(index + 1).padStart(2, "0")}</div>
@@ -191,23 +219,28 @@ export function AdaptiveMixedSession() {
                   <span>{roleLabels[item.role]}</span>
                   <span>{item.familyLabel}</span>
                   {classified ? <span>{sourceLabels[classified.exercise.source]}</span> : null}
-                  <span className={`mixed-session__status mixed-session__status--${item.status}`}>{statusLabels[item.status]}</span>
+                  <span className={`mixed-session__status mixed-session__status--${item.status}`}>{statusLabel(item)}</span>
                 </div>
                 <h3>{item.title}</h3>
                 <p>{item.reason}</p>
+                <div className="mixed-session__objective">
+                  <strong>Objective contract</strong>
+                  <span>{getDailyPracticeObjectiveRequirement(item)}</span>
+                  {item.status === "done" && item.satisfactionDetail ? <small>{item.satisfactionDetail}</small> : null}
+                </div>
               </div>
               <div className="mixed-session__actions">
-                <Link className={item.role === "retrieve" && item.status === "pending" ? "button button--primary" : "button"} href={item.href}>
-                  {item.role === "retrieve" ? "Open retrieval →" : "Open attempt →"}
+                <Link className={retrievalSurface && item.status === "pending" ? "button button--primary" : "button"} href={item.href}>
+                  {retrievalSurface ? "Open retrieval →" : "Open attempt →"}
                 </Link>
                 {item.status === "pending" ? (
                   <>
-                    <button className="mixed-session__text-action" type="button" onClick={() => updateStatus(item.exerciseId, "done")}>mark done</button>
+                    <button className="mixed-session__text-action" type="button" onClick={() => updateStatus(item.exerciseId, "done")}>clear manually</button>
                     <button className="mixed-session__text-action" type="button" onClick={() => updateStatus(item.exerciseId, "skipped")}>skip today</button>
                   </>
                 ) : (
                   <button className="mixed-session__text-action" type="button" onClick={() => updateStatus(item.exerciseId, "pending")}>
-                    {item.status === "done" ? "reopen" : "requeue"}
+                    {item.status === "done" ? "require fresh evidence again" : "requeue"}
                   </button>
                 )}
               </div>
@@ -218,10 +251,10 @@ export function AdaptiveMixedSession() {
 
       <div className="mixed-session__footer">
         <div>
-          <span className="eyebrow">Stable by default</span>
+          <span className="eyebrow">Session completion ≠ mastery</span>
           <p>
-            Today&apos;s ordering survives refreshes through versioned localStorage. Rebuild only when you intentionally want a different remaining mix;
-            completed overlap is preserved, skipped overlap is re-queued, and no session action writes mastery evidence.
+            Objective reconciliation reads evidence already written by AgoCode&apos;s learning surfaces; it never manufactures evidence itself.
+            Manual clearing remains a workflow escape hatch and is reported separately from objective completion.
           </p>
         </div>
         <button className="button" type="button" onClick={regenerate}>
@@ -239,7 +272,7 @@ export function AdaptiveMixedSession() {
             {recentHistory.map((entry) => (
               <div key={entry.dayKey}>
                 <strong>{entry.dayKey}</strong>
-                <span>{entry.done}/{entry.total} done · {entry.skipped} skipped</span>
+                <span>{entry.objectiveDone} objective · {entry.manualDone} manual · {entry.skipped} skipped</span>
                 <small>{entry.completedAt ? "queue cleared" : "unfinished"}{entry.regenerationCount ? ` · ${entry.regenerationCount} rebuilds` : ""}</small>
               </div>
             ))}

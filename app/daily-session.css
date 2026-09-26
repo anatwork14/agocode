@@ -21,6 +21,15 @@
   max-width: 760px;
 }
 
+.mixed-session__reconciled {
+  margin-top: 12px !important;
+  padding: 10px 12px;
+  border-left: 3px solid var(--accent);
+  background: var(--surface);
+  color: var(--ink) !important;
+  font-size: .82rem;
+}
+
 .mixed-session__today-action {
   display: grid;
   gap: 8px;
@@ -47,11 +56,37 @@
   accent-color: var(--accent);
 }
 
+.mixed-session__objective {
+  display: grid;
+  gap: 3px;
+  margin-top: 12px;
+  padding-left: 12px;
+  border-left: 2px solid var(--border);
+  max-width: 760px;
+}
+
+.mixed-session__objective strong {
+  font-size: .64rem;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+}
+
+.mixed-session__objective span,
+.mixed-session__objective small {
+  color: var(--muted);
+  font-size: .75rem;
+  line-height: 1.45;
+}
+
+.mixed-session__row--status-done .mixed-session__objective {
+  border-left-color: var(--accent);
+}
+
 .mixed-session__actions {
   display: grid;
   gap: 7px;
   justify-items: end;
-  min-width: 150px;
+  min-width: 170px;
 }
 
 .mixed-session__text-action {
@@ -90,9 +125,9 @@
 }
 
 .mixed-session__row--status-done h3,
-.mixed-session__row--status-done p,
+.mixed-session__row--status-done > div > p,
 .mixed-session__row--status-skipped h3,
-.mixed-session__row--status-skipped p {
+.mixed-session__row--status-skipped > div > p {
   opacity: .7;
 }
 

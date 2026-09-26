@@ -44,18 +44,24 @@ export default function PracticePage() {
             <div>
               <h2>Do not pick the next problem at random.</h2>
               <p>
-                AgoCode can now combine your weakest learning dimension, repeated problem-solving friction, recent recognition
-                misses, and source/domain diversity into an explainable next-problem shortlist.
+                AgoCode combines your weakest learning dimension, repeated problem-solving friction, retrieval debt, recognition
+                misses, difficulty calibration, and structural diversity into explainable practice choices.
               </p>
             </div>
           </div>
 
           <div className="practice-domain-grid">
             <article className="practice-domain-card">
+              <div className="practice-domain-card__meta"><span>daily</span><span>local-first</span><span>objective</span></div>
+              <h3>Today&apos;s adaptive session</h3>
+              <p>Resume one stable six-problem plan for the local day. Fresh retrieval and reasoning evidence clears role-specific rows automatically; manual workflow overrides remain visibly separate.</p>
+              <Link className="button button--primary" href="/practice/session">Open today&apos;s session →</Link>
+            </article>
+            <article className="practice-domain-card">
               <div className="practice-domain-card__meta"><span>personalized</span><span>explainable</span></div>
               <h3>What should I solve next?</h3>
               <p>Get a ranked canonical shortlist with visible reasons instead of a black-box recommendation or a random exercise.</p>
-              <Link className="button button--primary" href="/practice/next">Choose my next problem →</Link>
+              <Link className="button" href="/practice/next">Choose my next problem →</Link>
             </article>
             <article className="practice-domain-card">
               <div className="practice-domain-card__meta"><span>10 scenarios</span><span>original transfer</span></div>
@@ -146,7 +152,8 @@ export default function PracticePage() {
             <Link className="button" href="/review">Open spaced review</Link>
             <Link className="button" href="/practice/atlas">Test the full Atlas</Link>
             <Link className="button" href="/practice/variants">Mutate the model</Link>
-            <Link className="button button--primary" href="/practice/next">Choose the next problem →</Link>
+            <Link className="button" href="/practice/next">Choose the next problem</Link>
+            <Link className="button button--primary" href="/practice/session">Continue today&apos;s session →</Link>
           </div>
         </section>
       </div>

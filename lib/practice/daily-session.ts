@@ -5,12 +5,17 @@ export const DAILY_PRACTICE_SESSION_KEY = "agocode.practice.daily-session";
 export const DAILY_PRACTICE_HISTORY_LIMIT = 30;
 
 export type DailyPracticeItemStatus = "pending" | "done" | "skipped";
+export type DailyPracticeCompletionMode = "manual" | "objective";
 
 export type DailyPracticeSessionItem = Pick<
   MixedSessionItem,
   "exerciseId" | "title" | "familyId" | "familyLabel" | "role" | "reason" | "href"
 > & {
   status: DailyPracticeItemStatus;
+  enteredAt: string;
+  completionMode?: DailyPracticeCompletionMode;
+  satisfiedAt?: string;
+  satisfactionDetail?: string;
 };
 
 export type DailyPracticeSession = {
@@ -35,6 +40,8 @@ export type DailyPracticeSessionSummary = {
   completedAt?: string;
   total: number;
   done: number;
+  objectiveDone: number;
+  manualDone: number;
   skipped: number;
   regenerationCount: number;
 };
@@ -48,6 +55,8 @@ export type DailyPracticeState = {
 export type DailyPracticeProgress = {
   total: number;
   done: number;
+  objectiveDone: number;
+  manualDone: number;
   skipped: number;
   pending: number;
   cleared: number;
@@ -63,6 +72,7 @@ const validRoles = new Set<MixedSessionRole>([
   "diversify",
 ]);
 const validStatuses = new Set<DailyPracticeItemStatus>(["pending", "done", "skipped"]);
+const validCompletionModes = new Set<DailyPracticeCompletionMode>(["manual", "objective"]);
 
 function emptyState(): DailyPracticeState {
   return { version: 1, history: [] };
@@ -84,7 +94,7 @@ function isString(value: unknown): value is string {
   return typeof value === "string" && value.length > 0;
 }
 
-function parseItem(value: unknown): DailyPracticeSessionItem | null {
+function parseItem(value: unknown, fallbackEnteredAt: string, fallbackSatisfiedAt: string): DailyPracticeSessionItem | null {
   if (!value || typeof value !== "object") return null;
   const item = value as Partial<DailyPracticeSessionItem>;
   if (
@@ -99,7 +109,30 @@ function parseItem(value: unknown): DailyPracticeSessionItem | null {
   ) {
     return null;
   }
-  return item as DailyPracticeSessionItem;
+
+  const done = item.status === "done";
+  const completionMode = done
+    ? validCompletionModes.has(item.completionMode as DailyPracticeCompletionMode)
+      ? item.completionMode as DailyPracticeCompletionMode
+      : "manual"
+    : undefined;
+
+  return {
+    exerciseId: item.exerciseId,
+    title: item.title,
+    familyId: item.familyId,
+    familyLabel: item.familyLabel,
+    role: item.role as MixedSessionRole,
+    reason: item.reason,
+    href: item.href,
+    status: item.status,
+    enteredAt: isString(item.enteredAt) ? item.enteredAt : fallbackEnteredAt,
+    completionMode,
+    satisfiedAt: done
+      ? isString(item.satisfiedAt) ? item.satisfiedAt : fallbackSatisfiedAt
+      : undefined,
+    satisfactionDetail: done && isString(item.satisfactionDetail) ? item.satisfactionDetail : undefined,
+  };
 }
 
 function parseSession(value: unknown): DailyPracticeSession | undefined {
@@ -116,7 +149,9 @@ function parseSession(value: unknown): DailyPracticeSession | undefined {
   ) {
     return undefined;
   }
-  const items = session.items.map(parseItem).filter((item): item is DailyPracticeSessionItem => Boolean(item));
+  const items = session.items
+    .map((item) => parseItem(item, session.generatedAt!, session.updatedAt!))
+    .filter((item): item is DailyPracticeSessionItem => Boolean(item));
   if (items.length !== session.items.length) return undefined;
   return {
     version: 1,
@@ -138,13 +173,20 @@ function parseSummary(value: unknown): DailyPracticeSessionSummary | null {
   if (!value || typeof value !== "object") return null;
   const summary = value as Partial<DailyPracticeSessionSummary>;
   if (!isString(summary.dayKey) || !isString(summary.startedAt) || !isString(summary.updatedAt)) return null;
+  const done = nonNegativeInteger(summary.done);
+  const objectiveDone = nonNegativeInteger(summary.objectiveDone);
+  const manualDone = typeof summary.manualDone === "number"
+    ? nonNegativeInteger(summary.manualDone)
+    : Math.max(0, done - objectiveDone);
   return {
     dayKey: summary.dayKey,
     startedAt: summary.startedAt,
     updatedAt: summary.updatedAt,
     completedAt: isString(summary.completedAt) ? summary.completedAt : undefined,
     total: nonNegativeInteger(summary.total),
-    done: nonNegativeInteger(summary.done),
+    done,
+    objectiveDone,
+    manualDone,
     skipped: nonNegativeInteger(summary.skipped),
     regenerationCount: nonNegativeInteger(summary.regenerationCount),
   };
@@ -170,13 +212,23 @@ function writeState(storage: StorageLike, state: DailyPracticeState) {
   storage.setItem(DAILY_PRACTICE_SESSION_KEY, JSON.stringify(state));
 }
 
+export function saveCurrentDailyPracticeSession(storage: StorageLike, session: DailyPracticeSession) {
+  const state = readDailyPracticeState(storage);
+  if (state.current && state.current.dayKey !== session.dayKey) return state.current;
+  writeState(storage, { ...state, current: session });
+  return session;
+}
+
 export function getDailyPracticeProgress(session: DailyPracticeSession): DailyPracticeProgress {
-  const done = session.items.filter((item) => item.status === "done").length;
+  const doneItems = session.items.filter((item) => item.status === "done");
+  const done = doneItems.length;
+  const objectiveDone = doneItems.filter((item) => item.completionMode === "objective").length;
+  const manualDone = doneItems.filter((item) => item.completionMode !== "objective").length;
   const skipped = session.items.filter((item) => item.status === "skipped").length;
   const total = session.items.length;
   const cleared = done + skipped;
   const pending = Math.max(0, total - cleared);
-  return { total, done, skipped, pending, cleared, isComplete: total > 0 && pending === 0 };
+  return { total, done, objectiveDone, manualDone, skipped, pending, cleared, isComplete: total > 0 && pending === 0 };
 }
 
 function summarize(session: DailyPracticeSession): DailyPracticeSessionSummary {
@@ -188,6 +240,8 @@ function summarize(session: DailyPracticeSession): DailyPracticeSessionSummary {
     completedAt: session.completedAt,
     total: progress.total,
     done: progress.done,
+    objectiveDone: progress.objectiveDone,
+    manualDone: progress.manualDone,
     skipped: progress.skipped,
     regenerationCount: session.regenerationCount,
   };
@@ -198,8 +252,25 @@ function archive(history: DailyPracticeSessionSummary[], session: DailyPracticeS
   return [...withoutSameDay, summarize(session)].slice(-DAILY_PRACTICE_HISTORY_LIMIT);
 }
 
-function snapshotItem(item: MixedSessionItem, previous?: DailyPracticeSession): DailyPracticeSessionItem {
+function snapshotItem(item: MixedSessionItem, enteredAt: string, previous?: DailyPracticeSession): DailyPracticeSessionItem {
   const old = previous?.items.find((candidate) => candidate.exerciseId === item.exerciseId);
+  if (old?.status === "done") {
+    return {
+      exerciseId: item.exerciseId,
+      title: item.title,
+      familyId: item.familyId,
+      familyLabel: item.familyLabel,
+      role: item.role,
+      reason: item.reason,
+      href: item.href,
+      status: "done",
+      enteredAt: old.enteredAt,
+      completionMode: old.completionMode,
+      satisfiedAt: old.satisfiedAt,
+      satisfactionDetail: old.satisfactionDetail,
+    };
+  }
+
   return {
     exerciseId: item.exerciseId,
     title: item.title,
@@ -208,8 +279,9 @@ function snapshotItem(item: MixedSessionItem, previous?: DailyPracticeSession): 
     role: item.role,
     reason: item.reason,
     href: item.href,
-    // A regenerated plan keeps explicit completions, but skipped work is re-queued if selected again.
-    status: old?.status === "done" ? "done" : "pending",
+    // Regeneration gives pending/skipped work a fresh evidence window; old events cannot clear the new row.
+    status: "pending",
+    enteredAt,
   };
 }
 
@@ -219,7 +291,7 @@ function createSession(
   previous?: DailyPracticeSession,
 ): DailyPracticeSession {
   const timestamp = now.toISOString();
-  const items = mixed.items.map((item) => snapshotItem(item, previous));
+  const items = mixed.items.map((item) => snapshotItem(item, timestamp, previous));
   const draft: DailyPracticeSession = {
     version: 1,
     dayKey: getLocalDayKey(now),
@@ -273,7 +345,7 @@ export function regenerateDailyPracticeSession(
 
 /**
  * Updates only session bookkeeping. This function deliberately does not write mastery,
- * reasoning, recognition, or retrieval evidence.
+ * reasoning, recognition, or retrieval evidence. Re-queueing starts a fresh objective window.
  */
 export function updateDailyPracticeItemStatus(
   storage: StorageLike,
@@ -288,7 +360,35 @@ export function updateDailyPracticeItemStatus(
   if (index < 0) return current;
 
   const timestamp = now.toISOString();
-  const items = current.items.map((item, itemIndex) => itemIndex === index ? { ...item, status } : item);
+  const items = current.items.map((item, itemIndex) => {
+    if (itemIndex !== index) return item;
+    if (status === "done") {
+      return {
+        ...item,
+        status,
+        completionMode: "manual" as const,
+        satisfiedAt: timestamp,
+        satisfactionDetail: "Manually cleared for today's workflow; this does not create learning evidence.",
+      };
+    }
+    if (status === "pending") {
+      return {
+        ...item,
+        status,
+        enteredAt: timestamp,
+        completionMode: undefined,
+        satisfiedAt: undefined,
+        satisfactionDetail: undefined,
+      };
+    }
+    return {
+      ...item,
+      status,
+      completionMode: undefined,
+      satisfiedAt: undefined,
+      satisfactionDetail: undefined,
+    };
+  });
   const next: DailyPracticeSession = { ...current, items, updatedAt: timestamp, completedAt: undefined };
   const progress = getDailyPracticeProgress(next);
   if (progress.isComplete) next.completedAt = current.completedAt ?? timestamp;

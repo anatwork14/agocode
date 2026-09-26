@@ -24,10 +24,10 @@ import {
   readProblemReviewHistory,
   type ProblemReviewProfile,
 } from "@/lib/learning/problem-review";
+import { recordRecommendationSelection } from "@/lib/learning/recommendation-policy";
 import {
   buildAdaptiveRecommendations,
   readRecommendationHistory,
-  recordRecommendationChoice,
   type AdaptiveRecommendation,
 } from "@/lib/learning/recommendations";
 import { readReasoningAttemptHistory } from "@/lib/learning/reasoning-attempts";
@@ -141,7 +141,7 @@ export function NextProblemPlanner() {
   }, [snapshot]);
 
   function choose(item: AdaptiveRecommendation) {
-    recordRecommendationChoice(window.localStorage, item.exercise.id);
+    recordRecommendationSelection(window.localStorage, item);
     router.push(`/exercises/${item.exercise.id}`);
   }
 

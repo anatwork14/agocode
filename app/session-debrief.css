@@ -1,0 +1,217 @@
+.session-debrief {
+  display: grid;
+  gap: 28px;
+  margin-top: 46px;
+  padding: 34px 0;
+  border-top: 3px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+}
+
+.session-debrief__header {
+  display: grid;
+  grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr);
+  gap: 30px;
+  align-items: end;
+}
+
+.session-debrief__header h2 {
+  margin: 8px 0 0;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: clamp(1.9rem, 4vw, 3.2rem);
+  line-height: 1.02;
+  letter-spacing: -.04em;
+}
+
+.session-debrief__header p {
+  margin: 0;
+  color: var(--ink-secondary);
+  line-height: 1.65;
+}
+
+.session-debrief__metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.session-debrief__metric {
+  display: grid;
+  gap: 3px;
+  padding: 16px 14px;
+  border-right: 1px solid var(--border);
+}
+
+.session-debrief__metric:last-child {
+  border-right: 0;
+}
+
+.session-debrief__metric span,
+.session-debrief__metric small {
+  color: var(--muted);
+  font-size: .74rem;
+}
+
+.session-debrief__metric strong {
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 1.85rem;
+  line-height: 1;
+}
+
+.session-debrief__list {
+  border-top: 1px solid var(--border);
+}
+
+.session-debrief__row {
+  display: grid;
+  grid-template-columns: minmax(190px, .75fr) minmax(0, 1.25fr);
+  gap: 22px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.session-debrief__row-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.session-debrief__outcome,
+.session-debrief__signal,
+.session-debrief__stage {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 3px 7px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: .68rem;
+  line-height: 1.2;
+}
+
+.session-debrief__outcome--confirmed {
+  border-color: var(--state-success);
+  color: var(--state-success);
+}
+
+.session-debrief__outcome--needs-work,
+.session-debrief__outcome--no-evidence {
+  border-color: var(--state-warning);
+  color: var(--state-warning);
+}
+
+.session-debrief__outcome--progress {
+  border-color: var(--state-candidate);
+  color: var(--state-candidate);
+}
+
+.session-debrief__outcome--skipped,
+.session-debrief__outcome--pending {
+  color: var(--muted);
+}
+
+.session-debrief__row h3 {
+  margin: 8px 0 5px;
+  font-size: 1rem;
+}
+
+.session-debrief__row p {
+  margin: 0;
+  color: var(--ink-secondary);
+  line-height: 1.55;
+}
+
+.session-debrief__support {
+  margin-top: 8px;
+  color: var(--state-success);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: .72rem;
+}
+
+.session-debrief__carry {
+  display: grid;
+  grid-template-columns: minmax(0, .75fr) minmax(0, 1.25fr);
+  gap: 24px;
+  padding: 22px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--note) 58%, transparent);
+}
+
+.session-debrief__carry h3 {
+  margin: 8px 0 0;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 1.45rem;
+}
+
+.session-debrief__carry-list {
+  display: grid;
+  gap: 12px;
+}
+
+.session-debrief__carry-item {
+  display: grid;
+  gap: 4px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.session-debrief__carry-item:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.session-debrief__carry-item span {
+  color: var(--ink-secondary);
+  font-size: .86rem;
+  line-height: 1.45;
+}
+
+.session-debrief__clean {
+  margin: 0;
+  padding: 18px 20px;
+  border-left: 3px solid var(--state-success);
+  background: color-mix(in srgb, var(--surface) 84%, transparent);
+  color: var(--ink-secondary);
+}
+
+@media (max-width: 820px) {
+  .session-debrief__header,
+  .session-debrief__carry {
+    grid-template-columns: 1fr;
+  }
+
+  .session-debrief__metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .session-debrief__metric:nth-child(2) {
+    border-right: 0;
+  }
+
+  .session-debrief__metric:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+@media (max-width: 640px) {
+  .session-debrief__row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .session-debrief__metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .session-debrief__metric,
+  .session-debrief__metric:nth-child(2) {
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .session-debrief__metric:last-child {
+    border-bottom: 0;
+  }
+}

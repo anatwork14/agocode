@@ -5,7 +5,11 @@ import { useEffect, useMemo, useState } from "react";
 import { sourceLabels } from "@/lib/knowledge/all-exercises";
 import { buildDifficultyCalibrationProfile, readDifficultyCalibrationHistory } from "@/lib/learning/calibration";
 import { readLearningEvidence, type LearningEvidence } from "@/lib/learning/evidence";
-import { buildProblemIndependenceProfile, readProblemRecognitionHistory } from "@/lib/learning/independence";
+import {
+  buildProblemIndependenceProfile,
+  problemIndependenceStageLabels,
+  readProblemRecognitionHistory,
+} from "@/lib/learning/independence";
 import { buildMasterySnapshot } from "@/lib/learning/mastery";
 import { readObstacleEvidence } from "@/lib/learning/obstacles";
 import { buildProblemReviewProfile, readProblemReviewHistory, type ProblemReviewProfile } from "@/lib/learning/problem-review";
@@ -31,6 +35,12 @@ import {
 } from "@/lib/practice/daily-session-objectives";
 import { buildMixedPracticeSession } from "@/lib/practice/mixed-session";
 import { classifiedAtlasExercises } from "@/lib/practice/atlas-recognition";
+import {
+  buildDailySessionDebrief,
+  sessionDebriefOutcomeLabels,
+  sessionEvidenceSignalLabels,
+  type DailySessionDebrief,
+} from "@/lib/practice/session-debrief";
 
 const REASONING_EVIDENCE_KEY = "agocode.progress.design.reasoning-notebooks";
 const ATLAS_RECOGNITION_KEY = "agocode.progress.transfer.atlas-recognition";
@@ -40,6 +50,7 @@ type MixedSnapshot = {
   review: ProblemReviewProfile;
   history: DailyPracticeSessionSummary[];
   reconciledExerciseIds: string[];
+  debrief: DailySessionDebrief;
 };
 
 function collect(seed: string, regenerate = false): MixedSnapshot {
@@ -96,7 +107,19 @@ function collect(seed: string, regenerate = false): MixedSnapshot {
     ? saveCurrentDailyPracticeSession(window.localStorage, reconciliation.session)
     : stored;
   const state = readDailyPracticeState(window.localStorage);
-  return { session, review, history: state.history, reconciledExerciseIds: reconciliation.updatedExerciseIds };
+  const debrief = buildDailySessionDebrief({
+    session,
+    reasoningAttempts: attempts,
+    recognitionHistory,
+    independenceStates: independence.states,
+  });
+  return {
+    session,
+    review,
+    history: state.history,
+    reconciledExerciseIds: reconciliation.updatedExerciseIds,
+    debrief,
+  };
 }
 
 const roleLabels = {
@@ -148,11 +171,12 @@ export function AdaptiveMixedSession() {
   const progress = getDailyPracticeProgress(snapshot.session);
   const nextPending = snapshot.session.items.find((item) => item.status === "pending");
   const recentHistory = snapshot.history.slice(-5).reverse();
+  const retrievalAttempts = snapshot.debrief.retrievalHits + snapshot.debrief.retrievalMisses;
 
   function updateStatus(exerciseId: string, status: DailyPracticeItemStatus) {
     const session = updateDailyPracticeItemStatus(window.localStorage, exerciseId, status);
     if (!session) return;
-    setSnapshot((current) => current ? { ...current, session, reconciledExerciseIds: [] } : current);
+    setSnapshot(collect(`daily-${getLocalDayKey()}`));
   }
 
   function regenerate() {
@@ -249,12 +273,93 @@ export function AdaptiveMixedSession() {
         })}
       </div>
 
+      <section className="session-debrief" aria-labelledby="session-debrief-title">
+        <div className="session-debrief__header">
+          <div>
+            <span className="eyebrow">Evidence debrief</span>
+            <h2 id="session-debrief-title">What actually changed today?</h2>
+          </div>
+          <p>
+            Objective completion answers whether a fresh event happened. This debrief asks how strong that event was: independent or supported, first-try retrieval or miss,
+            and whether support reduction or transfer was actually demonstrated. Checkmarks still do not become mastery evidence.
+          </p>
+        </div>
+
+        <div className="session-debrief__metrics" aria-label="Daily evidence debrief summary">
+          <div className="session-debrief__metric">
+            <span>Auditable evidence</span>
+            <strong>{snapshot.debrief.objectiveEvidenceCount}/{progress.total}</strong>
+            <small>{snapshot.debrief.bookkeepingOnlyCount} cleared rows without visible proof</small>
+          </div>
+          <div className="session-debrief__metric">
+            <span>Role confirmed</span>
+            <strong>{snapshot.debrief.confirmedCount}</strong>
+            <small>{snapshot.debrief.needsWorkCount} need another pass</small>
+          </div>
+          <div className="session-debrief__metric">
+            <span>Support removed</span>
+            <strong>{snapshot.debrief.supportRemovedCount}</strong>
+            <small>lens-supported → independent</small>
+          </div>
+          <div className="session-debrief__metric">
+            <span>Blind retrieval</span>
+            <strong>{snapshot.debrief.retrievalHits}/{retrievalAttempts}</strong>
+            <small>{snapshot.debrief.retrievalMisses} first-try misses</small>
+          </div>
+        </div>
+
+        <div className="session-debrief__list">
+          {snapshot.debrief.items.map((item) => (
+            <article className="session-debrief__row" key={item.exerciseId}>
+              <div>
+                <div className="session-debrief__row-meta">
+                  <span className={`session-debrief__outcome session-debrief__outcome--${item.outcome}`}>
+                    {sessionDebriefOutcomeLabels[item.outcome]}
+                  </span>
+                  <span className="session-debrief__signal">{sessionEvidenceSignalLabels[item.primarySignal]}</span>
+                  {item.currentStage ? (
+                    <span className="session-debrief__stage">{problemIndependenceStageLabels[item.currentStage]}</span>
+                  ) : null}
+                </div>
+                <h3>{item.title}</h3>
+                <span className="mono">{roleLabels[item.role]} · {statusLabel(snapshot.session.items.find((candidate) => candidate.exerciseId === item.exerciseId)!)}</span>
+              </div>
+              <div>
+                <p>{item.explanation}</p>
+                {item.supportRemoved ? <div className="session-debrief__support">✓ support reduction objectively observed</div> : null}
+              </div>
+            </article>
+          ))}
+        </div>
+
+        {snapshot.debrief.carryForward.length ? (
+          <div className="session-debrief__carry">
+            <div>
+              <span className="eyebrow">Carry-forward watchlist</span>
+              <h3>Do not convert unresolved work into mastery.</h3>
+            </div>
+            <div className="session-debrief__carry-list">
+              {snapshot.debrief.carryForward.map((item) => (
+                <div className="session-debrief__carry-item" key={item.exerciseId}>
+                  <strong>{item.title}</strong>
+                  <span>{item.carryForwardReason}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : progress.isComplete ? (
+          <p className="session-debrief__clean">
+            Every cleared row with a learning claim has fresh auditable evidence, and no role-specific repair is currently carried forward.
+          </p>
+        ) : null}
+      </section>
+
       <div className="mixed-session__footer">
         <div>
           <span className="eyebrow">Session completion ≠ mastery</span>
           <p>
             Objective reconciliation reads evidence already written by AgoCode&apos;s learning surfaces; it never manufactures evidence itself.
-            Manual clearing remains a workflow escape hatch and is reported separately from objective completion.
+            The debrief then grades the quality of that fresh event against the row&apos;s learning role, while manual clearing remains a separate workflow escape hatch.
           </p>
         </div>
         <button className="button" type="button" onClick={regenerate}>

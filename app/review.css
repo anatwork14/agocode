@@ -4,6 +4,9 @@
   font-size: 0.82rem;
 }
 
+.review-section { display: grid; gap: 26px; }
+.review-section--curriculum { margin-top: 72px; padding-top: 52px; border-top: 3px solid var(--ink); }
+
 .review-list { border-top: 1px solid var(--ink); }
 
 .review-row {
@@ -15,14 +18,18 @@
   border-bottom: 1px solid var(--border);
 }
 
-.review-row h2 {
+.review-row h2,
+.problem-review-row h2 {
   margin: 7px 0 7px;
   font-family: var(--font-editorial), Georgia, serif;
   font-size: 1.7rem;
 }
 
-.review-row p {
-  max-width: 720px;
+.review-row p,
+.problem-review-row p,
+.problem-review-boundary p,
+.problem-review-empty p {
+  max-width: 760px;
   margin: 0;
   color: var(--ink-secondary);
   line-height: 1.6;
@@ -46,7 +53,8 @@
   font-size: .68rem;
 }
 
-.review-row__actions {
+.review-row__actions,
+.problem-review-row__actions {
   display: grid;
   gap: 10px;
   justify-items: end;
@@ -76,9 +84,148 @@
   font-size: .72rem;
 }
 
+.problem-review-queue {
+  display: grid;
+  gap: 24px;
+}
+
+.problem-review-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+}
+
+.problem-review-summary > div {
+  display: grid;
+  gap: 5px;
+  min-height: 108px;
+  padding: 18px 20px 18px 0;
+  align-content: center;
+  border-right: 1px solid var(--border);
+}
+
+.problem-review-summary > div:not(:first-child) { padding-left: 20px; }
+.problem-review-summary > div:last-child { border-right: 0; }
+
+.problem-review-summary span,
+.problem-review-summary small {
+  color: var(--muted);
+}
+
+.problem-review-summary span {
+  font-size: .66rem;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+}
+
+.problem-review-summary strong {
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 1.5rem;
+}
+
+.problem-review-summary small {
+  font-size: .71rem;
+  line-height: 1.4;
+}
+
+.problem-review-list { border-top: 1px solid var(--ink); }
+
+.problem-review-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 28px;
+  align-items: center;
+  padding: 25px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.problem-review-row--overdue,
+.problem-review-row--due {
+  border-bottom-color: var(--ink);
+}
+
+.problem-review-row__body { min-width: 0; }
+
+.problem-review-row__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.problem-review-row__meta .mono {
+  color: var(--muted);
+  font-size: .64rem;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.problem-review-row__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.problem-review-row__facts span {
+  padding: 4px 7px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: .62rem;
+}
+
+.problem-review-row__meter {
+  width: min(620px, 100%);
+  height: 4px;
+  margin-top: 12px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.problem-review-row__meter span {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+}
+
+.problem-review-row--due .problem-review-row__meter span,
+.problem-review-row--overdue .problem-review-row__meter span {
+  background: var(--accent);
+}
+
+.problem-review-boundary,
+.problem-review-empty {
+  display: grid;
+  gap: 8px;
+  max-width: 920px;
+  padding: 18px 0 4px 18px;
+  border-left: 3px solid var(--accent);
+}
+
+.problem-review-empty .button { width: fit-content; margin-top: 6px; }
+
+@media (max-width: 900px) {
+  .problem-review-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .problem-review-summary > div:nth-child(2) { border-right: 0; }
+  .problem-review-summary > div:nth-child(-n + 2) { border-bottom: 1px solid var(--border); }
+}
+
 @media (max-width: 760px) {
-  .review-row { grid-template-columns: 1fr; }
-  .review-row__actions { justify-items: start; }
+  .review-row,
+  .problem-review-row { grid-template-columns: 1fr; }
+  .review-row__actions,
+  .problem-review-row__actions { justify-items: start; }
   .review-row__outcome { justify-content: start; }
   .review-row__outcome > span { text-align: left; }
+  .problem-review-summary { grid-template-columns: 1fr; }
+  .problem-review-summary > div,
+  .problem-review-summary > div:not(:first-child) {
+    min-height: auto;
+    padding: 13px 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .problem-review-summary > div:last-child { border-bottom: 0; }
 }

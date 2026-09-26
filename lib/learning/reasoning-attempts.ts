@@ -1,4 +1,5 @@
 import type { ReasoningConfidence, ReasoningEvidence, ReasoningExerciseEvidence, StorageLike } from "./evidence.ts";
+import { isReasoningStageId, type ReasoningStageId } from "./reasoning-stages.ts";
 
 export const REASONING_ATTEMPT_HISTORY_KEY = "agocode.progress.reasoning-attempt-history";
 
@@ -11,6 +12,7 @@ export type ReasoningAttemptEntry = {
   finalizedAt: string;
   developedStages: number;
   totalStages: number;
+  developedStageIds?: ReasoningStageId[];
   lensRevealed: boolean;
   confidence?: ReasoningConfidence;
   completedAt?: string;
@@ -55,12 +57,23 @@ export const reasoningAttemptStageRank: Record<ReasoningAttemptStage, number> = 
   independent: 3,
 };
 
+function normalizeStageIds(value: unknown): ReasoningStageId[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const ids = [...new Set(value.filter(isReasoningStageId))];
+  return ids.length ? ids : undefined;
+}
+
 function clampAttempt(entry: ReasoningAttemptEntry): ReasoningAttemptEntry {
   const totalStages = Math.max(1, entry.totalStages);
+  const developedStageIds = normalizeStageIds(entry.developedStageIds);
   return {
     ...entry,
     totalStages,
-    developedStages: Math.max(0, Math.min(entry.developedStages, totalStages)),
+    developedStages: Math.max(
+      developedStageIds?.length ?? 0,
+      Math.max(0, Math.min(entry.developedStages, totalStages)),
+    ),
+    developedStageIds,
   };
 }
 
@@ -88,6 +101,7 @@ function parseEntry(value: unknown): ReasoningAttemptEntry | null {
     finalizedAt: entry.finalizedAt,
     developedStages: entry.developedStages,
     totalStages: entry.totalStages,
+    developedStageIds: normalizeStageIds(entry.developedStageIds),
     lensRevealed: entry.lensRevealed,
     confidence: isConfidence(entry.confidence) ? entry.confidence : undefined,
     completedAt: typeof entry.completedAt === "string" ? entry.completedAt : undefined,
@@ -146,8 +160,14 @@ export function recordReasoningAttempt(
   if (existingIndex >= 0) {
     const existing = previous.entries[existingIndex];
     const stronger = compareStrength(incoming, existing) > 0 ? incoming : existing;
+    const mergedStageIds = normalizeStageIds([
+      ...(existing.developedStageIds ?? []),
+      ...(incoming.developedStageIds ?? []),
+    ]);
     const merged: ReasoningAttemptEntry = {
       ...stronger,
+      developedStages: Math.max(stronger.developedStages, mergedStageIds?.length ?? 0),
+      developedStageIds: mergedStageIds,
       startedAt: existing.startedAt < incoming.startedAt ? existing.startedAt : incoming.startedAt,
     };
     entries = previous.entries.map((entry, index) => index === existingIndex ? merged : entry);

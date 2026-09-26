@@ -66,6 +66,7 @@ export function PermutationExplosion() {
             max={9}
             step={1}
             value={cities}
+            aria-label="Number of cities in factorial growth example"
             onChange={(event) => setCities(Number(event.target.value))}
           />
           <div className="permutation-scale" aria-hidden="true">

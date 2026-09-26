@@ -51,6 +51,7 @@ export function GrowthComparison() {
           max={sizes.length - 1}
           step={1}
           value={sizeIndex}
+          aria-label="Input size for growth comparison"
           onChange={(event) => setSizeIndex(Number(event.target.value))}
         />
         <div className="growth-lab__scale" aria-hidden="true">

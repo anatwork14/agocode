@@ -41,6 +41,7 @@ export function PriorityQueueWorkbench() {
                 min="0"
                 max="10"
                 value={workload[operation.id]}
+                aria-label={`${operation.label} workload frequency`}
                 onChange={(event) => setWeight(operation.id, Number(event.target.value))}
               />
               <output className="mono">{workload[operation.id]}</output>

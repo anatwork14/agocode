@@ -1,16 +1,11 @@
-export type StackRendererItem = {
-  id: string;
-  title: string;
-  detail?: string;
-  state?: "active" | "waiting" | "base" | "returning" | "paused";
-};
+import type {
+  StackRendererContract,
+  StackRendererItem,
+} from "@/lib/visualization/renderer-contracts";
 
-type StackRendererProps = {
-  items: readonly StackRendererItem[];
-  ariaLabel: string;
-  emptyLabel?: string;
-  topFirst?: boolean;
-};
+export type { StackRendererItem };
+
+type StackRendererProps = StackRendererContract;
 
 export function StackRenderer({
   items,
@@ -21,7 +16,7 @@ export function StackRenderer({
   const visibleItems = topFirst ? [...items].reverse() : [...items];
 
   return (
-    <div className="factorial-stack" aria-label={ariaLabel}>
+    <div className="factorial-stack" role="group" aria-label={ariaLabel}>
       {visibleItems.length ? (
         visibleItems.map((item) => (
           <div

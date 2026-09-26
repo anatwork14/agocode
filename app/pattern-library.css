@@ -1,0 +1,117 @@
+.pattern-library__list,
+.pattern-family__list {
+  border-top: 1px solid var(--ink);
+}
+
+.pattern-library__row {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) 130px;
+  gap: 22px;
+  align-items: start;
+  padding: 22px 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--ink);
+}
+
+.pattern-library__row > .mono,
+.pattern-family__row > .mono {
+  color: var(--accent);
+  font-size: .62rem;
+  padding-top: 4px;
+}
+
+.pattern-library__row h2,
+.pattern-family__row h2 {
+  margin: 0 0 6px;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 1.35rem;
+  letter-spacing: -.025em;
+}
+
+.pattern-library__row p,
+.pattern-family__row p {
+  max-width: 800px;
+  margin: 0;
+  color: var(--ink-secondary);
+  line-height: 1.55;
+}
+
+.pattern-library__row div > strong {
+  display: block;
+  margin-top: 10px;
+  font-size: .82rem;
+}
+
+.pattern-library__count {
+  text-align: right;
+}
+
+.pattern-library__count strong {
+  display: block;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.pattern-library__count span {
+  color: var(--muted);
+  font-size: .68rem;
+}
+
+.pattern-library__row:hover h2,
+.pattern-family__row:hover h2 {
+  color: var(--accent);
+}
+
+.pattern-family__row {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) 72px;
+  gap: 20px;
+  padding: 22px 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--ink);
+}
+
+.pattern-family__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: .59rem;
+  text-transform: uppercase;
+}
+
+.pattern-family__score {
+  justify-self: end;
+  color: var(--muted) !important;
+}
+
+@media (max-width: 720px) {
+  .pattern-library__row {
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .pattern-library__count {
+    grid-column: 2;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    text-align: left;
+  }
+
+  .pattern-library__count strong {
+    font-size: 1.35rem;
+  }
+
+  .pattern-family__row {
+    grid-template-columns: 32px minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .pattern-family__score {
+    grid-column: 2;
+    justify-self: start;
+  }
+}

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { StuckRouter } from "@/components/blog/StuckRouter";
 import { ProjectWorkspace } from "@/components/exercises/ProjectWorkspace";
 import { ReasoningNotebook } from "@/components/exercises/ReasoningNotebook";
 import { getCanonicalExercise, sourceLabels } from "@/lib/knowledge/all-exercises";
@@ -76,6 +77,8 @@ export default async function ExercisePage({ params }: ExercisePageProps) {
           <ReasoningNotebook exerciseId={id} lens={lens} />
         </section>
 
+        <StuckRouter returnHref={`/exercises/${id}`} returnLabel={`Return to ${title}`} />
+
         {isProjectTier ? (
           <section className="section worksheet">
             <div className="section-heading">
@@ -132,7 +135,7 @@ export default async function ExercisePage({ params }: ExercisePageProps) {
           </div>
           <div className="action-row">
             <Link className="button" href="/practice/atlas">Run Atlas recognition</Link>
-            <Link className="button" href="/blog">Open Ways of Solving</Link>
+            <Link className="button" href="/blog#diagnose">Diagnose another obstacle</Link>
             <Link className="button button--primary" href="/exercises">Choose another problem →</Link>
           </div>
         </section>

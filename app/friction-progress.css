@@ -1,0 +1,155 @@
+.friction-progress {
+  margin-top: 64px;
+  padding-top: 52px;
+  border-top: 1px solid var(--ink);
+}
+
+.friction-loading {
+  margin-top: 48px;
+  color: var(--muted);
+}
+
+.friction-progress__summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.friction-progress__summary > div {
+  padding: 17px 18px 17px 0;
+  border-right: 1px solid var(--border);
+}
+
+.friction-progress__summary > div:not(:first-child) {
+  padding-left: 18px;
+}
+
+.friction-progress__summary > div:last-child {
+  border-right: 0;
+}
+
+.friction-progress__summary strong {
+  display: block;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 1.7rem;
+  line-height: 1.1;
+}
+
+.friction-progress__summary span {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: .72rem;
+  line-height: 1.35;
+}
+
+.friction-progress__list {
+  border-bottom: 1px solid var(--ink);
+}
+
+.friction-progress__row {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  gap: 18px;
+  padding: 22px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.friction-progress__row:last-child {
+  border-bottom: 0;
+}
+
+.friction-progress__row > .mono {
+  color: var(--accent);
+  font-size: .61rem;
+  padding-top: 4px;
+}
+
+.friction-progress__row-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: baseline;
+}
+
+.friction-progress__row h3 {
+  margin: 0;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: 1.25rem;
+}
+
+.friction-progress__row-head > .mono {
+  color: var(--muted);
+  font-size: .62rem;
+}
+
+.friction-progress__row p {
+  max-width: 820px;
+  margin: 7px 0 0;
+  color: var(--ink-secondary);
+  line-height: 1.55;
+}
+
+.friction-progress__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 10px;
+}
+
+.friction-progress__actions a {
+  color: var(--ink);
+  font-size: .78rem;
+  font-weight: 700;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.friction-progress__actions a:hover {
+  color: var(--accent);
+}
+
+.friction-progress__footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 30px;
+  align-items: center;
+  padding-top: 18px;
+}
+
+.friction-progress__footer p {
+  max-width: 760px;
+  margin: 0;
+  color: var(--muted);
+  font-size: .82rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 720px) {
+  .friction-progress__summary {
+    grid-template-columns: 1fr;
+  }
+
+  .friction-progress__summary > div,
+  .friction-progress__summary > div:not(:first-child) {
+    padding: 13px 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .friction-progress__summary > div:last-child {
+    border-bottom: 0;
+  }
+
+  .friction-progress__row {
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .friction-progress__row-head,
+  .friction-progress__footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

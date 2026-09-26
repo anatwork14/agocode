@@ -125,7 +125,7 @@ function parseItem(value: unknown, fallbackEnteredAt: string, fallbackSatisfiedA
     role: item.role as MixedSessionRole,
     reason: item.reason,
     href: item.href,
-    status: item.status,
+    status: item.status as DailyPracticeItemStatus,
     enteredAt: isString(item.enteredAt) ? item.enteredAt : fallbackEnteredAt,
     completionMode,
     satisfiedAt: done
@@ -279,7 +279,6 @@ function snapshotItem(item: MixedSessionItem, enteredAt: string, previous?: Dail
     role: item.role,
     reason: item.reason,
     href: item.href,
-    // Regeneration gives new-role, pending, or skipped work a fresh evidence window.
     status: "pending",
     enteredAt,
   };
@@ -309,10 +308,6 @@ function createSession(
   return draft;
 }
 
-/**
- * Returns the learner's frozen plan for the local calendar day. New evidence may change
- * tomorrow's plan, but it does not silently reorder today's work on refresh.
- */
 export function ensureDailyPracticeSession(
   storage: StorageLike,
   mixed: MixedPracticeSession,
@@ -328,7 +323,6 @@ export function ensureDailyPracticeSession(
   return current;
 }
 
-/** Explicitly rebuilds the remaining daily mix. Completed items stay completed when reused under the same role. */
 export function regenerateDailyPracticeSession(
   storage: StorageLike,
   mixed: MixedPracticeSession,
@@ -343,10 +337,6 @@ export function regenerateDailyPracticeSession(
   return current;
 }
 
-/**
- * Updates only session bookkeeping. This function deliberately does not write mastery,
- * reasoning, recognition, or retrieval evidence. Re-queueing starts a fresh objective window.
- */
 export function updateDailyPracticeItemStatus(
   storage: StorageLike,
   exerciseId: string,

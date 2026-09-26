@@ -1,19 +1,15 @@
-export type QueueRendererItem = {
-  id: string;
-  label: string;
-  detail?: string;
-  state?: "queued" | "current" | "visited";
-};
+import type {
+  QueueRendererContract,
+  QueueRendererItem,
+} from "@/lib/visualization/renderer-contracts";
 
-type QueueRendererProps = {
-  items: readonly QueueRendererItem[];
-  ariaLabel: string;
-  emptyLabel?: string;
-};
+export type { QueueRendererItem };
+
+type QueueRendererProps = QueueRendererContract;
 
 export function QueueRenderer({ items, ariaLabel, emptyLabel = "queue empty" }: QueueRendererProps) {
   return (
-    <div className="queue-renderer" aria-label={ariaLabel}>
+    <div className="queue-renderer" role="group" aria-label={ariaLabel}>
       <div className="queue-renderer__labels" aria-hidden="true">
         <span>front · dequeue</span>
         <span>enqueue · back</span>

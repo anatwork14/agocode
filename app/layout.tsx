@@ -57,6 +57,7 @@ import "./pattern-library.css";
 import "./friction-progress.css";
 import "./next-problem.css";
 import "./completion-features.css";
+import "./daily-session.css";
 import "./advanced-workbenches.css";
 import "./workspace-completion.css";
 

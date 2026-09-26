@@ -46,7 +46,7 @@ export default async function SyllabusModulePage({ params }: PageProps) {
                 <span className="mono">{item.track.number}</span>
                 <strong>{item.module.title}</strong>
               </Link>
-            )) : <p className="module-dependency-empty">No hard prerequisite in AgoCode's suggested path. This is an entry point.</p>}
+            )) : <p className="module-dependency-empty">No hard prerequisite in the suggested AgoCode path. This is an entry point.</p>}
           </div>
           <div>
             <span className="eyebrow">Unlocks</span>

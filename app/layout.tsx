@@ -64,6 +64,7 @@ import "./curriculum-plan.css";
 import "./weekly-review.css";
 import "./storage-reliability.css";
 import "./pwa.css";
+import "./system-evaluation.css";
 import "./advanced-workbenches.css";
 import "./workspace-completion.css";
 

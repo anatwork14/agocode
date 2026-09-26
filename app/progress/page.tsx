@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { DesignSkillProgress } from "@/components/progress/DesignSkillProgress";
+import { LearningSystemAudit } from "@/components/progress/LearningSystemAudit";
 import { ProblemIndependenceProgress } from "@/components/progress/ProblemIndependenceProgress";
 import { ProblemSolvingFriction } from "@/components/progress/ProblemSolvingFriction";
 import { ProgressDashboard } from "@/components/progress/ProgressDashboard";
@@ -31,6 +32,7 @@ export default function ProgressPage() {
           <DesignSkillProgress />
           <ProblemSolvingProgress />
           <ProblemSolvingFriction />
+          <LearningSystemAudit />
         </section>
       </div>
     </main>

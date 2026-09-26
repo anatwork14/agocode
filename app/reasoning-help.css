@@ -1,0 +1,58 @@
+.reasoning-step__help {
+  margin-top: 12px;
+  border-top: 1px dashed var(--border);
+  padding-top: 10px;
+}
+
+.reasoning-step__help summary {
+  width: fit-content;
+  color: var(--muted);
+  font-size: .76rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.reasoning-step__help[open] summary {
+  color: var(--accent);
+}
+
+.reasoning-step__help > div {
+  display: grid;
+  gap: 7px;
+  margin-top: 10px;
+  padding: 13px 14px;
+  border-left: 2px solid var(--accent);
+  background: var(--note);
+}
+
+.reasoning-step__help .mono {
+  color: var(--accent);
+  font-size: .57rem;
+  letter-spacing: .08em;
+}
+
+.reasoning-step__help p {
+  margin: 0;
+  color: var(--ink-secondary);
+  font-size: .84rem;
+  line-height: 1.5;
+}
+
+.reasoning-step__help-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  padding-top: 4px;
+}
+
+.reasoning-step__help-actions a {
+  color: var(--ink);
+  font-size: .75rem;
+  font-weight: 700;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.reasoning-step__help-actions a:hover {
+  color: var(--accent);
+}

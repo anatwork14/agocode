@@ -3,6 +3,11 @@ import { expect, test } from "@playwright/test";
 const DAILY_SESSION_KEY = "agocode.practice.daily-session";
 const LEGACY_EVIDENCE_KEY = "agocode.progress.binary-search.rebuild";
 const RECOVERY_KEY = "agocode.system.storage-recovery.v1";
+const RECOMMENDATION_HISTORY_KEY = "agocode.progress.next-problem-history";
+const REASONING_ATTEMPT_HISTORY_KEY = "agocode.progress.reasoning-attempt-history";
+const DIAGNOSTIC_STATE_KEY = "agocode.progress.diagnostic-placement";
+const ANALYSIS_EXERCISE_A = "goodrich-1-1-experimental-running-time-study";
+const ANALYSIS_EXERCISE_B = "goodrich-1-2-compare-growth-rates";
 
 async function waitForServiceWorkerControl(page: import("@playwright/test").Page) {
   await page.evaluate(async () => {
@@ -10,6 +15,15 @@ async function waitForServiceWorkerControl(page: import("@playwright/test").Page
     await navigator.serviceWorker.ready;
   });
   await page.waitForFunction(() => navigator.serviceWorker.controller !== null, undefined, { timeout: 15_000 });
+}
+
+async function readAgoCodeStorage(page: import("@playwright/test").Page) {
+  return page.evaluate(() => Object.fromEntries(
+    Object.keys(localStorage)
+      .filter((key) => key.startsWith("agocode."))
+      .sort()
+      .map((key) => [key, localStorage.getItem(key)]),
+  ));
 }
 
 test("primary learner journey connects curriculum, weekly review, and today's practice", async ({ page }) => {
@@ -146,4 +160,85 @@ test("core planning surface does not overflow a narrow mobile viewport", async (
     document: document.documentElement.scrollWidth,
   }));
   expect(dimensions.document).toBeLessThanOrEqual(dimensions.viewport + 1);
+});
+
+test("learning-system audit derives recommendation and diagnostic signals without mutating local evidence", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(({ recommendationKey, attemptKey, diagnosticKey, exerciseA, exerciseB }) => {
+    localStorage.setItem(recommendationKey, JSON.stringify({
+      version: 1,
+      entries: [{ exerciseId: exerciseA, chosenAt: "2026-09-24T08:00:00.000Z" }],
+    }));
+    localStorage.setItem(attemptKey, JSON.stringify({
+      version: 1,
+      entries: [
+        {
+          attemptId: "phase4-e2e-a",
+          exerciseId: exerciseA,
+          startedAt: "2026-09-25T07:55:00.000Z",
+          finalizedAt: "2026-09-25T08:00:00.000Z",
+          developedStages: 8,
+          totalStages: 8,
+          lensRevealed: false,
+          completedAt: "2026-09-25T08:00:00.000Z",
+        },
+        {
+          attemptId: "phase4-e2e-b",
+          exerciseId: exerciseB,
+          startedAt: "2026-09-25T08:55:00.000Z",
+          finalizedAt: "2026-09-25T09:00:00.000Z",
+          developedStages: 8,
+          totalStages: 8,
+          lensRevealed: false,
+          completedAt: "2026-09-25T09:00:00.000Z",
+        },
+      ],
+    }));
+    localStorage.setItem(diagnosticKey, JSON.stringify({
+      version: 1,
+      attempts: [{
+        attemptId: "phase4-e2e-diagnostic",
+        startedAt: "2026-09-23T07:00:00.000Z",
+        updatedAt: "2026-09-23T07:10:00.000Z",
+        completedAt: "2026-09-23T07:10:00.000Z",
+        answers: {
+          "analysis-search-million": "a",
+          "analysis-n-log-n": "c",
+        },
+      }],
+    }));
+  }, {
+    recommendationKey: RECOMMENDATION_HISTORY_KEY,
+    attemptKey: REASONING_ATTEMPT_HISTORY_KEY,
+    diagnosticKey: DIAGNOSTIC_STATE_KEY,
+    exerciseA: ANALYSIS_EXERCISE_A,
+    exerciseB: ANALYSIS_EXERCISE_B,
+  });
+
+  const seededState = await readAgoCodeStorage(page);
+  await page.goto("/progress");
+
+  await expect(page.getByRole("heading", { level: 2, name: "Is AgoCode's guidance actually producing useful evidence?" })).toBeVisible();
+
+  const recommendationPanel = page.locator("article.system-audit__panel").filter({
+    has: page.getByRole("heading", { level: 3, name: "Did a chosen next problem lead to objective work?" }),
+  });
+  await expect(recommendationPanel.getByText("Experimental running-time study", { exact: true })).toBeVisible();
+  await expect(recommendationPanel.getByText("Independent", { exact: true })).toBeVisible();
+  await expect(recommendationPanel.getByText("100%", { exact: true })).toHaveCount(2);
+
+  const diagnosticPanel = page.locator("article.system-audit__panel").filter({
+    has: page.getByRole("heading", { level: 3, name: "Did placement agree with later objective work?" }),
+  });
+  const analysisRow = diagnosticPanel.locator(".system-audit__skill").filter({ hasText: "Analysis & growth" });
+  await expect(analysisRow.getByText("Aligned", { exact: true })).toBeVisible();
+  await expect(analysisRow.getByText(/Placement\s*100%/)).toBeVisible();
+  await expect(analysisRow.getByText(/Later objective\s*100%/)).toBeVisible();
+
+  expect(await readAgoCodeStorage(page)).toEqual(seededState);
+
+  await page.reload();
+  await expect(page.getByRole("heading", { level: 2, name: "Is AgoCode's guidance actually producing useful evidence?" })).toBeVisible();
+  await expect(page.getByText("Experimental running-time study", { exact: true }).last()).toBeVisible();
+  expect(await readAgoCodeStorage(page)).toEqual(seededState);
 });

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DivideConquerRecursionTreeLab } from "@/components/quicksort/DivideConquerRecursionTreeLab";
 import { DivideConquerTilingLab } from "@/components/quicksort/DivideConquerTilingLab";
 import { RecursiveSumRebuild } from "@/components/quicksort/RecursiveSumRebuild";
 import { RecursiveSumTrace } from "@/components/quicksort/RecursiveSumTrace";
@@ -15,7 +16,8 @@ export default function DivideAndConquerPage() {
             <a href="#strategy">01 · Strategy</a>
             <a href="#reduce">02 · Reduce</a>
             <a href="#sum">03 · Same problem, smaller input</a>
-            <a href="#rebuild">04 · Rebuild</a>
+            <a href="#tree">04 · Recursion tree</a>
+            <a href="#rebuild">05 · Rebuild</a>
           </nav>
 
           <article className="reading-column">
@@ -59,6 +61,16 @@ export default function DivideAndConquerPage() {
                 <RecursiveSumTrace />
               </section>
 
+              <section id="tree">
+                <h2>A recursion tree explains where divide-and-conquer cost comes from.</h2>
+                <p>
+                  A single recursive chain shows stack depth, but many divide-and-conquer algorithms branch into more
+                  than one subproblem. A recursion tree makes both dimensions visible: how many subproblems exist at a
+                  level and how much work each one performs. Track their product instead of counting nodes alone.
+                </p>
+                <DivideConquerRecursionTreeLab />
+              </section>
+
               <section id="rebuild">
                 <h2>Reconstruct the reduction yourself.</h2>
                 <p>
@@ -78,7 +90,7 @@ export default function DivideAndConquerPage() {
             <MarginNote label="Mindset">D&amp;C is a problem-solving strategy, not one fixed algorithm.</MarginNote>
             <MarginNote label="Progress">A recursive call should receive a problem that is measurably closer to the base case.</MarginNote>
             <MarginNote label="Farm example">The rectangle reduction is an instance of Euclid&apos;s algorithm: solving the remainder preserves the greatest common square size.</MarginNote>
-            <MarginNote label="Connection">Chapter 3 gave you the call-stack model. D&amp;C now uses that model to solve successively smaller subproblems.</MarginNote>
+            <MarginNote label="Tree cost">When branching grows while each subproblem shrinks, reason about work per level—not only recursion depth.</MarginNote>
           </aside>
         </div>
       </div>

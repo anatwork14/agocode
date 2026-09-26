@@ -37,12 +37,13 @@ export function ObjectiveProblemRetrieval({ exerciseId }: RetrievalProps) {
     );
   }
 
+  const currentItem = item;
   const selectedFamily = selected ? atlasPatterns.find((family) => family.id === selected) : undefined;
 
   function choose(familyId: AtlasPatternId) {
     if (completed) return;
     const wasFirstTry = !attempted;
-    const correct = familyId === item.family.id;
+    const correct = familyId === currentItem.family.id;
     setSelected(familyId);
     setAttempted(true);
     if (!correct) return;
@@ -55,14 +56,14 @@ export function ObjectiveProblemRetrieval({ exerciseId }: RetrievalProps) {
       firstTryCorrect: wasFirstTry ? 1 : 0,
       totalScenarios: 1,
       techniqueResults: {
-        [item.family.id]: { totalScenarios: 1, firstTryCorrect: wasFirstTry ? 1 : 0 },
+        [currentItem.family.id]: { totalScenarios: 1, firstTryCorrect: wasFirstTry ? 1 : 0 },
       },
-      missedScenarioIds: wasFirstTry ? [] : [item.exercise.id],
+      missedScenarioIds: wasFirstTry ? [] : [currentItem.exercise.id],
       completedAt,
     });
     recordProblemRecognitionSession(
       window.localStorage,
-      [{ exerciseId: item.exercise.id, firstTry: wasFirstTry }],
+      [{ exerciseId: currentItem.exercise.id, firstTry: wasFirstTry }],
       completedAt,
     );
   }
@@ -74,7 +75,7 @@ export function ObjectiveProblemRetrieval({ exerciseId }: RetrievalProps) {
           <span>OBJECTIVE RETRIEVAL</span>
           <span>SOURCE / CHAPTER / TAGS HIDDEN</span>
         </div>
-        <h2>{item.exercise.title}</h2>
+        <h2>{currentItem.exercise.title}</h2>
         <p>
           Do not reopen your previous reasoning log. Identify the structural family that should organize the solution, then state its first modeling or invariant question before continuing.
         </p>
@@ -106,18 +107,18 @@ export function ObjectiveProblemRetrieval({ exerciseId }: RetrievalProps) {
             <>
               <span className="eyebrow">Objective retrieval recorded</span>
               <h3>{firstTry ? "Recognized on the first try." : "Recovered after a miss."}</h3>
-              <p><strong>First structural question:</strong> {item.family.firstQuestion}</p>
+              <p><strong>First structural question:</strong> {currentItem.family.firstQuestion}</p>
               <div className="objective-retrieval__reveal">
-                <div><span>Family</span><strong>{item.family.label}</strong></div>
-                <div><span>Source</span><strong>{sourceLabels[item.exercise.source]}</strong></div>
-                <div><span>Domain</span><strong>{item.exercise.domain}</strong></div>
-                <div><span>Matched clues</span><strong>{item.matchedTerms.join(" · ") || "structural fit"}</strong></div>
+                <div><span>Family</span><strong>{currentItem.family.label}</strong></div>
+                <div><span>Source</span><strong>{sourceLabels[currentItem.exercise.source]}</strong></div>
+                <div><span>Domain</span><strong>{currentItem.exercise.domain}</strong></div>
+                <div><span>Matched clues</span><strong>{currentItem.matchedTerms.join(" · ") || "structural fit"}</strong></div>
               </div>
               <p>
                 AgoCode has written this result into problem-level recognition history. The review scheduler will expand or contract the next interval automatically; no manual “remembered” button is required.
               </p>
               <div className="action-row">
-                <Link className="button button--primary" href={`/exercises/${item.exercise.id}`}>Rebuild the solution independently →</Link>
+                <Link className="button button--primary" href={`/exercises/${currentItem.exercise.id}`}>Rebuild the solution independently →</Link>
                 <Link className="button" href="/review">Back to review queue</Link>
               </div>
             </>

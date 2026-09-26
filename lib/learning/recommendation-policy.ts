@@ -263,7 +263,7 @@ export function buildRecommendationPolicyAudit(input: {
         suggestedScoreDelta = MAX_POLICY_PREVIEW_DELTA;
       } else if (strongEvidenceLift <= -liftThreshold && followLift <= 5) {
         status = "weak";
-        suggestedScoreDelta = -MAX_POLICY_PREVIEW_DELTA;
+        suggestedScoreDelta = -2;
       } else {
         status = "neutral";
       }

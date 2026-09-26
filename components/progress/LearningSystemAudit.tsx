@@ -5,6 +5,11 @@ import { useEffect, useMemo, useState } from "react";
 import { getCanonicalExercise } from "@/lib/knowledge/all-exercises";
 import { readDiagnosticState } from "@/lib/learning/diagnostic";
 import { readProblemRecognitionHistory } from "@/lib/learning/independence";
+import {
+  buildRecommendationPolicyAudit,
+  type RecommendationPolicyAudit,
+  type RecommendationPolicyStatus,
+} from "@/lib/learning/recommendation-policy";
 import { readRecommendationHistory } from "@/lib/learning/recommendations";
 import { readReasoningAttemptHistory } from "@/lib/learning/reasoning-attempts";
 import {
@@ -19,6 +24,7 @@ import {
 type LearningSystemView = {
   recommendations: RecommendationOutcomeAudit;
   diagnostic: DiagnosticCalibrationAudit;
+  policy: RecommendationPolicyAudit;
 };
 
 const recommendationStatusLabels: Record<RecommendationAuditStatus, string> = {
@@ -38,23 +44,35 @@ const calibrationStatusLabels: Record<DiagnosticCalibrationStatus, string> = {
   insufficient: "Need more evidence",
 };
 
+const policyStatusLabels: Record<RecommendationPolicyStatus, string> = {
+  promising: "Promising association",
+  neutral: "Near baseline",
+  weak: "Weak association",
+  insufficient: "Need more evidence",
+};
+
 function collectEvaluation(): LearningSystemView {
   const recommendations = readRecommendationHistory(window.localStorage);
   const reasoningAttempts = readReasoningAttemptHistory(window.localStorage);
   const recognitionHistory = readProblemRecognitionHistory(window.localStorage);
   const diagnosticState = readDiagnosticState(window.localStorage);
   const diagnosticAttempt = [...diagnosticState.attempts].reverse().find((attempt) => attempt.completedAt && attempt.result);
+  const recommendationAudit = buildRecommendationOutcomeAudit({
+    recommendations,
+    reasoningAttempts,
+    recognitionHistory,
+    now: Date.now(),
+  });
 
   return {
-    recommendations: buildRecommendationOutcomeAudit({
-      recommendations,
-      reasoningAttempts,
-      recognitionHistory,
-      now: Date.now(),
-    }),
+    recommendations: recommendationAudit,
     diagnostic: buildDiagnosticCalibrationAudit({
       diagnosticAttempt,
       reasoningAttempts,
+    }),
+    policy: buildRecommendationPolicyAudit({
+      recommendations,
+      outcomes: recommendationAudit,
     }),
   };
 }
@@ -76,6 +94,11 @@ function formatDate(value: string | undefined) {
   return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric" }).format(date);
 }
 
+function formatDelta(value: number) {
+  if (value > 0) return `+${value}`;
+  return String(value);
+}
+
 export function LearningSystemAudit() {
   const [view, setView] = useState<LearningSystemView | null>(null);
 
@@ -95,6 +118,7 @@ export function LearningSystemAudit() {
   }, []);
 
   const recommendationRows = useMemo(() => view?.recommendations.outcomes.slice(0, 8) ?? [], [view]);
+  const policyRows = useMemo(() => view?.policy.reasons.slice(0, 8) ?? [], [view]);
 
   if (!view) {
     return <div className="system-audit-loading">Auditing the local learning system from objective evidence…</div>;
@@ -102,6 +126,7 @@ export function LearningSystemAudit() {
 
   const recommendation = view.recommendations;
   const diagnostic = view.diagnostic;
+  const policy = view.policy;
 
   return (
     <section className="system-audit" aria-labelledby="system-audit-title">
@@ -219,11 +244,88 @@ export function LearningSystemAudit() {
         </article>
       </div>
 
+      <div className="system-audit__grid">
+        <article className="system-audit__panel" aria-labelledby="policy-audit-title">
+          <div className="system-audit__panel-heading">
+            <div>
+              <span className="eyebrow">Recommendation policy audit</span>
+              <h3 id="policy-audit-title">Which surfaced recommendation rationales are associated with stronger later evidence?</h3>
+            </div>
+            <Link href="/practice/next">Generate evidence →</Link>
+          </div>
+
+          <div className="system-audit__metrics">
+            <div><span>Reason snapshots</span><strong>{policy.snapshottedChoices}/{policy.choices}</strong><small>{policy.metadataCoverageRate === undefined ? "no choices yet" : `${policy.metadataCoverageRate}% of recommendation history`}</small></div>
+            <div><span>Mature policy sample</span><strong>{policy.matureSnapshottedChoices}</strong><small>minimum {policy.minimumMatureChoices} before tuning preview</small></div>
+            <div><span>Eligible rationales</span><strong>{policy.eligibleReasons}</strong><small>minimum {policy.minimumReasonChoices} mature uses each</small></div>
+            <div><span>Suggested changes</span><strong>{policy.suggestedChanges}</strong><small>preview only · never auto-applied</small></div>
+          </div>
+
+          {policyRows.length ? (
+            <div className="system-audit__skills">
+              {policyRows.map((row) => (
+                <div className="system-audit__skill" key={row.reasonId}>
+                  <div>
+                    <span className={`system-audit__calibration system-audit__calibration--${row.status}`}>{policyStatusLabels[row.status]}</span>
+                    <strong>{row.label}</strong>
+                    <small>{row.matureChoices} mature choice{row.matureChoices === 1 ? "" : "s"} · {row.strongEvidence} strong-evidence outcome{row.strongEvidence === 1 ? "" : "s"}</small>
+                  </div>
+                  <div className="system-audit__skill-scores">
+                    <span>Follow-through <strong>{row.followThroughRate === undefined ? "—" : `${row.followThroughRate}%`}</strong></span>
+                    <span>Strong evidence <strong>{row.strongEvidenceRate === undefined ? "—" : `${row.strongEvidenceRate}%`}</strong></span>
+                    <span>Shrunk strong rate <strong>{row.smoothedStrongEvidenceRate === undefined ? "—" : `${row.smoothedStrongEvidenceRate}%`}</strong></span>
+                    <span>Preview <strong>{formatDelta(row.suggestedScoreDelta)} pts</strong></span>
+                  </div>
+                  <p>{row.explanation}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="system-audit__empty">
+              <strong>No snapshotted recommendation rationales yet.</strong>
+              <p>Existing recommendation history remains valid. New planner choices now preserve the exact rationales that were visible when the learner chose them, so AgoCode never reconstructs reasons from later state.</p>
+            </div>
+          )}
+        </article>
+
+        <article className="system-audit__panel" aria-labelledby="policy-guardrail-title">
+          <div className="system-audit__panel-heading">
+            <div>
+              <span className="eyebrow">Policy tuning boundary</span>
+              <h3 id="policy-guardrail-title">Evidence can suggest a change without changing the live planner.</h3>
+            </div>
+          </div>
+
+          <div className="system-audit__diagnostic-summary">
+            <div><span>Overall gate</span><strong>{policy.minimumMatureChoices}</strong><small>mature choices with reason snapshots</small></div>
+            <div><span>Per-rationale gate</span><strong>{policy.minimumReasonChoices}</strong><small>mature uses before comparison</small></div>
+            <div><span>Maximum preview</span><strong>±2</strong><small>bounded score points only</small></div>
+            <div><span>Live application</span><strong>Off</strong><small>fixed deterministic weights remain authoritative</small></div>
+          </div>
+
+          <div className="system-audit__empty">
+            <strong>Why the preview is intentionally conservative</strong>
+            <p>
+              A recommendation can carry several rationales at once, so these rows are associations rather than causal estimates. AgoCode shrinks each rationale&apos;s observed rate toward the local baseline before showing a preview, requires both an overall sample and a per-rationale sample, and never writes the preview back into mastery or recommendation weights.
+            </p>
+          </div>
+
+          <div className="system-audit__empty">
+            <strong>Current local baseline</strong>
+            <p>
+              Follow-through: {policy.baselineFollowThroughRate === undefined ? "—" : `${policy.baselineFollowThroughRate}%`} · strong evidence: {policy.baselineStrongEvidenceRate === undefined ? "—" : `${policy.baselineStrongEvidenceRate}%`}.
+              Legacy choices without rationale snapshots stay in the outcome audit but are excluded from reason-level policy comparisons.
+            </p>
+          </div>
+        </article>
+      </div>
+
       <div className="system-audit__boundary">
         <span className="eyebrow">Interpretation boundary</span>
         <p>
           These are directional product-quality checks, not psychometric validation and not causal claims. Recommendation follow-through can be affected by timing and learner intent;
-          diagnostic disagreement can reflect learning after the diagnostic as well as under- or over-placement. AgoCode therefore uses this page to expose uncertainty rather than silently retuning mastery.
+          diagnostic disagreement can reflect learning after the diagnostic as well as under- or over-placement; and one recommendation may expose several rationales at once.
+          AgoCode therefore uses this page to expose uncertainty and bounded tuning previews rather than silently retuning mastery or planner weights.
         </p>
       </div>
     </section>

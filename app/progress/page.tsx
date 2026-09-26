@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ProblemIndependenceProgress } from "@/components/progress/ProblemIndependenceProgress";
 import { ProblemSolvingFriction } from "@/components/progress/ProblemSolvingFriction";
 import { ProgressDashboard } from "@/components/progress/ProgressDashboard";
 import { ProblemSolvingProgress } from "@/components/progress/ProblemSolvingProgress";
@@ -22,6 +23,7 @@ export default function ProgressPage() {
 
         <section className="section" style={{ paddingTop: 44 }}>
           <ProgressDashboard />
+          <ProblemIndependenceProgress />
           <ProblemSolvingProgress />
           <ProblemSolvingFriction />
         </section>

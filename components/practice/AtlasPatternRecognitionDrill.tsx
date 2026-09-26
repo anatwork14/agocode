@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { sourceLabels } from "@/lib/knowledge/all-exercises";
 import { readLearningEvidence, recordRecognitionCompletion } from "@/lib/learning/evidence";
+import { recordProblemRecognitionSession } from "@/lib/learning/independence";
 import {
   atlasPatterns,
   buildAtlasRecognitionSession,
@@ -41,13 +42,23 @@ function saveCompletion(items: ClassifiedAtlasExercise[], answers: Record<string
     techniqueResults[item.family.id] = family;
   }
 
+  const completedAt = new Date().toISOString();
   recordRecognitionCompletion(localStorage, STORAGE_KEY, {
     exerciseId: "atlas-pattern-recognition",
     firstTryCorrect,
     totalScenarios: items.length,
     techniqueResults,
     missedScenarioIds,
+    completedAt,
   });
+  recordProblemRecognitionSession(
+    localStorage,
+    items.map((item) => ({
+      exerciseId: item.exercise.id,
+      firstTry: Boolean(answers[item.exercise.id]?.firstTry),
+    })),
+    completedAt,
+  );
 }
 
 export function AtlasPatternRecognitionDrill() {
@@ -232,7 +243,8 @@ export function AtlasPatternRecognitionDrill() {
             <h3>{firstTryScore}/{session.items.length} recognized on the first attempt.</h3>
             <p>
               This set sampled {session.familyCount} structural families from {session.sourceCount} source perspectives. Misses
-              are saved as retrieval evidence and will be prioritized at the beginning of the next broad session.
+              are saved as retrieval evidence and will be prioritized at the beginning of the next broad session. First-try
+              problem outcomes are also timestamped so delayed recognition can count as problem-level recall evidence.
             </p>
           </div>
           <button className="button button--primary" type="button" onClick={startAnotherSet}>Build another mixed set →</button>

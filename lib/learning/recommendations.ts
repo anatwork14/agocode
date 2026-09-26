@@ -4,6 +4,7 @@ import { stuckDiagnoses, type StuckStateId } from "../knowledge/stuck-router.ts"
 import { classifiedAtlasExercises, type AtlasPatternId, type ClassifiedAtlasExercise } from "../practice/atlas-recognition.ts";
 import type { DifficultyCalibrationProfile, DifficultyBias } from "./calibration.ts";
 import type { StorageLike } from "./evidence.ts";
+import type { ProblemIndependenceState } from "./independence.ts";
 import type { MasterySnapshot } from "./mastery.ts";
 import type { EvidenceDimension } from "./progressCatalog.ts";
 import { getMostFrequentObstacles, type ObstacleEvidence } from "./obstacles.ts";
@@ -27,6 +28,7 @@ export type AdaptiveRecommendationInput = {
   missedExerciseIds?: readonly string[];
   recommendationHistoryIds?: readonly string[];
   difficultyCalibration?: DifficultyCalibrationProfile | null;
+  problemIndependence?: Record<string, ProblemIndependenceState>;
   limit?: number;
   seed?: string;
 };
@@ -141,11 +143,13 @@ function scoreCandidate(
   recentFamilies: Set<string>,
   missedIds: Set<string>,
   historyIds: Set<string>,
+  independentFamilies: Set<string>,
 ) {
   const targetDimension = input.mastery.weakest.id;
   const reasons: string[] = [];
   const calibrationBias = input.difficultyCalibration?.bias ?? 0;
   const calibratedLevel = getCalibratedTargetLevel(input.mastery.overall, calibrationBias);
+  const independence = input.problemIndependence?.[item.exercise.id];
   let score = 20;
 
   score += candidateKindScore(item.exercise, targetDimension);
@@ -155,6 +159,24 @@ function scoreCandidate(
     reasons.push(calibrationBias > 0
       ? "difficulty calibration supports a harder next step"
       : "difficulty calibration favors a gentler next step");
+  }
+
+  if (independence?.stage === "guided") {
+    score += 10;
+    reasons.push("continues an in-progress problem toward a complete solve");
+  } else if (independence?.stage === "solved") {
+    score += 15;
+    reasons.push("retries a solved problem without support to establish independence");
+  } else if (independence?.stage === "independent") {
+    score += targetDimension === "recall" ? 5 : -3;
+  } else if (independence?.stage === "transferred") {
+    score += targetDimension === "recall" ? 10 : -8;
+    if (targetDimension === "recall") reasons.push("is ready for delayed structural retrieval");
+  } else if (independence?.stage === "recalled") {
+    score -= 20;
+  } else if (!independence && targetDimension === "transfer" && independentFamilies.has(item.family.id)) {
+    score += 12;
+    reasons.push("changes the surface story within a family already solved independently");
   }
 
   if (dimensionFamilyAffinity[targetDimension].includes(item.family.id)) {
@@ -232,9 +254,14 @@ export function buildAdaptiveRecommendations(input: AdaptiveRecommendationInput)
   );
   const missedIds = new Set(input.missedExerciseIds ?? []);
   const historyIds = new Set(input.recommendationHistoryIds ?? []);
+  const independentFamilies = new Set(
+    Object.values(input.problemIndependence ?? {})
+      .filter((state) => state.rank >= 4 && Boolean(state.familyId))
+      .map((state) => state.familyId as string),
+  );
 
   const ranked = classifiedAtlasExercises
-    .map((item) => scoreCandidate(item, input, recentIds, recentSources, recentDomains, recentFamilies, missedIds, historyIds))
+    .map((item) => scoreCandidate(item, input, recentIds, recentSources, recentDomains, recentFamilies, missedIds, historyIds, independentFamilies))
     .sort((a, b) => b.score - a.score || tieBreaker(seed, b.item.exercise.id) - tieBreaker(seed, a.item.exercise.id));
 
   const selected: typeof ranked = [];

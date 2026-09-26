@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { invariantScenarios } from "@/lib/knowledge/invariant-workbench";
+import { invariantScenarios } from "@/lib/knowledge/all-invariant-scenarios";
 
 type ProofStage = "initialization" | "preservation" | "termination";
 
@@ -11,9 +11,12 @@ const proofLabels: Record<ProofStage, string> = {
   termination: "Termination",
 };
 
+const MIN_DRAFT_LENGTH = 20;
+
 export function InvariantWorkbench() {
   const [scenarioId, setScenarioId] = useState(invariantScenarios[0].id);
   const [claimId, setClaimId] = useState<string | null>(null);
+  const [draft, setDraft] = useState("");
   const [frameIndex, setFrameIndex] = useState(0);
   const [proofStage, setProofStage] = useState<ProofStage>("initialization");
   const [counterexampleOpen, setCounterexampleOpen] = useState(false);
@@ -22,6 +25,7 @@ export function InvariantWorkbench() {
     () => invariantScenarios.find((item) => item.id === scenarioId) ?? invariantScenarios[0],
     [scenarioId],
   );
+  const draftReady = draft.trim().length >= MIN_DRAFT_LENGTH;
   const selectedClaim = scenario.claims.find((claim) => claim.id === claimId) ?? null;
   const frame = scenario.frames[frameIndex] ?? scenario.frames[0];
   const correctClaim = scenario.claims.find((claim) => claim.valid)!;
@@ -29,6 +33,7 @@ export function InvariantWorkbench() {
   const chooseScenario = (id: string) => {
     setScenarioId(id);
     setClaimId(null);
+    setDraft("");
     setFrameIndex(0);
     setProofStage("initialization");
     setCounterexampleOpen(false);
@@ -41,8 +46,7 @@ export function InvariantWorkbench() {
           <span className="eyebrow">01 · Pick an algorithm</span>
           <h2>Correctness needs a sentence that survives every state change.</h2>
           <p>
-            An invariant is useful when it connects a local transition to the global result. Choose the strongest correctness-relevant
-            claim, then test whether initialization, preservation, and termination support it.
+            An invariant is useful when it connects a local transition to the global result. Write your own claim first, then compare it with candidate statements and test initialization, preservation, and termination.
           </p>
         </div>
         <div className="invariant-tabs" role="tablist" aria-label="Invariant scenarios">
@@ -71,24 +75,49 @@ export function InvariantWorkbench() {
           <span className="mono">{scenario.label}</span>
         </div>
 
-        <div className="invariant-claims" role="radiogroup" aria-label="Invariant claims">
-          {scenario.claims.map((claim) => {
-            const selected = claim.id === claimId;
-            return (
-              <button
-                type="button"
-                role="radio"
-                aria-checked={selected}
-                className={selected ? "invariant-claim invariant-claim--selected" : "invariant-claim"}
-                onClick={() => setClaimId(claim.id)}
-                key={claim.id}
-              >
-                <span className="mono">{claim.id.replaceAll("-", " ")}</span>
-                <strong>{claim.text}</strong>
-              </button>
-            );
-          })}
+        <div className="invariant-draft">
+          <label htmlFor="invariant-draft-input">
+            <span className="eyebrow">Your invariant first</span>
+            <strong>What must remain true after every important transition?</strong>
+          </label>
+          <textarea
+            id="invariant-draft-input"
+            rows={4}
+            value={draft}
+            onChange={(event) => {
+              setDraft(event.target.value);
+              setClaimId(null);
+            }}
+            placeholder="After every step, ... remains true because ..."
+          />
+          <span className="mono">{draftReady ? "candidate claims unlocked" : `${Math.max(0, MIN_DRAFT_LENGTH - draft.trim().length)} more characters before comparison`}</span>
         </div>
+
+        {draftReady ? (
+          <div className="invariant-claims" role="radiogroup" aria-label="Invariant claims">
+            {scenario.claims.map((claim) => {
+              const selected = claim.id === claimId;
+              return (
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  className={selected ? "invariant-claim invariant-claim--selected" : "invariant-claim"}
+                  onClick={() => setClaimId(claim.id)}
+                  key={claim.id}
+                >
+                  <span className="mono">{claim.id.replaceAll("-", " ")}</span>
+                  <strong>{claim.text}</strong>
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="invariant-claims-locked">
+            <strong>Candidate claims are intentionally hidden.</strong>
+            <p>Commit to a substantive invariant first so recognition does not replace construction.</p>
+          </div>
+        )}
 
         <div className={selectedClaim ? (selectedClaim.valid ? "invariant-feedback invariant-feedback--valid" : "invariant-feedback invariant-feedback--invalid") : "invariant-feedback"}>
           {selectedClaim ? (
@@ -97,7 +126,7 @@ export function InvariantWorkbench() {
               <p>{selectedClaim.feedback}</p>
             </>
           ) : (
-            <p>Choose a claim before opening the proof obligations.</p>
+            <p>{draftReady ? "Choose a candidate after comparing it against your own draft." : "Write your invariant before AgoCode reveals its alternatives."}</p>
           )}
         </div>
       </section>

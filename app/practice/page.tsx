@@ -44,18 +44,24 @@ export default function PracticePage() {
             <div>
               <h2>Recognize before you implement.</h2>
               <p>
-                Ten original scenarios interleave Binary Search, hashing, BFS, Dijkstra, Greedy, Dynamic Programming,
-                KNN, and Recursion. There is no topic heading inside the drill to give the pattern away.
+                Start with original no-label scenarios, then remove even more support by mixing canonical source problems from
+                the expanded Atlas. In both modes, first-try recognition is tracked separately from eventual recovery.
               </p>
             </div>
           </div>
 
           <div className="practice-domain-grid">
             <article className="practice-domain-card">
-              <div className="practice-domain-card__meta"><span>10 scenarios</span><span>first-try score</span></div>
+              <div className="practice-domain-card__meta"><span>10 scenarios</span><span>original transfer</span></div>
               <h3>No-label pattern recognition</h3>
               <p>Read the constraints, choose an invariant, see why plausible alternatives fail, then reconnect to the relevant Book Track lesson.</p>
               <Link className="button button--primary" href="/practice/mixed">Start mixed recognition →</Link>
+            </article>
+            <article className="practice-domain-card">
+              <div className="practice-domain-card__meta"><span>12 per set</span><span>canonical atlas</span></div>
+              <h3>Atlas-wide structural recognition</h3>
+              <p>Interleave source-aware canonical problems across data structures, graph families, optimization, correctness, text, and system design without exposing their chapter labels.</p>
+              <Link className="button button--primary" href="/practice/atlas">Start Atlas recognition →</Link>
             </article>
             <article className="practice-domain-card">
               <div className="practice-domain-card__meta"><span>7 challenges</span><span>code gated</span></div>
@@ -126,7 +132,8 @@ export default function PracticePage() {
           <div className="action-row">
             <Link className="button" href="/learn">Reconnect to Book Track</Link>
             <Link className="button" href="/review">Open spaced review</Link>
-            <Link className="button button--primary" href="/practice/mixed">Test recognition now →</Link>
+            <Link className="button" href="/practice/mixed">Original mixed drill</Link>
+            <Link className="button button--primary" href="/practice/atlas">Test the full Atlas →</Link>
           </div>
         </section>
       </div>

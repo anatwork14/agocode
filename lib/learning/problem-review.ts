@@ -1,5 +1,6 @@
 import type { StorageLike } from "./evidence.ts";
 import type { ProblemIndependenceProfile, ProblemIndependenceState, ProblemRecognitionHistory } from "./independence.ts";
+import { classifyReasoningAttempt, type ReasoningAttemptHistory } from "./reasoning-attempts.ts";
 
 export const PROBLEM_REVIEW_HISTORY_KEY = "agocode.progress.problem-review-history";
 
@@ -48,6 +49,7 @@ type BuildProblemReviewProfileInput = {
   independence: ProblemIndependenceProfile;
   reviewHistory?: ProblemReviewHistory | null;
   recognitionHistory?: ProblemRecognitionHistory | null;
+  reasoningAttempts?: ReasoningAttemptHistory | null;
   now?: string | number | Date;
 };
 
@@ -122,6 +124,9 @@ export function readProblemReviewHistory(storage: StorageLike): ProblemReviewHis
   }
 }
 
+// Kept for backward compatibility with review history already stored in browsers.
+// New review UI does not require self-report: finalized reasoning attempts and
+// blind-recognition outcomes are consumed automatically below.
 export function recordProblemReviewOutcome(
   storage: StorageLike,
   input: Omit<ProblemReviewEntry, "reviewedAt"> & { reviewedAt?: string },
@@ -158,6 +163,7 @@ export function recordProblemReviewOutcome(
 export function buildProblemReviewProfile(input: BuildProblemReviewProfileInput): ProblemReviewProfile {
   const reviewEntries = input.reviewHistory?.entries ?? [];
   const recognitionEntries = input.recognitionHistory?.entries ?? [];
+  const reasoningAttempts = input.reasoningAttempts?.entries ?? [];
   const nowTime = new Date(input.now ?? Date.now()).getTime();
   const statuses: Record<string, ProblemReviewStatus> = {};
 
@@ -179,21 +185,29 @@ export function buildProblemReviewProfile(input: BuildProblemReviewProfileInput)
     const events = [
       ...reviewEntries
         .filter((entry) => entry.exerciseId === state.exerciseId && new Date(entry.reviewedAt).getTime() > anchorTime)
-        .map((entry) => ({ at: entry.reviewedAt, outcome: entry.outcome, source: "manual" as const })),
+        .map((entry) => ({ at: entry.reviewedAt, outcome: entry.outcome, source: "legacy-manual" as const, key: `manual:${entry.reviewedAt}:${entry.outcome}` })),
       ...recognitionEntries
         .filter((entry) => entry.exerciseId === state.exerciseId && new Date(entry.recognizedAt).getTime() > anchorTime)
         .map((entry) => ({
           at: entry.recognizedAt,
           outcome: entry.firstTry ? "remembered" as const : "needs-work" as const,
           source: "recognition" as const,
+          key: `recognition:${entry.recognizedAt}:${entry.firstTry}`,
         })),
-    ].sort((a, b) => a.at.localeCompare(b.at));
+      ...reasoningAttempts
+        .filter((entry) => entry.exerciseId === state.exerciseId && new Date(entry.finalizedAt).getTime() > anchorTime)
+        .map((entry) => ({
+          at: entry.finalizedAt,
+          outcome: classifyReasoningAttempt(entry) === "independent" ? "remembered" as const : "needs-work" as const,
+          source: "reasoning-attempt" as const,
+          key: `attempt:${entry.attemptId}`,
+        })),
+    ].sort((a, b) => a.at.localeCompare(b.at) || a.key.localeCompare(b.key));
 
-    let previousEventKey = "";
+    const seenEventKeys = new Set<string>();
     for (const event of events) {
-      const eventKey = `${event.at}:${event.outcome}:${event.source}`;
-      if (eventKey === previousEventKey) continue;
-      previousEventKey = eventKey;
+      if (seenEventKeys.has(event.key)) continue;
+      seenEventKeys.add(event.key);
       const eventTime = new Date(event.at).getTime();
       if (!Number.isFinite(eventTime)) continue;
 

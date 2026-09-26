@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { getReasoningStageHelp } from "@/lib/knowledge/notebook-help";
 import { recordReasoningNotebookEvidence } from "@/lib/learning/evidence";
 import { recordReasoningAttempt } from "@/lib/learning/reasoning-attempts";
+import type { ReasoningStageId } from "@/lib/learning/reasoning-stages";
 
 const REASONING_EVIDENCE_KEY = "agocode.progress.design.reasoning-notebooks";
 
@@ -65,7 +66,13 @@ const notebookSteps = [
     prompt: "Change one assumption. What breaks if the input becomes weighted, online, duplicated, unsorted, memory-limited, or if the requested output changes?",
     placeholder: "Variant…\nWhat survives…\nWhat breaks…\nWhat new state / structure is needed…",
   },
-] as const;
+] as const satisfies readonly {
+  id: ReasoningStageId;
+  number: string;
+  title: string;
+  prompt: string;
+  placeholder: string;
+}[];
 
 type NotebookStepId = (typeof notebookSteps)[number]["id"];
 type Confidence = "stuck" | "developing" | "solid";
@@ -182,14 +189,17 @@ export function ReasoningNotebook({ exerciseId, lens }: { exerciseId: string; le
 
   function finalizeAttempt(snapshot: NotebookState, finalizedAt = new Date().toISOString()) {
     if (!snapshot.attemptId || !snapshot.startedAt) return;
-    const developedStages = notebookSteps.filter((step) => snapshot.responses[step.id].trim().length >= 12).length;
+    const developedStageIds = notebookSteps
+      .filter((step) => snapshot.responses[step.id].trim().length >= 12)
+      .map((step) => step.id);
     recordReasoningAttempt(window.localStorage, {
       attemptId: snapshot.attemptId,
       exerciseId,
       startedAt: snapshot.startedAt,
       finalizedAt,
-      developedStages,
+      developedStages: developedStageIds.length,
       totalStages: notebookSteps.length,
+      developedStageIds,
       lensRevealed: snapshot.revealedLens,
       confidence: snapshot.confidence,
       completedAt: snapshot.completedAt,

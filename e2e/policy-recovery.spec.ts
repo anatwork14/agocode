@@ -53,7 +53,7 @@ async function seedRecommendationMarker(page: import("@playwright/test").Page, i
     localStorage.setItem(key, JSON.stringify({
       version: 1,
       entries: [{
-        exerciseId: `phase11-recovery-marker-${marker}`,
+        exerciseId: `phase12-recovery-marker-${marker}`,
         chosenAt: `2026-09-27T0${marker}:00:00.000Z`,
       }],
     }));
@@ -67,7 +67,7 @@ async function snapshotCount(page: import("@playwright/test").Page) {
   }, SNAPSHOT_KEY);
 }
 
-test("suspended promoted candidate requires fresh replay plus explicit reactivation", async ({ page }) => {
+test("recovered promoted candidate returns through baseline-first probation instead of full traffic", async ({ page }) => {
   await page.goto("/");
   await page.evaluate(({ experimentKey, safetyKey, experiment, safety }) => {
     localStorage.setItem(experimentKey, JSON.stringify(experiment));
@@ -105,34 +105,58 @@ test("suspended promoted candidate requires fresh replay plus explicit reactivat
   })).toBeVisible();
   await expect(recovery.locator(".system-audit__calibration", { hasText: "Recovery ready" })).toBeVisible();
   await expect(recovery.getByText("6/6", { exact: true })).toBeVisible();
-  await expect(recovery.getByText("Available", { exact: true })).toBeVisible();
+  await expect(recovery.getByText("Canary available", { exact: true })).toBeVisible();
 
   const safetyBefore = JSON.parse(await page.evaluate((key) => localStorage.getItem(key), SAFETY_KEY) as string);
   expect(safetyBefore.suspension?.candidatePolicyId).toBe(candidateId);
+  expect(safetyBefore.probation).toBeUndefined();
   expect(safetyBefore.lastReactivatedAt).toBeUndefined();
 
-  await recovery.getByRole("button", { name: "Reactivate candidate locally" }).click();
+  await recovery.getByRole("button", { name: "Start recovery probation" }).click();
   await expect(recovery.locator(".system-audit__calibration", { hasText: "No suspension" })).toBeVisible();
+  await expect(recovery.getByText("Baseline-first recovery canary", { exact: true })).toBeVisible();
+  await expect(recovery.locator(".system-audit__calibration", { hasText: "Canary collecting evidence" })).toBeVisible();
 
   const safetyAfter = JSON.parse(await page.evaluate((key) => localStorage.getItem(key), SAFETY_KEY) as string);
   expect(safetyAfter.suspension).toBeUndefined();
   expect(typeof safetyAfter.lastReactivatedAt).toBe("string");
-  expect(safetyAfter.events.at(-1)?.event).toBe("candidate-reactivated");
+  expect(safetyAfter.probation?.candidatePolicyId).toBe(candidateId);
+  expect(safetyAfter.probation?.id).toMatch(/^recovery-probation-/);
+  expect(safetyAfter.events.at(-2)?.event).toBe("candidate-reactivated");
+  expect(safetyAfter.events.at(-1)?.event).toBe("candidate-probation-started");
   expect(await page.evaluate((key) => localStorage.getItem(key), EXPERIMENT_KEY)).toBe(frozenExperiment);
 
   await page.goto("/practice/next");
   const policy = page.locator("section[aria-label='Recommendation policy version']");
-  await expect(policy.getByText("Candidate local default", { exact: true })).toBeVisible();
-  await expect(policy.getByText(candidateId, { exact: true })).toBeVisible();
-  await expect(policy.getByText(/current reactivation health epoch/)).toBeVisible();
+  await expect(policy.getByText("Baseline recovery probation arm", { exact: true })).toBeVisible();
+  await expect(policy.getByText("baseline-v1", { exact: true })).toBeVisible();
+  await expect(policy.getByText(/baseline-first alternating recovery/)).toBeVisible();
 
-  await page.goto("/progress#policy-health");
-  const health = page.locator("#policy-health");
-  await expect(health.getByText("Reactivation", { exact: true })).toBeVisible();
-  await expect(health.locator(".system-audit__calibration", { hasText: "Monitoring" })).toBeVisible();
+  const choose = page.getByRole("button", { name: "I'll solve this →" });
+  await expect(choose).toBeVisible();
+  await choose.click();
+  await expect(page).toHaveURL(/\/exercises\//);
 
+  const firstChoice = await page.evaluate(({ historyKey, safetyKey }) => {
+    const history = JSON.parse(localStorage.getItem(historyKey) ?? '{"entries":[]}');
+    const safety = JSON.parse(localStorage.getItem(safetyKey) ?? '{}');
+    return { entry: history.entries.at(-1), probationId: safety.probation?.id };
+  }, { historyKey: RECOMMENDATION_HISTORY_KEY, safetyKey: SAFETY_KEY });
+  expect(firstChoice.entry?.probationId).toBe(firstChoice.probationId);
+  expect(firstChoice.entry?.policyVariant).toBe("baseline");
+  expect(firstChoice.entry?.policyId).toBe("baseline-v1");
+  expect(firstChoice.entry?.experimentId).toBeUndefined();
+
+  await page.goto("/practice/next");
+  const secondPolicy = page.locator("section[aria-label='Recommendation policy version']");
+  await expect(secondPolicy.getByText("Candidate recovery probation arm", { exact: true })).toBeVisible();
+  await expect(secondPolicy.getByText(candidateId, { exact: true })).toBeVisible();
+
+  await page.goto("/progress#policy-recovery");
+  await expect(page.locator("#policy-recovery").getByText("Baseline-first recovery canary", { exact: true })).toBeVisible();
   const safetyBeforeReload = await page.evaluate((key) => localStorage.getItem(key), SAFETY_KEY);
   await page.reload();
-  await expect(page.locator("#policy-health").getByText("Reactivation", { exact: true })).toBeVisible();
+  await expect(page.locator("#policy-recovery").getByText("Baseline-first recovery canary", { exact: true })).toBeVisible();
   expect(await page.evaluate((key) => localStorage.getItem(key), SAFETY_KEY)).toBe(safetyBeforeReload);
+  expect(await page.evaluate((key) => localStorage.getItem(key), EXPERIMENT_KEY)).toBe(frozenExperiment);
 });

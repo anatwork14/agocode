@@ -6,6 +6,10 @@ import type {
 } from "./recommendation-policy.ts";
 import { buildRecommendationPolicyCoverageAudit } from "./recommendation-coverage.ts";
 import {
+  buildRecommendationCandidateFreshnessAudit,
+  buildRecommendationPolicyAuditFingerprint,
+} from "./recommendation-freshness.ts";
+import {
   recommendationReasonIds,
   type RecommendationReasonId,
   type RecommendationScoreAdjustments,
@@ -47,6 +51,7 @@ export type RecommendationPolicyCandidate = {
     matureSnapshottedChoices: number;
     baselineStrongEvidenceRate?: number;
     suggestedChanges: number;
+    auditFingerprint?: string;
   };
 };
 
@@ -196,6 +201,9 @@ function parseCandidate(value: unknown): RecommendationPolicyCandidate | undefin
         ? rawCandidate.source.baselineStrongEvidenceRate
         : undefined,
       suggestedChanges: Math.max(0, Math.floor(rawCandidate.source?.suggestedChanges ?? Object.keys(adjustments).length)),
+      auditFingerprint: typeof rawCandidate.source?.auditFingerprint === "string"
+        ? rawCandidate.source.auditFingerprint
+        : undefined,
     },
   };
 }
@@ -356,6 +364,7 @@ export function buildRecommendationPolicyCandidate(
       matureSnapshottedChoices: audit.matureSnapshottedChoices,
       baselineStrongEvidenceRate: audit.baselineStrongEvidenceRate,
       suggestedChanges: rows.length,
+      auditFingerprint: buildRecommendationPolicyAuditFingerprint(audit),
     },
   };
 }
@@ -412,7 +421,11 @@ export function pauseRecommendationPolicyExperiment(storage: StorageLike, paused
   });
 }
 
-export function resumeRecommendationPolicyExperiment(storage: StorageLike, resumedAt = new Date().toISOString()) {
+export function resumeRecommendationPolicyExperiment(
+  storage: StorageLike,
+  audit: RecommendationPolicyAudit,
+  resumedAt = new Date().toISOString(),
+) {
   const current = readRecommendationPolicyExperimentState(storage);
   if (
     !current.candidate
@@ -421,6 +434,15 @@ export function resumeRecommendationPolicyExperiment(storage: StorageLike, resum
     || current.experiment.candidatePolicyId !== current.candidate.id
     || current.defaultPolicyId !== BASELINE_RECOMMENDATION_POLICY_ID
   ) return current;
+
+  const currentCandidate = buildRecommendationPolicyCandidate(audit, resumedAt);
+  const freshness = buildRecommendationCandidateFreshnessAudit({
+    candidate: current.candidate,
+    currentAudit: audit,
+    currentCandidateAdjustments: currentCandidate?.adjustments,
+  });
+  if (!freshness.resumeEligible) return current;
+
   const next: RecommendationPolicyExperimentState = {
     ...current,
     experiment: { ...current.experiment, status: "running" },

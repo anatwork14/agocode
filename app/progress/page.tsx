@@ -3,8 +3,9 @@ import { DesignSkillProgress } from "@/components/progress/DesignSkillProgress";
 import { LearningSystemAudit } from "@/components/progress/LearningSystemAudit";
 import { ProblemIndependenceProgress } from "@/components/progress/ProblemIndependenceProgress";
 import { ProblemSolvingFriction } from "@/components/progress/ProblemSolvingFriction";
-import { ProgressDashboard } from "@/components/progress/ProgressDashboard";
 import { ProblemSolvingProgress } from "@/components/progress/ProblemSolvingProgress";
+import { ProgressDashboard } from "@/components/progress/ProgressDashboard";
+import { RecommendationStabilityAudit } from "@/components/progress/RecommendationStabilityAudit";
 
 export const metadata = { title: "Progress" };
 
@@ -32,6 +33,7 @@ export default function ProgressPage() {
           <DesignSkillProgress />
           <ProblemSolvingProgress />
           <ProblemSolvingFriction />
+          <RecommendationStabilityAudit />
           <LearningSystemAudit />
         </section>
       </div>

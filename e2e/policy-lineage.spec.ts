@@ -27,10 +27,6 @@ const runningState = {
   },
 };
 
-function lifecycleBadge(lineage: ReturnType<Parameters<typeof test>[0] extends never ? never : never>, label: string) {
-  return lineage;
-}
-
 test("policy lifecycle actions append a bounded read-only lineage visible after reload", async ({ page }) => {
   await page.goto("/");
   await page.evaluate(({ key, state }) => {

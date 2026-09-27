@@ -10,6 +10,10 @@ import {
   type RecommendationScoreAdjustments,
   type RecommendationScoreDelta,
 } from "./recommendation-rationale.ts";
+import {
+  buildRecommendationPolicyStabilityAudit,
+  readRecommendationPolicySnapshotHistory,
+} from "./recommendation-stability.ts";
 import type { RecommendationHistory, RecommendationHistoryEntry } from "./recommendations.ts";
 import type { RecommendationOutcome, RecommendationOutcomeAudit } from "./system-evaluation.ts";
 
@@ -263,6 +267,12 @@ export function startRecommendationPolicyExperiment(
   if (current.experiment?.status === "running" || current.defaultPolicyId !== BASELINE_RECOMMENDATION_POLICY_ID) return current;
   const candidate = buildRecommendationPolicyCandidate(audit, startedAt);
   if (!candidate) return current;
+
+  const stability = buildRecommendationPolicyStabilityAudit({
+    candidate,
+    snapshots: readRecommendationPolicySnapshotHistory(storage),
+  });
+  if (!stability.launchEligible) return current;
 
   const experiment: RecommendationPolicyExperiment = {
     id: `experiment-${shortHash(`${candidate.id}|${startedAt}`)}`,

@@ -2,6 +2,7 @@ import {
   BASELINE_RECOMMENDATION_POLICY_ID,
   type RecommendationPolicyExperimentState,
   type RecommendationPolicyLineageEntry,
+  type ResolvedRecommendationPlannerPolicy,
 } from "./recommendation-experiment.ts";
 import type { SnapshottedRecommendationHistoryEntry } from "./recommendation-policy.ts";
 import type { RecommendationPolicySafetyState } from "./recommendation-recovery.ts";
@@ -213,5 +214,18 @@ export function buildRecommendationPolicyConsistencyAudit(input: {
       : warnings
         ? `Policy state is internally usable, but ${warnings} bounded-history attribution warning${warnings === 1 ? "" : "s"} cannot be fully resolved from retained local metadata.`
         : "Experiment state, safety state, lifecycle events, and recommendation attribution are internally consistent.",
+  };
+}
+
+export function enforceRecommendationPolicyConsistency(
+  resolved: ResolvedRecommendationPlannerPolicy,
+  audit: RecommendationPolicyConsistencyAudit,
+): ResolvedRecommendationPlannerPolicy {
+  if (!audit.fallbackRequired) return resolved;
+  return {
+    mode: "baseline-default",
+    policyId: BASELINE_RECOMMENDATION_POLICY_ID,
+    variant: "baseline",
+    adjustments: {},
   };
 }

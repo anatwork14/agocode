@@ -150,7 +150,10 @@ test("explicit recovery starts a persisted probation canary instead of restoring
   assert.equal(safety.probation?.candidatePolicyId, state.candidate.id);
   assert.match(safety.probation?.id ?? "", /^recovery-probation-/);
   assert.deepEqual(safety.events.map((entry) => entry.event), ["candidate-reactivated", "candidate-probation-started"]);
-  assert.deepEqual(readRecommendationPolicySafetyState(storage), safety);
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(readRecommendationPolicySafetyState(storage))),
+    JSON.parse(JSON.stringify(safety)),
+  );
 });
 
 test("recovery probation serves baseline first and alternates deterministically", () => {

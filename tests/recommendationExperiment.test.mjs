@@ -16,6 +16,7 @@ import {
   startRecommendationPolicyExperiment,
 } from "../lib/learning/recommendation-experiment.ts";
 import { recordRecommendationSelection } from "../lib/learning/recommendation-policy.ts";
+import { recordRecommendationPolicySnapshot } from "../lib/learning/recommendation-stability.ts";
 import { buildAdaptiveRecommendations } from "../lib/learning/recommendations.ts";
 
 function memoryStorage() {
@@ -151,6 +152,22 @@ function mastery(weakestId = "trace", overall = 52) {
   };
 }
 
+function seedStablePlannerStates(storage, count = 6) {
+  for (let index = 0; index < count; index += 1) {
+    recordRecommendationPolicySnapshot(storage, {
+      mastery: mastery("trace", 52),
+      obstacles: { version: 1, events: [], counts: {} },
+      recentExerciseIds: [],
+      missedExerciseIds: [],
+      recommendationHistoryIds: [`noncanonical-history-${index}`],
+      difficultyCalibration: { bias: 0 },
+      problemIndependence: {},
+      problemReview: {},
+      limit: 5,
+    }, `2026-09-${String(index + 1).padStart(2, "0")}T00:00:00.000Z`);
+  }
+}
+
 test("candidate generation freezes at most four eligible non-zero rationale previews and excludes unknown rationale", () => {
   const candidate = buildRecommendationPolicyCandidate(auditWithChanges(), "2026-09-27T00:00:00.000Z");
   assert.ok(candidate);
@@ -161,8 +178,16 @@ test("candidate generation freezes at most four eligible non-zero rationale prev
   assert.match(candidate.id, /^candidate-v1-[0-9a-f]{8}$/);
 });
 
-test("starting an experiment freezes the candidate but keeps the baseline as the local default", () => {
+test("experiment launch fails closed when prospective stability evidence is missing", () => {
   const storage = memoryStorage();
+  const state = startRecommendationPolicyExperiment(storage, auditWithChanges(), "2026-09-27T01:00:00.000Z");
+  assert.deepEqual(state, emptyRecommendationPolicyExperimentState());
+  assert.equal(storage.getItem(RECOMMENDATION_POLICY_EXPERIMENT_KEY), null);
+});
+
+test("starting an experiment freezes the candidate only after counterfactual stability passes", () => {
+  const storage = memoryStorage();
+  seedStablePlannerStates(storage);
   const state = startRecommendationPolicyExperiment(storage, auditWithChanges(), "2026-09-27T01:00:00.000Z");
   assert.equal(state.defaultPolicyId, BASELINE_RECOMMENDATION_POLICY_ID);
   assert.equal(state.experiment?.status, "running");

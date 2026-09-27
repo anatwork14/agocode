@@ -13,7 +13,6 @@ export type RecommendationPolicyConsistencyStatus = "healthy" | "warning" | "cri
 
 export type RecommendationPolicyConsistencyIssue = {
   code:
-    | "safety-candidate-mismatch"
     | "suspension-candidate-mismatch"
     | "probation-candidate-mismatch"
     | "lineage-time-invalid"
@@ -83,14 +82,38 @@ export function buildRecommendationPolicyConsistencyAudit(input: {
   }
 
   const currentCandidateId = input.state.candidate?.id;
-  if (input.safety.candidatePolicyId && currentCandidateId && input.safety.candidatePolicyId !== currentCandidateId && (input.safety.suspension || input.safety.probation)) {
-    issues.push({ code: "safety-candidate-mismatch", severity: "critical", relatedId: input.safety.candidatePolicyId, message: `Active safety state belongs to ${input.safety.candidatePolicyId}, but the live candidate is ${currentCandidateId}.` });
+  const safetyTargetsCurrentCandidate = Boolean(
+    currentCandidateId
+    && input.safety.candidatePolicyId === currentCandidateId,
+  );
+
+  // Safety state is intentionally scoped to the candidate that produced it. If the persisted
+  // safety record belongs to an older candidate, the recovery subsystem ignores it and so does
+  // this consistency audit. Only contradictions *inside safety state for the current candidate*
+  // are fail-closed integrity errors.
+  if (
+    safetyTargetsCurrentCandidate
+    && input.safety.suspension
+    && input.safety.suspension.candidatePolicyId !== currentCandidateId
+  ) {
+    issues.push({
+      code: "suspension-candidate-mismatch",
+      severity: "critical",
+      relatedId: input.safety.suspension.candidatePolicyId,
+      message: "The current candidate's safety record contains a suspension for a different candidate.",
+    });
   }
-  if (input.safety.suspension && currentCandidateId && input.safety.suspension.candidatePolicyId !== currentCandidateId) {
-    issues.push({ code: "suspension-candidate-mismatch", severity: "critical", relatedId: input.safety.suspension.candidatePolicyId, message: "The active suspension is attached to a different candidate than the current experiment state." });
-  }
-  if (input.safety.probation && currentCandidateId && input.safety.probation.candidatePolicyId !== currentCandidateId) {
-    issues.push({ code: "probation-candidate-mismatch", severity: "critical", relatedId: input.safety.probation.candidatePolicyId, message: "The active probation canary is attached to a different candidate than the current experiment state." });
+  if (
+    safetyTargetsCurrentCandidate
+    && input.safety.probation
+    && input.safety.probation.candidatePolicyId !== currentCandidateId
+  ) {
+    issues.push({
+      code: "probation-candidate-mismatch",
+      severity: "critical",
+      relatedId: input.safety.probation.candidatePolicyId,
+      message: "The current candidate's safety record contains a probation canary for a different candidate.",
+    });
   }
 
   let previousTime: number | undefined;

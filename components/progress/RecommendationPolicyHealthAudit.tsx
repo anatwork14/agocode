@@ -7,6 +7,10 @@ import {
   buildPromotedRecommendationPolicyHealth,
   type RecommendationPolicyHealthAudit,
 } from "@/lib/learning/recommendation-health";
+import {
+  hasActiveRecommendationPolicySuspension,
+  readRecommendationPolicySafetyState,
+} from "@/lib/learning/recommendation-recovery";
 import { readRecommendationPolicySnapshotHistory } from "@/lib/learning/recommendation-stability";
 
 const statusLabels: Record<RecommendationPolicyHealthAudit["status"], string> = {
@@ -17,10 +21,17 @@ const statusLabels: Record<RecommendationPolicyHealthAudit["status"], string> = 
 };
 
 function collectHealth() {
-  return buildPromotedRecommendationPolicyHealth({
-    state: readRecommendationPolicyExperimentState(window.localStorage),
-    snapshots: readRecommendationPolicySnapshotHistory(window.localStorage),
-  });
+  const state = readRecommendationPolicyExperimentState(window.localStorage);
+  const safety = readRecommendationPolicySafetyState(window.localStorage);
+  return {
+    state,
+    safety,
+    audit: buildPromotedRecommendationPolicyHealth({
+      state,
+      snapshots: readRecommendationPolicySnapshotHistory(window.localStorage),
+      safety,
+    }),
+  };
 }
 
 function metric(value: number | undefined, suffix = "%") {
@@ -28,10 +39,10 @@ function metric(value: number | undefined, suffix = "%") {
 }
 
 export function RecommendationPolicyHealthAudit() {
-  const [audit, setAudit] = useState<RecommendationPolicyHealthAudit | null>(null);
+  const [view, setView] = useState<ReturnType<typeof collectHealth> | null>(null);
 
   useEffect(() => {
-    const hydrate = () => setAudit(collectHealth());
+    const hydrate = () => setView(collectHealth());
     const timer = window.setTimeout(hydrate, 0);
     const handleStorage = (event: StorageEvent) => {
       if (!event.key || event.key.startsWith("agocode.")) hydrate();
@@ -45,11 +56,13 @@ export function RecommendationPolicyHealthAudit() {
     };
   }, []);
 
-  if (!audit) return <div className="system-audit-loading">Checking promoted policy health…</div>;
+  if (!view) return <div className="system-audit-loading">Checking promoted policy health…</div>;
 
-  const badgeClass = audit.status === "healthy"
+  const { audit, state, safety } = view;
+  const latched = hasActiveRecommendationPolicySuspension(safety, state.candidate?.id);
+  const badgeClass = audit.status === "healthy" && !latched
     ? "aligned"
-    : audit.status === "degraded"
+    : audit.status === "degraded" || latched
       ? "optimistic"
       : "insufficient";
   const stability = audit.stability;
@@ -57,6 +70,7 @@ export function RecommendationPolicyHealthAudit() {
   const maxCoverageDrift = coverage?.axes.length
     ? Math.max(...coverage.axes.map((axis) => axis.distributionDrift))
     : undefined;
+  const epochLabel = audit.monitoringEpoch === "reactivation" ? "Reactivation" : "Promotion";
 
   return (
     <section className="system-audit" id="policy-health" aria-labelledby="policy-health-title">
@@ -65,55 +79,55 @@ export function RecommendationPolicyHealthAudit() {
         <div>
           <h2 id="policy-health-title">Does a promoted candidate remain safe as the learner state changes?</h2>
           <p>
-            Promotion is not permanent trust. AgoCode replays a promoted candidate only on distinct planner states recorded after
-            promotion and rechecks both Phase 7 ranking stability and Phase 8 curriculum coverage against the deterministic baseline.
+            Promotion is not permanent trust. AgoCode replays a promoted candidate only on distinct planner states recorded in the
+            current health epoch and rechecks both Phase 7 ranking stability and Phase 8 curriculum coverage against the deterministic baseline.
           </p>
         </div>
       </div>
 
       <div className="system-audit__privacy">
         <div>
-          <span className="eyebrow">Derived locally · no new tracking key</span>
+          <span className="eyebrow">Derived locally · no learner score mutation</span>
           <strong>A safety fallback never deletes the frozen candidate.</strong>
         </div>
         <p>
-          If post-promotion health degrades, the adaptive planner uses the baseline for new choices while keeping the candidate,
-          experiment record, and explicit rollback controls intact for inspection.
+          A hard breach now creates a persisted suspension latch. Later aggregate recovery cannot silently re-enable the candidate;
+          recovery requires fresh post-suspension evidence and an explicit action in the Safety Recovery panel.
         </p>
       </div>
 
       <article className="system-audit__panel" style={{ marginTop: 18 }}>
         <div className="system-audit__panel-heading">
           <div>
-            <span className={`system-audit__calibration system-audit__calibration--${badgeClass}`}>{statusLabels[audit.status]}</span>
+            <span className={`system-audit__calibration system-audit__calibration--${badgeClass}`}>{latched ? "Suspended" : statusLabels[audit.status]}</span>
             <h3>Promoted policy guard</h3>
           </div>
           <Link href="/practice/next">Open adaptive planner →</Link>
         </div>
 
         <div className="system-audit__metrics">
-          <div><span>Post-promotion states</span><strong>{audit.postPromotionSnapshots}/{audit.minimumSnapshots}</strong><small>pre-promotion states excluded</small></div>
+          <div><span>Monitoring states</span><strong>{audit.postPromotionSnapshots}/{audit.minimumSnapshots}</strong><small>{epochLabel.toLowerCase()} epoch only</small></div>
+          <div><span>Health epoch</span><strong>{audit.status === "inactive" ? "—" : epochLabel}</strong><small>{audit.monitoringSince ? `since ${new Date(audit.monitoringSince).toLocaleDateString()}` : "no active candidate"}</small></div>
           <div><span>Top-choice retention</span><strong>{metric(stability?.topChoiceRetention)}</strong><small>candidate vs baseline</small></div>
-          <div><span>Top-five overlap</span><strong>{metric(stability?.meanTopFiveOverlap)}</strong><small>post-promotion ranking continuity</small></div>
-          <div><span>Family overlap</span><strong>{metric(stability?.meanFamilyOverlap)}</strong><small>structural continuity</small></div>
+          <div><span>Top-five overlap</span><strong>{metric(stability?.meanTopFiveOverlap)}</strong><small>ranking continuity</small></div>
           <div><span>Coverage drift</span><strong>{metric(maxCoverageDrift)}</strong><small>largest curriculum-axis drift</small></div>
-          <div><span>Planner fallback</span><strong>{audit.fallbackRequired ? "Baseline" : "No"}</strong><small>{audit.fallbackRequired ? "candidate suspended" : "candidate may remain active"}</small></div>
+          <div><span>Planner fallback</span><strong>{audit.fallbackRequired || latched ? "Baseline" : "No"}</strong><small>{latched ? "suspension latched" : audit.fallbackRequired ? "breach detected" : "candidate may remain active"}</small></div>
         </div>
 
         <div className="system-audit__empty">
-          <strong>{audit.status === "degraded" ? "The promoted candidate is no longer trusted for new recommendations." : statusLabels[audit.status]}</strong>
-          <p>{audit.explanation}</p>
+          <strong>{latched ? "The promoted candidate remains suspended until explicit recovery." : audit.status === "degraded" ? "The promoted candidate is no longer trusted for new recommendations." : statusLabels[audit.status]}</strong>
+          <p>{latched ? "The immediate health aggregate may later recover, but the planner remains on baseline-v1 until fresh post-suspension replay passes and you explicitly reactivate the candidate." : audit.explanation}</p>
           {audit.candidatePolicyId ? <small className="mono">candidate: {audit.candidatePolicyId}</small> : null}
         </div>
 
-        {audit.status === "degraded" ? (
+        {audit.status === "degraded" || latched ? (
           <div className="system-audit__empty">
             <strong>Fail-safe behavior</strong>
             <p>
-              New planner choices fall back to baseline-v1. AgoCode does not rewrite mastery, remove the promoted candidate, or erase
-              its experiment evidence. Use the existing rollback control if you want to make the baseline the persisted local default again.
+              New planner choices use baseline-v1. AgoCode does not rewrite mastery, remove the promoted candidate, or erase its
+              experiment evidence. Recovery is deliberately hysteretic: a fresh evidence window must pass before manual reactivation.
             </p>
-            <Link href="/progress#policy-experiment">Inspect promotion and rollback controls →</Link>
+            <Link href="/progress#policy-recovery">Inspect safety recovery →</Link>
           </div>
         ) : null}
       </article>

@@ -56,7 +56,7 @@ test("promoted candidate stays active while post-promotion health is still obser
   })).toBeVisible();
   await expect(health.locator(".system-audit__calibration", { hasText: "Monitoring" })).toBeVisible();
   await expect(health.getByText("1/6", { exact: true })).toBeVisible();
-  await expect(health.getByText("candidate-v1-health-e2e", { exact: true })).toBeVisible();
+  await expect(health.getByText("candidate: candidate-v1-health-e2e", { exact: true })).toBeVisible();
   await expect(health.getByText("No", { exact: true })).toBeVisible();
 
   const snapshotBeforeReload = await page.evaluate((key) => localStorage.getItem(key), SNAPSHOT_KEY);

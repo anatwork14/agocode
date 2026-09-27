@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { buildRecommendationPolicyConsistencyAudit } from "../lib/learning/recommendation-consistency.ts";
+import {
+  buildRecommendationPolicyConsistencyAudit,
+  enforceRecommendationPolicyConsistency,
+} from "../lib/learning/recommendation-consistency.ts";
 import { BASELINE_RECOMMENDATION_POLICY_ID } from "../lib/learning/recommendation-experiment.ts";
 
 function cleanState() {
@@ -57,6 +60,15 @@ function emptySafety() {
   return { version: 1, events: [] };
 }
 
+function candidatePolicy() {
+  return {
+    mode: "candidate-default",
+    policyId: "candidate-v1-clean",
+    variant: "candidate",
+    adjustments: { "retrieval-overdue": 2 },
+  };
+}
+
 test("clean lifecycle, safety, and recommendation attribution remain usable", () => {
   const state = cleanState();
   const audit = buildRecommendationPolicyConsistencyAudit({
@@ -86,6 +98,7 @@ test("clean lifecycle, safety, and recommendation attribution remain usable", ()
   assert.equal(audit.fallbackRequired, false);
   assert.equal(audit.criticalIssues, 0);
   assert.equal(audit.warnings, 0);
+  assert.deepEqual(enforceRecommendationPolicyConsistency(candidatePolicy(), audit), candidatePolicy());
 });
 
 test("candidate traffic attributed to baseline is a critical fail-closed inconsistency", () => {
@@ -107,6 +120,12 @@ test("candidate traffic attributed to baseline is a critical fail-closed inconsi
   assert.equal(audit.status, "critical");
   assert.equal(audit.fallbackRequired, true);
   assert.ok(audit.issues.some((issue) => issue.code === "candidate-attribution-policy-mismatch"));
+  assert.deepEqual(enforceRecommendationPolicyConsistency(candidatePolicy(), audit), {
+    mode: "baseline-default",
+    policyId: BASELINE_RECOMMENDATION_POLICY_ID,
+    variant: "baseline",
+    adjustments: {},
+  });
 });
 
 test("active safety state attached to another candidate is critical", () => {
@@ -173,4 +192,5 @@ test("unknown old experiment attribution is warning-only because lineage is boun
   assert.equal(audit.criticalIssues, 0);
   assert.equal(audit.warnings, 1);
   assert.equal(audit.issues[0].code, "unknown-experiment-attribution");
+  assert.deepEqual(enforceRecommendationPolicyConsistency(candidatePolicy(), audit), candidatePolicy());
 });

@@ -9,6 +9,10 @@ import {
   type RecommendationPolicyCoverageAudit,
 } from "./recommendation-coverage.ts";
 import {
+  hasActiveRecommendationPolicySuspension,
+  type RecommendationPolicySafetyState,
+} from "./recommendation-recovery.ts";
+import {
   buildRecommendationPolicyStabilityAudit,
   type RecommendationPolicySnapshotHistory,
   type RecommendationPolicyStabilityAudit,
@@ -18,11 +22,14 @@ import type { RecommendationHistory } from "./recommendations.ts";
 export const DEFAULT_PROMOTED_POLICY_HEALTH_MIN_SNAPSHOTS = 6;
 
 export type RecommendationPolicyHealthStatus = "inactive" | "observing" | "healthy" | "degraded";
+export type RecommendationPolicyHealthEpoch = "promotion" | "reactivation";
 
 export type RecommendationPolicyHealthAudit = {
   status: RecommendationPolicyHealthStatus;
   candidatePolicyId?: string;
   promotedAt?: string;
+  monitoringSince?: string;
+  monitoringEpoch?: RecommendationPolicyHealthEpoch;
   postPromotionSnapshots: number;
   minimumSnapshots: number;
   stability?: RecommendationPolicyStabilityAudit;
@@ -40,6 +47,8 @@ function validTime(value: string | undefined) {
 export function summarizePromotedPolicyHealth(input: {
   candidatePolicyId?: string;
   promotedAt?: string;
+  monitoringSince?: string;
+  monitoringEpoch?: RecommendationPolicyHealthEpoch;
   postPromotionSnapshots: number;
   minimumSnapshots?: number;
   stability?: RecommendationPolicyStabilityAudit;
@@ -67,12 +76,14 @@ export function summarizePromotedPolicyHealth(input: {
       status: "observing",
       candidatePolicyId: input.candidatePolicyId,
       promotedAt: input.promotedAt,
+      monitoringSince: input.monitoringSince ?? input.promotedAt,
+      monitoringEpoch: input.monitoringEpoch ?? "promotion",
       postPromotionSnapshots: input.postPromotionSnapshots,
       minimumSnapshots,
       stability: input.stability,
       coverage: input.coverage,
       fallbackRequired: false,
-      explanation: `The promoted candidate is still under observation. Collect at least ${minimumSnapshots} distinct recommendation-relevant learner states after promotion before post-promotion safety can be judged.`,
+      explanation: `The promoted candidate is still under observation. Collect at least ${minimumSnapshots} distinct recommendation-relevant learner states in the current health epoch before post-promotion safety can be judged.`,
     };
   }
 
@@ -86,12 +97,14 @@ export function summarizePromotedPolicyHealth(input: {
       status: "degraded",
       candidatePolicyId: input.candidatePolicyId,
       promotedAt: input.promotedAt,
+      monitoringSince: input.monitoringSince ?? input.promotedAt,
+      monitoringEpoch: input.monitoringEpoch ?? "promotion",
       postPromotionSnapshots: input.postPromotionSnapshots,
       minimumSnapshots,
       stability: input.stability,
       coverage: input.coverage,
       fallbackRequired: true,
-      explanation: `Post-promotion ${failures} no longer satisfies AgoCode's safety guardrails. The planner should use the deterministic baseline while preserving the candidate for inspection and explicit rollback.`,
+      explanation: `Post-promotion ${failures} no longer satisfies AgoCode's safety guardrails. The planner should use the deterministic baseline while preserving the candidate for inspection and explicit recovery or rollback.`,
     };
   }
 
@@ -99,18 +112,21 @@ export function summarizePromotedPolicyHealth(input: {
     status: "healthy",
     candidatePolicyId: input.candidatePolicyId,
     promotedAt: input.promotedAt,
+    monitoringSince: input.monitoringSince ?? input.promotedAt,
+    monitoringEpoch: input.monitoringEpoch ?? "promotion",
     postPromotionSnapshots: input.postPromotionSnapshots,
     minimumSnapshots,
     stability: input.stability,
     coverage: input.coverage,
     fallbackRequired: false,
-    explanation: `The promoted candidate remains inside both stability and curriculum-coverage guardrails across ${input.postPromotionSnapshots} distinct post-promotion learner states.`,
+    explanation: `The promoted candidate remains inside both stability and curriculum-coverage guardrails across ${input.postPromotionSnapshots} distinct states in the current health epoch.`,
   };
 }
 
 export function buildPromotedRecommendationPolicyHealth(input: {
   state: RecommendationPolicyExperimentState;
   snapshots: RecommendationPolicySnapshotHistory;
+  safety?: RecommendationPolicySafetyState;
   minimumSnapshots?: number;
 }): RecommendationPolicyHealthAudit {
   const candidate = input.state.candidate;
@@ -139,28 +155,39 @@ export function buildPromotedRecommendationPolicyHealth(input: {
     });
   }
 
-  const postPromotionSnapshots: RecommendationPolicySnapshotHistory = {
+  const reactivatedAt = input.safety?.candidatePolicyId === candidate.id
+    ? input.safety.lastReactivatedAt
+    : undefined;
+  const reactivatedTime = validTime(reactivatedAt);
+  const useReactivationEpoch = reactivatedTime !== undefined && reactivatedTime > promotedTime;
+  const monitoringSince = useReactivationEpoch ? reactivatedAt as string : promotedAt;
+  const monitoringTime = useReactivationEpoch ? reactivatedTime as number : promotedTime;
+  const monitoringEpoch: RecommendationPolicyHealthEpoch = useReactivationEpoch ? "reactivation" : "promotion";
+
+  const monitoringSnapshots: RecommendationPolicySnapshotHistory = {
     version: 1,
     entries: input.snapshots.entries.filter((snapshot) => {
       const recorded = validTime(snapshot.recordedAt);
-      return recorded !== undefined && recorded > promotedTime;
+      return recorded !== undefined && recorded > monitoringTime;
     }),
   };
   const stability = buildRecommendationPolicyStabilityAudit({
     candidate,
-    snapshots: postPromotionSnapshots,
+    snapshots: monitoringSnapshots,
     minimumSnapshots: input.minimumSnapshots,
   });
   const coverage = buildRecommendationPolicyCoverageAudit({
     stability,
-    snapshots: postPromotionSnapshots,
+    snapshots: monitoringSnapshots,
     minimumSnapshots: input.minimumSnapshots,
   });
 
   return summarizePromotedPolicyHealth({
     candidatePolicyId: candidate.id,
     promotedAt,
-    postPromotionSnapshots: postPromotionSnapshots.entries.length,
+    monitoringSince,
+    monitoringEpoch,
+    postPromotionSnapshots: monitoringSnapshots.entries.length,
     minimumSnapshots: input.minimumSnapshots,
     stability,
     coverage,
@@ -168,17 +195,19 @@ export function buildPromotedRecommendationPolicyHealth(input: {
 }
 
 /**
- * A degraded promoted policy is suspended for recommendation generation without deleting or
- * mutating the persisted candidate. This makes the safety fallback immediate, inspectable,
- * and reversible while preserving the original experiment record.
+ * A degraded or latched promoted policy is suspended for recommendation generation without
+ * deleting or mutating the persisted candidate. Reactivation requires a separate fresh-evidence
+ * recovery gate and an explicit learner action.
  */
 export function resolveRecommendationPlannerPolicyWithHealth(
   state: RecommendationPolicyExperimentState,
   history: RecommendationHistory,
   health: RecommendationPolicyHealthAudit,
+  safety?: RecommendationPolicySafetyState,
 ): ResolvedRecommendationPlannerPolicy {
   const resolved = resolveRecommendationPlannerPolicy(state, history);
-  if (!health.fallbackRequired || resolved.mode !== "candidate-default") return resolved;
+  const latched = hasActiveRecommendationPolicySuspension(safety, state.candidate?.id);
+  if ((!health.fallbackRequired && !latched) || resolved.mode !== "candidate-default") return resolved;
   return {
     mode: "baseline-default",
     policyId: BASELINE_RECOMMENDATION_POLICY_ID,

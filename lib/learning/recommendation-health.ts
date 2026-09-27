@@ -9,7 +9,9 @@ import {
   type RecommendationPolicyCoverageAudit,
 } from "./recommendation-coverage.ts";
 import {
+  hasActiveRecommendationPolicyProbation,
   hasActiveRecommendationPolicySuspension,
+  type RecommendationPolicyProbationAudit,
   type RecommendationPolicySafetyState,
 } from "./recommendation-recovery.ts";
 import {
@@ -196,22 +198,51 @@ export function buildPromotedRecommendationPolicyHealth(input: {
 
 /**
  * A degraded or latched promoted policy is suspended for recommendation generation without
- * deleting or mutating the persisted candidate. Reactivation requires a separate fresh-evidence
- * recovery gate and an explicit learner action.
+ * deleting or mutating the persisted candidate. Recovery probation alternates baseline and
+ * candidate recommendations until fresh health + objective outcomes clear the canary.
  */
 export function resolveRecommendationPlannerPolicyWithHealth(
   state: RecommendationPolicyExperimentState,
   history: RecommendationHistory,
   health: RecommendationPolicyHealthAudit,
   safety?: RecommendationPolicySafetyState,
+  probationAudit?: RecommendationPolicyProbationAudit,
 ): ResolvedRecommendationPlannerPolicy {
   const resolved = resolveRecommendationPlannerPolicy(state, history);
-  const latched = hasActiveRecommendationPolicySuspension(safety, state.candidate?.id);
-  if ((!health.fallbackRequired && !latched) || resolved.mode !== "candidate-default") return resolved;
-  return {
-    mode: "baseline-default",
-    policyId: BASELINE_RECOMMENDATION_POLICY_ID,
-    variant: "baseline",
-    adjustments: {},
-  };
+  const candidate = state.candidate;
+  const latched = hasActiveRecommendationPolicySuspension(safety, candidate?.id);
+  const probationFailed = probationAudit?.fallbackRequired === true;
+
+  if ((health.fallbackRequired || latched || probationFailed) && resolved.mode === "candidate-default") {
+    return {
+      mode: "baseline-default",
+      policyId: BASELINE_RECOMMENDATION_POLICY_ID,
+      variant: "baseline",
+      adjustments: {},
+    };
+  }
+
+  if (
+    resolved.mode === "candidate-default"
+    && candidate
+    && hasActiveRecommendationPolicyProbation(safety, candidate.id)
+    && safety?.probation
+  ) {
+    const assignmentIndex = history.entries.filter((entry) => {
+      const snapshot = entry as { probationId?: string; policyVariant?: string };
+      return snapshot.probationId === safety.probation?.id
+        && (snapshot.policyVariant === "baseline" || snapshot.policyVariant === "candidate");
+    }).length;
+    const candidateTurn = assignmentIndex % 2 === 1;
+    return {
+      mode: "recovery-probation",
+      policyId: candidateTurn ? candidate.id : BASELINE_RECOMMENDATION_POLICY_ID,
+      variant: candidateTurn ? "candidate" : "baseline",
+      probationId: safety.probation.id,
+      assignmentIndex,
+      adjustments: candidateTurn ? candidate.adjustments : {},
+    };
+  }
+
+  return resolved;
 }

@@ -165,7 +165,10 @@ export function NextProblemPlanner() {
     const previousLast = snapshot.policySnapshots.entries.at(-1)?.signature;
     const updatedLast = updated.entries.at(-1)?.signature;
     if (updated.entries.length !== snapshot.policySnapshots.entries.length || updatedLast !== previousLast) {
-      setSnapshot((current) => current ? { ...current, policySnapshots: updated } : current);
+      const refreshTimer = window.setTimeout(() => {
+        setSnapshot((current) => current ? { ...current, policySnapshots: updated } : current);
+      }, 0);
+      return () => window.clearTimeout(refreshTimer);
     }
   }, [snapshot]);
 

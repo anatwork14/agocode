@@ -4,6 +4,7 @@ import type {
   RecommendationPolicyVariant,
   SnapshottedRecommendationHistoryEntry,
 } from "./recommendation-policy.ts";
+import { buildRecommendationPolicyCoverageAudit } from "./recommendation-coverage.ts";
 import {
   recommendationReasonIds,
   type RecommendationReasonId,
@@ -268,11 +269,11 @@ export function startRecommendationPolicyExperiment(
   const candidate = buildRecommendationPolicyCandidate(audit, startedAt);
   if (!candidate) return current;
 
-  const stability = buildRecommendationPolicyStabilityAudit({
-    candidate,
-    snapshots: readRecommendationPolicySnapshotHistory(storage),
-  });
+  const snapshots = readRecommendationPolicySnapshotHistory(storage);
+  const stability = buildRecommendationPolicyStabilityAudit({ candidate, snapshots });
   if (!stability.launchEligible) return current;
+  const coverage = buildRecommendationPolicyCoverageAudit({ stability, snapshots });
+  if (!coverage.launchEligible) return current;
 
   const experiment: RecommendationPolicyExperiment = {
     id: `experiment-${shortHash(`${candidate.id}|${startedAt}`)}`,

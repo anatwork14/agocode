@@ -24,11 +24,18 @@ import {
   readProblemReviewHistory,
   type ProblemReviewProfile,
 } from "@/lib/learning/problem-review";
+import {
+  MAX_CANDIDATE_TOTAL_ADJUSTMENT,
+  readRecommendationPolicyExperimentState,
+  resolveRecommendationPlannerPolicy,
+  type RecommendationPolicyExperimentState,
+} from "@/lib/learning/recommendation-experiment";
 import { recordRecommendationSelection } from "@/lib/learning/recommendation-policy";
 import {
   buildAdaptiveRecommendations,
   readRecommendationHistory,
   type AdaptiveRecommendation,
+  type RecommendationHistory,
 } from "@/lib/learning/recommendations";
 import { readReasoningAttemptHistory } from "@/lib/learning/reasoning-attempts";
 
@@ -41,6 +48,8 @@ type PlannerSnapshot = {
   recentExerciseIds: string[];
   missedExerciseIds: string[];
   recommendationHistoryIds: string[];
+  recommendationHistory: RecommendationHistory;
+  policyExperiment: RecommendationPolicyExperimentState;
   calibration: DifficultyCalibrationProfile;
   independence: ProblemIndependenceProfile;
   review: ProblemReviewProfile;
@@ -89,6 +98,8 @@ function collectPlannerSnapshot(): PlannerSnapshot {
     recentExerciseIds,
     missedExerciseIds,
     recommendationHistoryIds,
+    recommendationHistory,
+    policyExperiment: readRecommendationPolicyExperimentState(window.localStorage),
     calibration,
     independence,
     review,
@@ -103,18 +114,37 @@ function RecommendationReasons({ item }: { item: AdaptiveRecommendation }) {
   );
 }
 
+function formatPolicyAdjustment(value: number) {
+  return value > 0 ? `+${value}` : String(value);
+}
+
 export function NextProblemPlanner() {
   const router = useRouter();
   const [snapshot, setSnapshot] = useState<PlannerSnapshot | null>(null);
   const [mix, setMix] = useState(0);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setSnapshot(collectPlannerSnapshot()), 0);
-    return () => window.clearTimeout(timer);
+    const hydrate = () => setSnapshot(collectPlannerSnapshot());
+    const timer = window.setTimeout(hydrate, 0);
+    const handleStorage = (event: StorageEvent) => {
+      if (!event.key || event.key.startsWith("agocode.")) hydrate();
+    };
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener("focus", hydrate);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("focus", hydrate);
+    };
   }, []);
 
+  const plannerPolicy = useMemo(() => {
+    if (!snapshot) return null;
+    return resolveRecommendationPlannerPolicy(snapshot.policyExperiment, snapshot.recommendationHistory);
+  }, [snapshot]);
+
   const recommendations = useMemo(() => {
-    if (!snapshot) return [];
+    if (!snapshot || !plannerPolicy) return [];
     return buildAdaptiveRecommendations({
       mastery: snapshot.mastery,
       obstacles: snapshot.obstacles,
@@ -124,10 +154,12 @@ export function NextProblemPlanner() {
       difficultyCalibration: snapshot.calibration,
       problemIndependence: snapshot.independence.states,
       problemReview: snapshot.review.statuses,
+      policyAdjustments: plannerPolicy.adjustments,
+      maxPolicyAdjustment: MAX_CANDIDATE_TOTAL_ADJUSTMENT,
       limit: 5,
       seed: `planner-mix-${mix}`,
     });
-  }, [mix, snapshot]);
+  }, [mix, plannerPolicy, snapshot]);
 
   const primary = recommendations[0];
   const frequentObstacle = useMemo(() => {
@@ -141,11 +173,17 @@ export function NextProblemPlanner() {
   }, [snapshot]);
 
   function choose(item: AdaptiveRecommendation) {
-    recordRecommendationSelection(window.localStorage, item);
+    if (!plannerPolicy) return;
+    recordRecommendationSelection(window.localStorage, item, new Date().toISOString(), {
+      policyId: plannerPolicy.policyId,
+      policyVariant: plannerPolicy.variant,
+      experimentId: plannerPolicy.experimentId,
+      policyAdjustment: item.policyAdjustment,
+    });
     router.push(`/exercises/${item.exercise.id}`);
   }
 
-  if (!snapshot) {
+  if (!snapshot || !plannerPolicy) {
     return <div className="next-problem__loading">Reading mastery, friction, calibration, attempt history, retrieval freshness, independence, transfer misses, and recent practice from this browser…</div>;
   }
 
@@ -162,6 +200,16 @@ export function NextProblemPlanner() {
   const primaryIndependence = snapshot.independence.states[primary.exercise.id];
   const primaryReview = snapshot.review.statuses[primary.exercise.id];
   const dueNow = snapshot.review.due + snapshot.review.overdue;
+  const policyTitle = plannerPolicy.mode === "experiment"
+    ? `${plannerPolicy.variant === "candidate" ? "Candidate" : "Baseline"} experiment arm`
+    : plannerPolicy.mode === "candidate-default"
+      ? "Candidate local default"
+      : "Deterministic baseline";
+  const policyDetail = plannerPolicy.mode === "experiment"
+    ? `Assignment ${(plannerPolicy.assignmentIndex ?? 0) + 1} · frozen policy comparison · choice outcome will be attributed to this arm`
+    : plannerPolicy.mode === "candidate-default"
+      ? "A previously validated local candidate is active. Rollback remains available from Progress."
+      : "The fixed baseline weights remain authoritative. No experimental score deltas are active.";
 
   return (
     <div className="next-problem">
@@ -188,6 +236,16 @@ export function NextProblemPlanner() {
         </div>
       </section>
 
+      <section className={`next-problem__policy next-problem__policy--${plannerPolicy.variant}`} aria-label="Recommendation policy version">
+        <div>
+          <span className="eyebrow">Recommendation policy</span>
+          <strong>{policyTitle}</strong>
+          <small className="mono">{plannerPolicy.policyId}</small>
+        </div>
+        <p>{policyDetail}</p>
+        <Link href="/progress#policy-experiment">Inspect experiment →</Link>
+      </section>
+
       <section className="next-problem__hero">
         <div className="next-problem__rank mono">NEXT 01</div>
         <div className="next-problem__hero-main">
@@ -205,6 +263,9 @@ export function NextProblemPlanner() {
             {primaryIndependence ? <span>{primaryIndependence.label.toLowerCase()} evidence</span> : <span>new problem</span>}
             {primaryReview ? <span>retrieval {primaryReview.dueState.replace("-", " ")}</span> : null}
             {snapshot.calibration.bias !== 0 ? <span>calibrated {snapshot.calibration.direction}</span> : null}
+            {plannerPolicy.variant === "candidate" && primary.policyAdjustment !== 0
+              ? <span>candidate {formatPolicyAdjustment(primary.policyAdjustment)} pts</span>
+              : null}
             {primary.novelty.source ? <span>new source</span> : null}
             {primary.novelty.domain ? <span>new domain</span> : null}
           </div>
@@ -241,6 +302,9 @@ export function NextProblemPlanner() {
                 <div className="next-problem__meta mono">
                   <span>{sourceLabels[item.exercise.source]}</span>
                   <span>{item.familyLabel}</span>
+                  {plannerPolicy.variant === "candidate" && item.policyAdjustment !== 0
+                    ? <span>policy {formatPolicyAdjustment(item.policyAdjustment)}</span>
+                    : null}
                 </div>
                 <h3>{item.exercise.title}</h3>
                 <RecommendationReasons item={item} />
@@ -261,7 +325,8 @@ export function NextProblemPlanner() {
           AgoCode shows the signals behind every recommendation and keeps the scoring deterministic. Friction is used as a routing
           clue, not as a penalty; self-authored notebook confidence is not treated as mastery; best-ever independence is never
           demoted by time; instead, a separate spacing clock makes stale evidence eligible for retrieval while fresh evidence is
-          down-weighted. Finalized reasoning retries and blind recognition update that clock objectively.
+          down-weighted. A running policy experiment changes only the small, versioned rationale deltas shown above; assignment,
+          outcomes, promotion gates, and rollback remain browser-local and inspectable.
         </p>
         <div className="action-row">
           <Link className="button" href="/review">Open retrieval queue →</Link>

@@ -25,10 +25,18 @@ export const DEFAULT_EXPERIMENT_PRIOR_WEIGHT = 4;
 export const DEFAULT_EXPERIMENT_LIFT_THRESHOLD = 10;
 export const MAX_CANDIDATE_REASON_ADJUSTMENTS = 4;
 export const MAX_CANDIDATE_TOTAL_ADJUSTMENT = 4;
+export const RECOMMENDATION_POLICY_LINEAGE_LIMIT = 12;
 
 export type RecommendationExperimentStatus = "running" | "paused" | "completed";
 export type RecommendationExperimentDecision = "insufficient" | "candidate-leading" | "inconclusive" | "candidate-trailing";
 export type RecommendationPlannerPolicyMode = "baseline-default" | "candidate-default" | "experiment";
+export type RecommendationPolicyLifecycleEvent =
+  | "cycle-archived"
+  | "experiment-started"
+  | "experiment-paused"
+  | "experiment-resumed"
+  | "candidate-promoted"
+  | "candidate-rolled-back";
 
 export type RecommendationPolicyCandidate = {
   id: string;
@@ -51,12 +59,26 @@ export type RecommendationPolicyExperiment = {
   promotedAt?: string;
 };
 
+export type RecommendationPolicyLineageEntry = {
+  version: 1;
+  id: string;
+  event: RecommendationPolicyLifecycleEvent;
+  occurredAt: string;
+  candidatePolicyId: string;
+  candidateCreatedAt: string;
+  adjustments: RecommendationScoreAdjustments;
+  experimentId?: string;
+  experimentStatus?: RecommendationExperimentStatus;
+  defaultPolicyId: string;
+};
+
 export type RecommendationPolicyExperimentState = {
   version: 1;
   defaultPolicyId: string;
   candidate?: RecommendationPolicyCandidate;
   experiment?: RecommendationPolicyExperiment;
   lastRollbackAt?: string;
+  lineage?: RecommendationPolicyLineageEntry[];
 };
 
 export type ResolvedRecommendationPlannerPolicy = {
@@ -95,6 +117,15 @@ export type RecommendationPolicyExperimentEvaluation = {
 };
 
 const reasonIdSet = new Set<RecommendationReasonId>(recommendationReasonIds);
+const lifecycleEvents = new Set<RecommendationPolicyLifecycleEvent>([
+  "cycle-archived",
+  "experiment-started",
+  "experiment-paused",
+  "experiment-resumed",
+  "candidate-promoted",
+  "candidate-rolled-back",
+]);
+const experimentStatuses = new Set<RecommendationExperimentStatus>(["running", "paused", "completed"]);
 
 function finitePercent(numerator: number, denominator: number) {
   return denominator > 0 ? Math.round((numerator / denominator) * 100) : undefined;
@@ -144,6 +175,117 @@ function parseAdjustments(value: unknown): RecommendationScoreAdjustments | unde
   return Object.keys(adjustments).length ? adjustments : undefined;
 }
 
+function parseCandidate(value: unknown): RecommendationPolicyCandidate | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  const rawCandidate = value as Partial<RecommendationPolicyCandidate>;
+  const adjustments = parseAdjustments(rawCandidate.adjustments);
+  if (
+    typeof rawCandidate.id !== "string"
+    || typeof rawCandidate.createdAt !== "string"
+    || rawCandidate.baselinePolicyId !== BASELINE_RECOMMENDATION_POLICY_ID
+    || !adjustments
+  ) return undefined;
+  return {
+    id: rawCandidate.id,
+    createdAt: rawCandidate.createdAt,
+    baselinePolicyId: BASELINE_RECOMMENDATION_POLICY_ID,
+    adjustments,
+    source: {
+      matureSnapshottedChoices: Math.max(0, Math.floor(rawCandidate.source?.matureSnapshottedChoices ?? 0)),
+      baselineStrongEvidenceRate: typeof rawCandidate.source?.baselineStrongEvidenceRate === "number"
+        ? rawCandidate.source.baselineStrongEvidenceRate
+        : undefined,
+      suggestedChanges: Math.max(0, Math.floor(rawCandidate.source?.suggestedChanges ?? Object.keys(adjustments).length)),
+    },
+  };
+}
+
+function parseExperiment(value: unknown, candidate: RecommendationPolicyCandidate | undefined): RecommendationPolicyExperiment | undefined {
+  if (!candidate || !value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  const rawExperiment = value as Partial<RecommendationPolicyExperiment>;
+  if (
+    typeof rawExperiment.id !== "string"
+    || rawExperiment.candidatePolicyId !== candidate.id
+    || !experimentStatuses.has(rawExperiment.status as RecommendationExperimentStatus)
+    || typeof rawExperiment.startedAt !== "string"
+  ) return undefined;
+  return {
+    id: rawExperiment.id,
+    candidatePolicyId: candidate.id,
+    status: rawExperiment.status as RecommendationExperimentStatus,
+    startedAt: rawExperiment.startedAt,
+    completedAt: typeof rawExperiment.completedAt === "string" ? rawExperiment.completedAt : undefined,
+    promotedAt: typeof rawExperiment.promotedAt === "string" ? rawExperiment.promotedAt : undefined,
+  };
+}
+
+function parseLineageEntry(value: unknown): RecommendationPolicyLineageEntry | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  const entry = value as Partial<RecommendationPolicyLineageEntry>;
+  const adjustments = parseAdjustments(entry.adjustments);
+  if (
+    entry.version !== 1
+    || typeof entry.id !== "string"
+    || !lifecycleEvents.has(entry.event as RecommendationPolicyLifecycleEvent)
+    || typeof entry.occurredAt !== "string"
+    || typeof entry.candidatePolicyId !== "string"
+    || typeof entry.candidateCreatedAt !== "string"
+    || !adjustments
+    || typeof entry.defaultPolicyId !== "string"
+    || (entry.experimentStatus !== undefined && !experimentStatuses.has(entry.experimentStatus))
+  ) return undefined;
+  return {
+    version: 1,
+    id: entry.id,
+    event: entry.event as RecommendationPolicyLifecycleEvent,
+    occurredAt: entry.occurredAt,
+    candidatePolicyId: entry.candidatePolicyId,
+    candidateCreatedAt: entry.candidateCreatedAt,
+    adjustments,
+    experimentId: typeof entry.experimentId === "string" ? entry.experimentId : undefined,
+    experimentStatus: entry.experimentStatus,
+    defaultPolicyId: entry.defaultPolicyId,
+  };
+}
+
+function parseLineage(value: unknown) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map(parseLineageEntry)
+    .filter((entry): entry is RecommendationPolicyLineageEntry => Boolean(entry))
+    .slice(-RECOMMENDATION_POLICY_LINEAGE_LIMIT);
+}
+
+function appendLifecycleEvent(
+  state: RecommendationPolicyExperimentState,
+  event: RecommendationPolicyLifecycleEvent,
+  occurredAt: string,
+  existing = state.lineage ?? [],
+) {
+  if (!state.candidate) return existing.slice(-RECOMMENDATION_POLICY_LINEAGE_LIMIT);
+  const id = `policy-event-${shortHash(`${event}|${state.candidate.id}|${state.experiment?.id ?? "none"}|${occurredAt}`)}`;
+  const entry: RecommendationPolicyLineageEntry = {
+    version: 1,
+    id,
+    event,
+    occurredAt,
+    candidatePolicyId: state.candidate.id,
+    candidateCreatedAt: state.candidate.createdAt,
+    adjustments: { ...state.candidate.adjustments },
+    experimentId: state.experiment?.id,
+    experimentStatus: state.experiment?.status,
+    defaultPolicyId: state.defaultPolicyId,
+  };
+  return [...existing.filter((item) => item.id !== id), entry].slice(-RECOMMENDATION_POLICY_LINEAGE_LIMIT);
+}
+
+function archiveLegacyCurrentCycle(state: RecommendationPolicyExperimentState, archivedAt: string) {
+  if (!state.candidate) return state.lineage ?? [];
+  const lineage = state.lineage ?? [];
+  const alreadyRepresented = lineage.some((entry) => entry.candidatePolicyId === state.candidate?.id);
+  return alreadyRepresented ? lineage : appendLifecycleEvent(state, "cycle-archived", archivedAt, lineage);
+}
+
 function persistState(storage: StorageLike, state: RecommendationPolicyExperimentState) {
   try {
     storage.setItem(RECOMMENDATION_POLICY_EXPERIMENT_KEY, JSON.stringify(state));
@@ -164,54 +306,12 @@ export function readRecommendationPolicyExperimentState(storage: StorageLike): R
     const parsed = JSON.parse(raw) as Partial<RecommendationPolicyExperimentState>;
     if (parsed.version !== 1) return emptyRecommendationPolicyExperimentState();
 
-    let candidate: RecommendationPolicyCandidate | undefined;
-    const rawCandidate = parsed.candidate as Partial<RecommendationPolicyCandidate> | undefined;
-    const adjustments = parseAdjustments(rawCandidate?.adjustments);
-    if (
-      rawCandidate
-      && typeof rawCandidate.id === "string"
-      && typeof rawCandidate.createdAt === "string"
-      && rawCandidate.baselinePolicyId === BASELINE_RECOMMENDATION_POLICY_ID
-      && adjustments
-    ) {
-      candidate = {
-        id: rawCandidate.id,
-        createdAt: rawCandidate.createdAt,
-        baselinePolicyId: BASELINE_RECOMMENDATION_POLICY_ID,
-        adjustments,
-        source: {
-          matureSnapshottedChoices: Math.max(0, Math.floor(rawCandidate.source?.matureSnapshottedChoices ?? 0)),
-          baselineStrongEvidenceRate: typeof rawCandidate.source?.baselineStrongEvidenceRate === "number"
-            ? rawCandidate.source.baselineStrongEvidenceRate
-            : undefined,
-          suggestedChanges: Math.max(0, Math.floor(rawCandidate.source?.suggestedChanges ?? Object.keys(adjustments).length)),
-        },
-      };
-    }
-
-    let experiment: RecommendationPolicyExperiment | undefined;
-    const rawExperiment = parsed.experiment as Partial<RecommendationPolicyExperiment> | undefined;
-    if (
-      candidate
-      && rawExperiment
-      && typeof rawExperiment.id === "string"
-      && rawExperiment.candidatePolicyId === candidate.id
-      && (rawExperiment.status === "running" || rawExperiment.status === "paused" || rawExperiment.status === "completed")
-      && typeof rawExperiment.startedAt === "string"
-    ) {
-      experiment = {
-        id: rawExperiment.id,
-        candidatePolicyId: candidate.id,
-        status: rawExperiment.status,
-        startedAt: rawExperiment.startedAt,
-        completedAt: typeof rawExperiment.completedAt === "string" ? rawExperiment.completedAt : undefined,
-        promotedAt: typeof rawExperiment.promotedAt === "string" ? rawExperiment.promotedAt : undefined,
-      };
-    }
-
+    const candidate = parseCandidate(parsed.candidate);
+    const experiment = parseExperiment(parsed.experiment, candidate);
     const defaultPolicyId = candidate && parsed.defaultPolicyId === candidate.id
       ? candidate.id
       : BASELINE_RECOMMENDATION_POLICY_ID;
+    const lineage = parseLineage(parsed.lineage);
 
     return {
       version: 1,
@@ -219,6 +319,7 @@ export function readRecommendationPolicyExperimentState(storage: StorageLike): R
       candidate,
       experiment,
       lastRollbackAt: typeof parsed.lastRollbackAt === "string" ? parsed.lastRollbackAt : undefined,
+      ...(lineage.length ? { lineage } : {}),
     };
   } catch {
     return emptyRecommendationPolicyExperimentState();
@@ -265,7 +366,10 @@ export function startRecommendationPolicyExperiment(
   startedAt = new Date().toISOString(),
 ) {
   const current = readRecommendationPolicyExperimentState(storage);
-  if (current.experiment?.status === "running" || current.defaultPolicyId !== BASELINE_RECOMMENDATION_POLICY_ID) return current;
+  if (
+    (current.experiment?.status === "running" || current.experiment?.status === "paused")
+    || current.defaultPolicyId !== BASELINE_RECOMMENDATION_POLICY_ID
+  ) return current;
   const candidate = buildRecommendationPolicyCandidate(audit, startedAt);
   if (!candidate) return current;
 
@@ -281,24 +385,34 @@ export function startRecommendationPolicyExperiment(
     status: "running",
     startedAt,
   };
-  return persistState(storage, {
+  const priorLineage = archiveLegacyCurrentCycle(current, startedAt);
+  const next: RecommendationPolicyExperimentState = {
     version: 1,
     defaultPolicyId: BASELINE_RECOMMENDATION_POLICY_ID,
     candidate,
     experiment,
+    ...(priorLineage.length ? { lineage: priorLineage } : {}),
+  };
+  return persistState(storage, {
+    ...next,
+    lineage: appendLifecycleEvent(next, "experiment-started", startedAt, priorLineage),
   });
 }
 
-export function pauseRecommendationPolicyExperiment(storage: StorageLike) {
+export function pauseRecommendationPolicyExperiment(storage: StorageLike, pausedAt = new Date().toISOString()) {
   const current = readRecommendationPolicyExperimentState(storage);
   if (!current.experiment || current.experiment.status !== "running") return current;
-  return persistState(storage, {
+  const next: RecommendationPolicyExperimentState = {
     ...current,
     experiment: { ...current.experiment, status: "paused" },
+  };
+  return persistState(storage, {
+    ...next,
+    lineage: appendLifecycleEvent(next, "experiment-paused", pausedAt),
   });
 }
 
-export function resumeRecommendationPolicyExperiment(storage: StorageLike) {
+export function resumeRecommendationPolicyExperiment(storage: StorageLike, resumedAt = new Date().toISOString()) {
   const current = readRecommendationPolicyExperimentState(storage);
   if (
     !current.candidate
@@ -307,9 +421,13 @@ export function resumeRecommendationPolicyExperiment(storage: StorageLike) {
     || current.experiment.candidatePolicyId !== current.candidate.id
     || current.defaultPolicyId !== BASELINE_RECOMMENDATION_POLICY_ID
   ) return current;
-  return persistState(storage, {
+  const next: RecommendationPolicyExperimentState = {
     ...current,
     experiment: { ...current.experiment, status: "running" },
+  };
+  return persistState(storage, {
+    ...next,
+    lineage: appendLifecycleEvent(next, "experiment-resumed", resumedAt),
   });
 }
 
@@ -484,7 +602,7 @@ export function promoteRecommendationPolicyCandidate(
     || evaluation.candidatePolicyId !== current.candidate.id
   ) return current;
 
-  return persistState(storage, {
+  const next: RecommendationPolicyExperimentState = {
     ...current,
     defaultPolicyId: current.candidate.id,
     experiment: {
@@ -493,6 +611,10 @@ export function promoteRecommendationPolicyCandidate(
       completedAt: promotedAt,
       promotedAt,
     },
+  };
+  return persistState(storage, {
+    ...next,
+    lineage: appendLifecycleEvent(next, "candidate-promoted", promotedAt),
   });
 }
 
@@ -502,9 +624,13 @@ export function rollbackRecommendationPolicyCandidate(
 ) {
   const current = readRecommendationPolicyExperimentState(storage);
   if (current.defaultPolicyId === BASELINE_RECOMMENDATION_POLICY_ID) return current;
-  return persistState(storage, {
+  const next: RecommendationPolicyExperimentState = {
     ...current,
     defaultPolicyId: BASELINE_RECOMMENDATION_POLICY_ID,
     lastRollbackAt: rolledBackAt,
+  };
+  return persistState(storage, {
+    ...next,
+    lineage: appendLifecycleEvent(next, "candidate-rolled-back", rolledBackAt),
   });
 }

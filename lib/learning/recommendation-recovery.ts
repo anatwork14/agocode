@@ -4,10 +4,7 @@ import {
   buildRecommendationPolicyCoverageAudit,
   type RecommendationPolicyCoverageAudit,
 } from "./recommendation-coverage.ts";
-import type {
-  RecommendationPolicyVariant,
-  SnapshottedRecommendationHistoryEntry,
-} from "./recommendation-policy.ts";
+import type { SnapshottedRecommendationHistoryEntry } from "./recommendation-policy.ts";
 import {
   buildRecommendationPolicyStabilityAudit,
   type RecommendationPolicySnapshotHistory,

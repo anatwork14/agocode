@@ -6,9 +6,13 @@ import type { DifficultyCalibrationProfile, DifficultyBias } from "./calibration
 import type { StorageLike } from "./evidence.ts";
 import type { ProblemIndependenceState } from "./independence.ts";
 import type { MasterySnapshot } from "./mastery.ts";
-import type { EvidenceDimension } from "./progressCatalog.ts";
 import { getMostFrequentObstacles, type ObstacleEvidence } from "./obstacles.ts";
 import type { ProblemReviewStatus } from "./problem-review.ts";
+import type { EvidenceDimension } from "./progressCatalog.ts";
+import {
+  classifyRecommendationReason,
+  type RecommendationScoreAdjustments,
+} from "./recommendation-rationale.ts";
 
 export const RECOMMENDATION_HISTORY_KEY = "agocode.progress.next-problem-history";
 
@@ -31,6 +35,8 @@ export type AdaptiveRecommendationInput = {
   difficultyCalibration?: DifficultyCalibrationProfile | null;
   problemIndependence?: Record<string, ProblemIndependenceState>;
   problemReview?: Record<string, ProblemReviewStatus>;
+  policyAdjustments?: RecommendationScoreAdjustments;
+  maxPolicyAdjustment?: number;
   limit?: number;
   seed?: string;
 };
@@ -42,6 +48,7 @@ export type AdaptiveRecommendation = {
   score: number;
   targetDimension: EvidenceDimension;
   reasons: string[];
+  policyAdjustment: number;
   matchedObstacleIds: StuckStateId[];
   novelty: {
     source: boolean;
@@ -134,6 +141,14 @@ function candidateLevelScore(
 
 function obstaclePatternIds(id: StuckStateId) {
   return new Set(diagnosticPatterns[id].map((item) => item.id));
+}
+
+function recommendationPolicyAdjustment(reasons: readonly string[], input: AdaptiveRecommendationInput) {
+  if (!input.policyAdjustments) return 0;
+  const visibleReasonIds = new Set(reasons.slice(0, 3).map(classifyRecommendationReason));
+  const total = [...visibleReasonIds].reduce((sum, id) => sum + (input.policyAdjustments?.[id] ?? 0), 0);
+  const maxAdjustment = clamp(Math.floor(input.maxPolicyAdjustment ?? 4), 0, 6);
+  return clamp(total, -maxAdjustment, maxAdjustment);
 }
 
 function scoreCandidate(
@@ -246,10 +261,15 @@ function scoreCandidate(
 
   if (!reasons.length) reasons.push(`fits your current ${input.mastery.weakest.label.toLowerCase()} gap`);
 
+  const visibleReasons = reasons.slice(0, 3);
+  const policyAdjustment = recommendationPolicyAdjustment(visibleReasons, input);
+  score += policyAdjustment;
+
   return {
     item,
     score,
-    reasons,
+    reasons: visibleReasons,
+    policyAdjustment,
     matchedObstacleIds,
     novelty: { source: sourceNovel, domain: domainNovel, family: familyNovel },
   };
@@ -316,7 +336,8 @@ export function buildAdaptiveRecommendations(input: AdaptiveRecommendationInput)
     familyLabel: candidate.item.family.label,
     score: Math.round(candidate.score),
     targetDimension: input.mastery.weakest.id,
-    reasons: candidate.reasons.slice(0, 3),
+    reasons: candidate.reasons,
+    policyAdjustment: candidate.policyAdjustment,
     matchedObstacleIds: candidate.matchedObstacleIds,
     novelty: candidate.novelty,
   }));

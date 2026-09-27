@@ -1,5 +1,11 @@
 import type { EvidenceDimension } from "./progressCatalog.ts";
 import {
+  classifyRecommendationReason,
+  recommendationReasonLabel,
+  type RecommendationReasonId,
+  type RecommendationScoreDelta,
+} from "./recommendation-rationale.ts";
+import {
   RECOMMENDATION_HISTORY_KEY,
   recordRecommendationChoice,
   type AdaptiveRecommendation,
@@ -9,35 +15,26 @@ import {
 import type { StorageLike } from "./evidence.ts";
 import type { RecommendationOutcome, RecommendationOutcomeAudit } from "./system-evaluation.ts";
 
+export { classifyRecommendationReason, recommendationReasonLabel } from "./recommendation-rationale.ts";
+export type { RecommendationReasonId, RecommendationScoreDelta } from "./recommendation-rationale.ts";
+
 export const DEFAULT_POLICY_MIN_MATURE_CHOICES = 8;
 export const DEFAULT_POLICY_MIN_REASON_CHOICES = 5;
 export const DEFAULT_POLICY_PRIOR_WEIGHT = 4;
 export const DEFAULT_POLICY_LIFT_THRESHOLD = 12;
 export const MAX_POLICY_PREVIEW_DELTA = 2 as const;
 
-export type RecommendationReasonId =
-  | "difficulty-calibration"
-  | "guided-continuation"
-  | "independence-retry"
-  | "delayed-retrieval"
-  | "transfer-within-family"
-  | "retrieval-overdue"
-  | "retrieval-due"
-  | "retrieval-due-soon"
-  | "weakest-dimension"
-  | "repeated-friction"
-  | "recognition-miss"
-  | "recent-retrieval"
-  | "source-diversity"
-  | "domain-diversity"
-  | "family-diversity"
-  | "combined-diversity"
-  | "baseline-fit"
-  | "other";
-
 export type RecommendationPolicyStatus = "insufficient" | "promising" | "neutral" | "weak";
+export type RecommendationPolicyVariant = "baseline" | "candidate";
 
-export type RecommendationChoiceSnapshot = {
+export type RecommendationSelectionContext = {
+  policyId?: string;
+  policyVariant?: RecommendationPolicyVariant;
+  experimentId?: string;
+  policyAdjustment?: number;
+};
+
+export type RecommendationChoiceSnapshot = RecommendationSelectionContext & {
   reasons?: string[];
   targetDimension?: EvidenceDimension;
   score?: number;
@@ -59,7 +56,7 @@ export type RecommendationReasonAudit = {
   smoothedStrongEvidenceRate?: number;
   strongEvidenceLift?: number;
   status: RecommendationPolicyStatus;
-  suggestedScoreDelta: -2 | 0 | 2;
+  suggestedScoreDelta: RecommendationScoreDelta;
   explanation: string;
 };
 
@@ -76,47 +73,6 @@ export type RecommendationPolicyAudit = {
   minimumReasonChoices: number;
   reasons: RecommendationReasonAudit[];
 };
-
-const reasonLabels: Record<RecommendationReasonId, string> = {
-  "difficulty-calibration": "Difficulty calibration",
-  "guided-continuation": "Continue guided work",
-  "independence-retry": "Remove support on a solved problem",
-  "delayed-retrieval": "Delayed structural retrieval",
-  "transfer-within-family": "Transfer within a known family",
-  "retrieval-overdue": "Overdue retrieval",
-  "retrieval-due": "Retrieval due now",
-  "retrieval-due-soon": "Retrieval due soon",
-  "weakest-dimension": "Weakest-dimension alignment",
-  "repeated-friction": "Repeated-friction targeting",
-  "recognition-miss": "Blind-recognition miss retry",
-  "recent-retrieval": "Recent-study retrieval",
-  "source-diversity": "Source diversity",
-  "domain-diversity": "Domain diversity",
-  "family-diversity": "Structural-family diversity",
-  "combined-diversity": "Source + domain diversity",
-  "baseline-fit": "General weakest-gap fit",
-  other: "Other surfaced rationale",
-};
-
-const reasonMatchers: Array<{ id: Exclude<RecommendationReasonId, "other">; matches: (reason: string) => boolean }> = [
-  { id: "difficulty-calibration", matches: (reason) => reason.includes("difficulty calibration") },
-  { id: "guided-continuation", matches: (reason) => reason.includes("in-progress problem") },
-  { id: "independence-retry", matches: (reason) => reason.includes("without support to establish independence") },
-  { id: "delayed-retrieval", matches: (reason) => reason.includes("delayed structural retrieval") },
-  { id: "transfer-within-family", matches: (reason) => reason.includes("family already solved independently") },
-  { id: "retrieval-overdue", matches: (reason) => reason.includes("retrieval evidence is overdue") },
-  { id: "retrieval-due", matches: (reason) => reason.includes("retrieval is due now") },
-  { id: "retrieval-due-soon", matches: (reason) => reason.includes("next retrieval window") },
-  { id: "weakest-dimension", matches: (reason) => reason.startsWith("builds ") && reason.endsWith(" evidence") },
-  { id: "repeated-friction", matches: (reason) => reason.startsWith("targets repeated friction") || reason === "targets repeated problem-solving friction" },
-  { id: "recognition-miss", matches: (reason) => reason.includes("blind-recognition miss") },
-  { id: "recent-retrieval", matches: (reason) => reason.includes("recently studied problem from memory") },
-  { id: "source-diversity", matches: (reason) => reason === "changes source perspective" },
-  { id: "domain-diversity", matches: (reason) => reason === "changes application domain" },
-  { id: "family-diversity", matches: (reason) => reason === "widens structural-family coverage" },
-  { id: "combined-diversity", matches: (reason) => reason === "adds source and domain diversity" },
-  { id: "baseline-fit", matches: (reason) => reason.startsWith("fits your current ") && reason.endsWith(" gap") },
-];
 
 function finitePercent(numerator: number, denominator: number) {
   return denominator > 0 ? Math.round((numerator / denominator) * 100) : undefined;
@@ -143,19 +99,11 @@ function isMature(outcome: RecommendationOutcome | undefined): outcome is Recomm
   return Boolean(outcome && outcome.status !== "waiting");
 }
 
-export function classifyRecommendationReason(reason: string): RecommendationReasonId {
-  const normalized = reason.trim().toLowerCase();
-  return reasonMatchers.find((matcher) => matcher.matches(normalized))?.id ?? "other";
-}
-
-export function recommendationReasonLabel(id: RecommendationReasonId) {
-  return reasonLabels[id];
-}
-
 export function recordRecommendationSelection(
   storage: StorageLike,
   recommendation: AdaptiveRecommendation,
   chosenAt = new Date().toISOString(),
+  context: RecommendationSelectionContext = {},
 ): RecommendationHistory {
   const history = recordRecommendationChoice(storage, recommendation.exercise.id, chosenAt);
   const lastIndex = history.entries.length - 1;
@@ -167,6 +115,10 @@ export function recordRecommendationSelection(
       targetDimension: recommendation.targetDimension,
       score: recommendation.score,
       familyId: recommendation.familyId,
+      policyId: context.policyId,
+      policyVariant: context.policyVariant,
+      experimentId: context.experimentId,
+      policyAdjustment: context.policyAdjustment ?? recommendation.policyAdjustment,
     } satisfies SnapshottedRecommendationHistoryEntry;
   });
   const enriched: RecommendationHistory = { version: 1, entries };
@@ -255,7 +207,7 @@ export function buildRecommendationPolicyAudit(input: {
     const enoughEvidence = matureSnapshots.length >= minMatureChoices && matureChoices >= minReasonChoices;
 
     let status: RecommendationPolicyStatus = "insufficient";
-    let suggestedScoreDelta: -2 | 0 | 2 = 0;
+    let suggestedScoreDelta: RecommendationScoreDelta = 0;
     if (enoughEvidence) {
       const followLift = smoothedFollowThroughRate - baselineFollow;
       if (strongEvidenceLift >= liftThreshold && followLift >= -10) {

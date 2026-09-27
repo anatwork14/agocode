@@ -6,10 +6,23 @@ import { getCanonicalExercise } from "@/lib/knowledge/all-exercises";
 import { readDiagnosticState } from "@/lib/learning/diagnostic";
 import { readProblemRecognitionHistory } from "@/lib/learning/independence";
 import {
+  BASELINE_RECOMMENDATION_POLICY_ID,
+  buildRecommendationPolicyExperimentEvaluation,
+  pauseRecommendationPolicyExperiment,
+  promoteRecommendationPolicyCandidate,
+  readRecommendationPolicyExperimentState,
+  resumeRecommendationPolicyExperiment,
+  rollbackRecommendationPolicyCandidate,
+  startRecommendationPolicyExperiment,
+  type RecommendationPolicyExperimentEvaluation,
+  type RecommendationPolicyExperimentState,
+} from "@/lib/learning/recommendation-experiment";
+import {
   buildRecommendationPolicyAudit,
   type RecommendationPolicyAudit,
   type RecommendationPolicyStatus,
 } from "@/lib/learning/recommendation-policy";
+import { recommendationReasonLabel, type RecommendationReasonId } from "@/lib/learning/recommendation-rationale";
 import { readRecommendationHistory } from "@/lib/learning/recommendations";
 import { readReasoningAttemptHistory } from "@/lib/learning/reasoning-attempts";
 import {
@@ -25,6 +38,8 @@ type LearningSystemView = {
   recommendations: RecommendationOutcomeAudit;
   diagnostic: DiagnosticCalibrationAudit;
   policy: RecommendationPolicyAudit;
+  experimentState: RecommendationPolicyExperimentState;
+  experiment: RecommendationPolicyExperimentEvaluation;
 };
 
 const recommendationStatusLabels: Record<RecommendationAuditStatus, string> = {
@@ -51,6 +66,13 @@ const policyStatusLabels: Record<RecommendationPolicyStatus, string> = {
   insufficient: "Need more evidence",
 };
 
+const experimentDecisionLabels: Record<RecommendationPolicyExperimentEvaluation["decision"], string> = {
+  insufficient: "Collecting evidence",
+  "candidate-leading": "Candidate leading",
+  inconclusive: "No clear lift",
+  "candidate-trailing": "Candidate trailing",
+};
+
 function collectEvaluation(): LearningSystemView {
   const recommendations = readRecommendationHistory(window.localStorage);
   const reasoningAttempts = readReasoningAttemptHistory(window.localStorage);
@@ -63,6 +85,11 @@ function collectEvaluation(): LearningSystemView {
     recognitionHistory,
     now: Date.now(),
   });
+  const policy = buildRecommendationPolicyAudit({
+    recommendations,
+    outcomes: recommendationAudit,
+  });
+  const experimentState = readRecommendationPolicyExperimentState(window.localStorage);
 
   return {
     recommendations: recommendationAudit,
@@ -70,7 +97,10 @@ function collectEvaluation(): LearningSystemView {
       diagnosticAttempt,
       reasoningAttempts,
     }),
-    policy: buildRecommendationPolicyAudit({
+    policy,
+    experimentState,
+    experiment: buildRecommendationPolicyExperimentEvaluation({
+      state: experimentState,
       recommendations,
       outcomes: recommendationAudit,
     }),
@@ -119,6 +149,9 @@ export function LearningSystemAudit() {
 
   const recommendationRows = useMemo(() => view?.recommendations.outcomes.slice(0, 8) ?? [], [view]);
   const policyRows = useMemo(() => view?.policy.reasons.slice(0, 8) ?? [], [view]);
+  const candidateAdjustments = useMemo(() => (
+    Object.entries(view?.experimentState.candidate?.adjustments ?? {}) as Array<[RecommendationReasonId, -2 | 0 | 2]>
+  ), [view]);
 
   if (!view) {
     return <div className="system-audit-loading">Auditing the local learning system from objective evidence…</div>;
@@ -127,6 +160,47 @@ export function LearningSystemAudit() {
   const recommendation = view.recommendations;
   const diagnostic = view.diagnostic;
   const policy = view.policy;
+  const experimentState = view.experimentState;
+  const experiment = view.experiment;
+  const activeCandidateDefault = Boolean(
+    experimentState.candidate && experimentState.defaultPolicyId === experimentState.candidate.id,
+  );
+  const canStartExperiment = experimentState.defaultPolicyId === BASELINE_RECOMMENDATION_POLICY_ID
+    && experimentState.experiment?.status !== "running"
+    && experimentState.experiment?.status !== "paused"
+    && policy.suggestedChanges > 0;
+
+  function refresh() {
+    setView(collectEvaluation());
+  }
+
+  function startExperiment() {
+    startRecommendationPolicyExperiment(window.localStorage, policy);
+    refresh();
+  }
+
+  function pauseExperiment() {
+    pauseRecommendationPolicyExperiment(window.localStorage);
+    refresh();
+  }
+
+  function resumeExperiment() {
+    resumeRecommendationPolicyExperiment(window.localStorage);
+    refresh();
+  }
+
+  function promoteCandidate() {
+    if (!experiment.promotionEligible) return;
+    if (!window.confirm("Promote this locally tested candidate as the browser's default recommendation policy? You can roll back to the baseline at any time.")) return;
+    promoteRecommendationPolicyCandidate(window.localStorage, experiment);
+    refresh();
+  }
+
+  function rollbackCandidate() {
+    if (!window.confirm("Restore the deterministic baseline recommendation policy in this browser? Experiment history and the frozen candidate will be kept for audit.")) return;
+    rollbackRecommendationPolicyCandidate(window.localStorage);
+    refresh();
+  }
 
   return (
     <section className="system-audit" aria-labelledby="system-audit-title">
@@ -258,7 +332,7 @@ export function LearningSystemAudit() {
             <div><span>Reason snapshots</span><strong>{policy.snapshottedChoices}/{policy.choices}</strong><small>{policy.metadataCoverageRate === undefined ? "no choices yet" : `${policy.metadataCoverageRate}% of recommendation history`}</small></div>
             <div><span>Mature policy sample</span><strong>{policy.matureSnapshottedChoices}</strong><small>minimum {policy.minimumMatureChoices} before tuning preview</small></div>
             <div><span>Eligible rationales</span><strong>{policy.eligibleReasons}</strong><small>minimum {policy.minimumReasonChoices} mature uses each</small></div>
-            <div><span>Suggested changes</span><strong>{policy.suggestedChanges}</strong><small>preview only · never auto-applied</small></div>
+            <div><span>Suggested changes</span><strong>{policy.suggestedChanges}</strong><small>candidate input · never auto-promoted</small></div>
           </div>
 
           {policyRows.length ? (
@@ -292,21 +366,21 @@ export function LearningSystemAudit() {
           <div className="system-audit__panel-heading">
             <div>
               <span className="eyebrow">Policy tuning boundary</span>
-              <h3 id="policy-guardrail-title">Evidence can suggest a change without changing the live planner.</h3>
+              <h3 id="policy-guardrail-title">A preview can become a test candidate, never an automatic new default.</h3>
             </div>
           </div>
 
           <div className="system-audit__diagnostic-summary">
             <div><span>Overall gate</span><strong>{policy.minimumMatureChoices}</strong><small>mature choices with reason snapshots</small></div>
             <div><span>Per-rationale gate</span><strong>{policy.minimumReasonChoices}</strong><small>mature uses before comparison</small></div>
-            <div><span>Maximum preview</span><strong>±2</strong><small>bounded score points only</small></div>
-            <div><span>Live application</span><strong>Off</strong><small>fixed deterministic weights remain authoritative</small></div>
+            <div><span>Maximum preview</span><strong>±2</strong><small>per rationale · candidate total capped</small></div>
+            <div><span>Promotion</span><strong>Explicit</strong><small>requires experiment evidence and keeps rollback</small></div>
           </div>
 
           <div className="system-audit__empty">
-            <strong>Why the preview is intentionally conservative</strong>
+            <strong>Why candidate generation stays conservative</strong>
             <p>
-              A recommendation can carry several rationales at once, so these rows are associations rather than causal estimates. AgoCode shrinks each rationale&apos;s observed rate toward the local baseline before showing a preview, requires both an overall sample and a per-rationale sample, and never writes the preview back into mastery or recommendation weights.
+              A recommendation can carry several rationales at once, so the Phase 5 rows remain associations rather than causal estimates. Phase 6 freezes only eligible non-zero previews into a versioned candidate, caps the combined effect on any problem, alternates baseline and candidate deterministically, and requires another evidence gate before promotion is even offered.
             </p>
           </div>
 
@@ -320,12 +394,90 @@ export function LearningSystemAudit() {
         </article>
       </div>
 
+      <article className="system-audit__panel system-audit__experiment" id="policy-experiment" aria-labelledby="policy-experiment-title">
+        <div className="system-audit__panel-heading">
+          <div>
+            <span className="eyebrow">Versioned policy experiment</span>
+            <h3 id="policy-experiment-title">Does the frozen candidate actually outperform the baseline?</h3>
+          </div>
+          <Link href="/practice/next">Open planner →</Link>
+        </div>
+
+        <div className="system-audit__experiment-metrics">
+          <div>
+            <span>Local default</span>
+            <strong>{activeCandidateDefault ? "Candidate" : "Baseline"}</strong>
+            <small className="mono">{experimentState.defaultPolicyId}</small>
+          </div>
+          <div>
+            <span>Experiment</span>
+            <strong>{experimentState.experiment?.status ?? "Not started"}</strong>
+            <small>{experiment.available ? experimentDecisionLabels[experiment.decision] : "needs a frozen candidate"}</small>
+          </div>
+          <div>
+            <span>Baseline arm</span>
+            <strong>{experiment.baseline.matureChoices}</strong>
+            <small>{experiment.baseline.smoothedStrongEvidenceRate === undefined ? "—" : `${experiment.baseline.smoothedStrongEvidenceRate}% shrunk strong evidence`}</small>
+          </div>
+          <div>
+            <span>Candidate arm</span>
+            <strong>{experiment.candidate.matureChoices}</strong>
+            <small>{experiment.candidate.smoothedStrongEvidenceRate === undefined ? "—" : `${experiment.candidate.smoothedStrongEvidenceRate}% shrunk strong evidence`}</small>
+          </div>
+          <div>
+            <span>Strong-evidence lift</span>
+            <strong>{experiment.strongEvidenceLift === undefined ? "—" : `${formatDelta(experiment.strongEvidenceLift)} pts`}</strong>
+            <small>candidate minus baseline after shrinkage</small>
+          </div>
+          <div>
+            <span>Promotion gate</span>
+            <strong>{experiment.promotionEligible ? "Eligible" : "Closed"}</strong>
+            <small>minimum {experiment.minimumPerVariant} mature outcomes per arm</small>
+          </div>
+        </div>
+
+        {candidateAdjustments.length ? (
+          <div className="system-audit__candidate">
+            <div>
+              <span className="eyebrow">Frozen candidate {experimentState.candidate?.id}</span>
+              <strong>{candidateAdjustments.length} bounded rationale adjustment{candidateAdjustments.length === 1 ? "" : "s"}</strong>
+              <small>Created {formatDate(experimentState.candidate?.createdAt)} · baseline {experimentState.candidate?.baselinePolicyId}</small>
+            </div>
+            <div className="system-audit__candidate-adjustments">
+              {candidateAdjustments.map(([reasonId, delta]) => (
+                <span key={reasonId}><strong>{formatDelta(delta)}</strong> {recommendationReasonLabel(reasonId)}</span>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="system-audit__empty">
+            <strong>No candidate can be frozen yet.</strong>
+            <p>Phase 5 must first produce at least one eligible non-zero rationale preview. Until then, the deterministic baseline remains the only live policy.</p>
+          </div>
+        )}
+
+        <div className="system-audit__experiment-note">
+          <p>{experiment.explanation}</p>
+          {experiment.followThroughLift !== undefined
+            ? <span>Follow-through lift: {formatDelta(experiment.followThroughLift)} pts · strong-evidence lift: {formatDelta(experiment.strongEvidenceLift ?? 0)} pts.</span>
+            : null}
+        </div>
+
+        <div className="system-audit__actions">
+          {canStartExperiment ? <button className="button button--primary" type="button" onClick={startExperiment}>Freeze candidate & start experiment</button> : null}
+          {experimentState.experiment?.status === "running" ? <button className="button" type="button" onClick={pauseExperiment}>Pause experiment</button> : null}
+          {experimentState.experiment?.status === "paused" ? <button className="button button--primary" type="button" onClick={resumeExperiment}>Resume experiment</button> : null}
+          {experiment.promotionEligible ? <button className="button button--primary" type="button" onClick={promoteCandidate}>Promote tested candidate locally</button> : null}
+          {activeCandidateDefault ? <button className="button" type="button" onClick={rollbackCandidate}>Rollback to baseline</button> : null}
+        </div>
+      </article>
+
       <div className="system-audit__boundary">
         <span className="eyebrow">Interpretation boundary</span>
         <p>
           These are directional product-quality checks, not psychometric validation and not causal claims. Recommendation follow-through can be affected by timing and learner intent;
           diagnostic disagreement can reflect learning after the diagnostic as well as under- or over-placement; and one recommendation may expose several rationales at once.
-          AgoCode therefore uses this page to expose uncertainty and bounded tuning previews rather than silently retuning mastery or planner weights.
+          AgoCode therefore separates association audit, frozen candidate testing, explicit promotion, and rollback instead of silently retuning mastery or planner weights.
         </p>
       </div>
     </section>

@@ -31,6 +31,7 @@ export type RecommendationSelectionContext = {
   policyId?: string;
   policyVariant?: RecommendationPolicyVariant;
   experimentId?: string;
+  probationId?: string;
   policyAdjustment?: number;
 };
 
@@ -118,6 +119,7 @@ export function recordRecommendationSelection(
       policyId: context.policyId,
       policyVariant: context.policyVariant,
       experimentId: context.experimentId,
+      probationId: context.probationId,
       policyAdjustment: context.policyAdjustment ?? recommendation.policyAdjustment,
     } satisfies SnapshottedRecommendationHistoryEntry;
   });

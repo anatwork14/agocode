@@ -6,6 +6,7 @@ import { ProblemSolvingFriction } from "@/components/progress/ProblemSolvingFric
 import { ProblemSolvingProgress } from "@/components/progress/ProblemSolvingProgress";
 import { ProgressDashboard } from "@/components/progress/ProgressDashboard";
 import { RecommendationCoverageAudit } from "@/components/progress/RecommendationCoverageAudit";
+import { RecommendationPolicyConsistencyAudit } from "@/components/progress/RecommendationPolicyConsistencyAudit";
 import { RecommendationPolicyHealthAudit } from "@/components/progress/RecommendationPolicyHealthAudit";
 import { RecommendationPolicyLineageAudit } from "@/components/progress/RecommendationPolicyLineageAudit";
 import { RecommendationPolicyRecoveryAudit } from "@/components/progress/RecommendationPolicyRecoveryAudit";
@@ -41,6 +42,7 @@ export default function ProgressPage() {
           <RecommendationCoverageAudit />
           <RecommendationPolicyHealthAudit />
           <RecommendationPolicyRecoveryAudit />
+          <RecommendationPolicyConsistencyAudit />
           <RecommendationPolicyLineageAudit />
           <LearningSystemAudit />
         </section>

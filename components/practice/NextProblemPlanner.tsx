@@ -27,11 +27,19 @@ import {
 import {
   MAX_CANDIDATE_TOTAL_ADJUSTMENT,
   readRecommendationPolicyExperimentState,
-  resolveRecommendationPlannerPolicy,
   type RecommendationPolicyExperimentState,
 } from "@/lib/learning/recommendation-experiment";
+import {
+  buildPromotedRecommendationPolicyHealth,
+  resolveRecommendationPlannerPolicyWithHealth,
+  type RecommendationPolicyHealthAudit,
+} from "@/lib/learning/recommendation-health";
 import { recordRecommendationSelection } from "@/lib/learning/recommendation-policy";
-import { recordRecommendationPolicySnapshot } from "@/lib/learning/recommendation-stability";
+import {
+  readRecommendationPolicySnapshotHistory,
+  recordRecommendationPolicySnapshot,
+  type RecommendationPolicySnapshotHistory,
+} from "@/lib/learning/recommendation-stability";
 import {
   buildAdaptiveRecommendations,
   readRecommendationHistory,
@@ -51,6 +59,7 @@ type PlannerSnapshot = {
   recommendationHistoryIds: string[];
   recommendationHistory: RecommendationHistory;
   policyExperiment: RecommendationPolicyExperimentState;
+  policySnapshots: RecommendationPolicySnapshotHistory;
   calibration: DifficultyCalibrationProfile;
   independence: ProblemIndependenceProfile;
   review: ProblemReviewProfile;
@@ -101,6 +110,7 @@ function collectPlannerSnapshot(): PlannerSnapshot {
     recommendationHistoryIds,
     recommendationHistory,
     policyExperiment: readRecommendationPolicyExperimentState(window.localStorage),
+    policySnapshots: readRecommendationPolicySnapshotHistory(window.localStorage),
     calibration,
     independence,
     review,
@@ -141,7 +151,7 @@ export function NextProblemPlanner() {
 
   useEffect(() => {
     if (!snapshot) return;
-    recordRecommendationPolicySnapshot(window.localStorage, {
+    const updated = recordRecommendationPolicySnapshot(window.localStorage, {
       mastery: snapshot.mastery,
       obstacles: snapshot.obstacles,
       recentExerciseIds: snapshot.recentExerciseIds,
@@ -152,12 +162,29 @@ export function NextProblemPlanner() {
       problemReview: snapshot.review.statuses,
       limit: 5,
     });
+    const previousLast = snapshot.policySnapshots.entries.at(-1)?.signature;
+    const updatedLast = updated.entries.at(-1)?.signature;
+    if (updated.entries.length !== snapshot.policySnapshots.entries.length || updatedLast !== previousLast) {
+      setSnapshot((current) => current ? { ...current, policySnapshots: updated } : current);
+    }
+  }, [snapshot]);
+
+  const policyHealth = useMemo<RecommendationPolicyHealthAudit | null>(() => {
+    if (!snapshot) return null;
+    return buildPromotedRecommendationPolicyHealth({
+      state: snapshot.policyExperiment,
+      snapshots: snapshot.policySnapshots,
+    });
   }, [snapshot]);
 
   const plannerPolicy = useMemo(() => {
-    if (!snapshot) return null;
-    return resolveRecommendationPlannerPolicy(snapshot.policyExperiment, snapshot.recommendationHistory);
-  }, [snapshot]);
+    if (!snapshot || !policyHealth) return null;
+    return resolveRecommendationPlannerPolicyWithHealth(
+      snapshot.policyExperiment,
+      snapshot.recommendationHistory,
+      policyHealth,
+    );
+  }, [policyHealth, snapshot]);
 
   const recommendations = useMemo(() => {
     if (!snapshot || !plannerPolicy) return [];
@@ -199,7 +226,7 @@ export function NextProblemPlanner() {
     router.push(`/exercises/${item.exercise.id}`);
   }
 
-  if (!snapshot || !plannerPolicy) {
+  if (!snapshot || !plannerPolicy || !policyHealth) {
     return <div className="next-problem__loading">Reading mastery, friction, calibration, attempt history, retrieval freshness, independence, transfer misses, and recent practice from this browser…</div>;
   }
 
@@ -216,16 +243,24 @@ export function NextProblemPlanner() {
   const primaryIndependence = snapshot.independence.states[primary.exercise.id];
   const primaryReview = snapshot.review.statuses[primary.exercise.id];
   const dueNow = snapshot.review.due + snapshot.review.overdue;
-  const policyTitle = plannerPolicy.mode === "experiment"
-    ? `${plannerPolicy.variant === "candidate" ? "Candidate" : "Baseline"} experiment arm`
-    : plannerPolicy.mode === "candidate-default"
-      ? "Candidate local default"
-      : "Deterministic baseline";
-  const policyDetail = plannerPolicy.mode === "experiment"
-    ? `Assignment ${(plannerPolicy.assignmentIndex ?? 0) + 1} · frozen policy comparison · choice outcome will be attributed to this arm`
-    : plannerPolicy.mode === "candidate-default"
-      ? "A previously validated local candidate is active. Rollback remains available from Progress."
-      : "The fixed baseline weights remain authoritative. No experimental score deltas are active.";
+  const policyTitle = policyHealth.fallbackRequired
+    ? "Safety baseline"
+    : plannerPolicy.mode === "experiment"
+      ? `${plannerPolicy.variant === "candidate" ? "Candidate" : "Baseline"} experiment arm`
+      : plannerPolicy.mode === "candidate-default"
+        ? "Candidate local default"
+        : "Deterministic baseline";
+  const policyDetail = policyHealth.fallbackRequired
+    ? "The persisted candidate is temporarily suspended because post-promotion stability or curriculum coverage fell outside the safety guardrails. The candidate remains stored for inspection and explicit rollback."
+    : plannerPolicy.mode === "experiment"
+      ? `Assignment ${(plannerPolicy.assignmentIndex ?? 0) + 1} · frozen policy comparison · choice outcome will be attributed to this arm`
+      : plannerPolicy.mode === "candidate-default"
+        ? policyHealth.status === "observing"
+          ? `The promoted candidate remains active while AgoCode collects ${policyHealth.minimumSnapshots} distinct post-promotion learner states for its first health check.`
+          : "A promoted and currently healthy local candidate is active. Rollback remains available from Progress."
+        : "The fixed baseline weights remain authoritative. No experimental score deltas are active.";
+  const policyInspectionHref = policyHealth.fallbackRequired ? "/progress#policy-health" : "/progress#policy-experiment";
+  const policyInspectionLabel = policyHealth.fallbackRequired ? "Inspect policy health →" : "Inspect experiment →";
 
   return (
     <div className="next-problem">
@@ -259,7 +294,7 @@ export function NextProblemPlanner() {
           <small className="mono">{plannerPolicy.policyId}</small>
         </div>
         <p>{policyDetail}</p>
-        <Link href="/progress#policy-experiment">Inspect experiment →</Link>
+        <Link href={policyInspectionHref}>{policyInspectionLabel}</Link>
       </section>
 
       <section className="next-problem__hero">
@@ -341,8 +376,9 @@ export function NextProblemPlanner() {
           AgoCode shows the signals behind every recommendation and keeps the scoring deterministic. Friction is used as a routing
           clue, not as a penalty; self-authored notebook confidence is not treated as mastery; best-ever independence is never
           demoted by time; instead, a separate spacing clock makes stale evidence eligible for retrieval while fresh evidence is
-          down-weighted. A running policy experiment changes only the small, versioned rationale deltas shown above; assignment,
-          outcomes, promotion gates, and rollback remain browser-local and inspectable.
+          down-weighted. A running policy experiment changes only small, versioned rationale deltas; a promoted candidate remains
+          under post-promotion stability and curriculum-coverage checks, and a hard health breach immediately serves the baseline
+          without deleting the candidate, experiment history, or explicit rollback path.
         </p>
         <div className="action-row">
           <Link className="button" href="/review">Open retrieval queue →</Link>

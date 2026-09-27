@@ -40,11 +40,29 @@ test("candidate traffic attributed to baseline is critical and fails closed", ()
   assert.deepEqual(enforceRecommendationPolicyConsistency(candidatePolicy(), audit), { mode: "baseline-default", policyId: BASELINE_RECOMMENDATION_POLICY_ID, variant: "baseline", adjustments: {} });
 });
 
-test("active safety state attached to another candidate is critical", () => {
+test("stale safety state for a previous candidate is ignored by the current candidate", () => {
   const state = cleanState();
   const audit = buildRecommendationPolicyConsistencyAudit({ state, safety: { version: 1, candidatePolicyId: "candidate-old", suspension: { candidatePolicyId: "candidate-old", suspendedAt: "2026-09-27T01:00:00.000Z", reason: "coverage" }, events: [] }, recommendations: { version: 1, entries: [] } });
+  assert.equal(audit.status, "healthy");
+  assert.equal(audit.fallbackRequired, false);
+  assert.deepEqual(enforceRecommendationPolicyConsistency(candidatePolicy(), audit), candidatePolicy());
+});
+
+test("internally contradictory safety state for the current candidate is critical", () => {
+  const state = cleanState();
+  const audit = buildRecommendationPolicyConsistencyAudit({
+    state,
+    safety: {
+      version: 1,
+      candidatePolicyId: state.candidate.id,
+      suspension: { candidatePolicyId: "candidate-other", suspendedAt: "2026-09-27T01:00:00.000Z", reason: "coverage" },
+      events: [],
+    },
+    recommendations: { version: 1, entries: [] },
+  });
+  assert.equal(audit.status, "critical");
   assert.equal(audit.fallbackRequired, true);
-  assert.ok(audit.issues.some((issue) => issue.code === "safety-candidate-mismatch"));
+  assert.ok(audit.issues.some((issue) => issue.code === "suspension-candidate-mismatch"));
 });
 
 test("impossible lifecycle semantics and time regression are critical", () => {

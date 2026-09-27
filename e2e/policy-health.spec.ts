@@ -27,7 +27,7 @@ const promotedState = {
   },
 };
 
-test("promoted candidate stays active while post-promotion health is still observing", async ({ page }) => {
+test("promoted candidate stays active while its promotion health epoch is still observing", async ({ page }) => {
   await page.goto("/");
   await page.evaluate(({ key, state }) => {
     localStorage.setItem(key, JSON.stringify(state));
@@ -45,7 +45,7 @@ test("promoted candidate stays active while post-promotion health is still obser
     return Boolean(raw && JSON.parse(raw).entries?.length === 1);
   }, SNAPSHOT_KEY);
 
-  await expect(policy.getByText(/collects 6 distinct post-promotion learner states/)).toBeVisible();
+  await expect(policy.getByText(/collects 6 distinct states in the current promotion health epoch/)).toBeVisible();
   expect(await page.evaluate((key) => localStorage.getItem(key), EXPERIMENT_KEY)).toBe(frozenBefore);
 
   await page.goto("/progress#policy-health");
@@ -56,6 +56,7 @@ test("promoted candidate stays active while post-promotion health is still obser
   })).toBeVisible();
   await expect(health.locator(".system-audit__calibration", { hasText: "Monitoring" })).toBeVisible();
   await expect(health.getByText("1/6", { exact: true })).toBeVisible();
+  await expect(health.getByText("Promotion", { exact: true })).toBeVisible();
   await expect(health.getByText("candidate: candidate-v1-health-e2e", { exact: true })).toBeVisible();
   await expect(health.getByText("No", { exact: true })).toBeVisible();
 

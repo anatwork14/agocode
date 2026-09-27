@@ -4,6 +4,7 @@ import {
   type RecommendationPolicyExperimentState,
   type ResolvedRecommendationPlannerPolicy,
 } from "./recommendation-experiment.ts";
+import { buildRecommendationPolicyConsistencyAudit } from "./recommendation-consistency.ts";
 import {
   buildRecommendationPolicyCoverageAudit,
   type RecommendationPolicyCoverageAudit,
@@ -197,9 +198,9 @@ export function buildPromotedRecommendationPolicyHealth(input: {
 }
 
 /**
- * A degraded or latched promoted policy is suspended for recommendation generation without
- * deleting or mutating the persisted candidate. Recovery probation alternates baseline and
- * candidate recommendations until fresh health + objective outcomes clear the canary.
+ * A degraded, latched, probation-failed, or internally inconsistent policy is suspended for
+ * recommendation generation without deleting persisted evidence. Recovery probation still
+ * alternates baseline and candidate traffic after state consistency is established.
  */
 export function resolveRecommendationPlannerPolicyWithHealth(
   state: RecommendationPolicyExperimentState,
@@ -209,6 +210,20 @@ export function resolveRecommendationPlannerPolicyWithHealth(
   probationAudit?: RecommendationPolicyProbationAudit,
 ): ResolvedRecommendationPlannerPolicy {
   const resolved = resolveRecommendationPlannerPolicy(state, history);
+  const consistency = buildRecommendationPolicyConsistencyAudit({
+    state,
+    safety: safety ?? { version: 1, events: [] },
+    recommendations: history,
+  });
+  if (consistency.fallbackRequired) {
+    return {
+      mode: "baseline-default",
+      policyId: BASELINE_RECOMMENDATION_POLICY_ID,
+      variant: "baseline",
+      adjustments: {},
+    };
+  }
+
   const candidate = state.candidate;
   const latched = hasActiveRecommendationPolicySuspension(safety, candidate?.id);
   const probationFailed = probationAudit?.fallbackRequired === true;

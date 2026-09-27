@@ -66,17 +66,19 @@ export function RecommendationPolicyLineageAudit() {
       const target = event.target;
       if (!(target instanceof Element) || !target.closest("#policy-experiment")) return;
       if (policyActionTimer !== undefined) window.clearTimeout(policyActionTimer);
+      // Observe during capture while the clicked control is still attached. React may
+      // synchronously replace Pause/Resume/Promote controls before the event bubbles to window.
       policyActionTimer = window.setTimeout(hydrate, 0);
     };
     window.addEventListener("storage", handleStorage);
     window.addEventListener("focus", hydrate);
-    window.addEventListener("click", handleSameTabPolicyAction);
+    window.addEventListener("click", handleSameTabPolicyAction, true);
     return () => {
       window.clearTimeout(timer);
       if (policyActionTimer !== undefined) window.clearTimeout(policyActionTimer);
       window.removeEventListener("storage", handleStorage);
       window.removeEventListener("focus", hydrate);
-      window.removeEventListener("click", handleSameTabPolicyAction);
+      window.removeEventListener("click", handleSameTabPolicyAction, true);
     };
   }, []);
 

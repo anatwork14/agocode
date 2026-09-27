@@ -64,8 +64,8 @@ test("policy lifecycle actions append a bounded read-only lineage visible after 
   await expect(lineage.getByText("Experiment resumed", { exact: true })).toBeVisible();
   await expect(lineage.getByText("Experiment paused", { exact: true })).toBeVisible();
   await expect(lineage.getByText("candidate-v1-lineage-e2e", { exact: true }).first()).toBeVisible();
-  await expect(lineage.getByText(/Retrieval overdue \+2/)).toBeVisible();
-  await expect(lineage.getByText(/Combined diversity -2/)).toBeVisible();
+  await expect(lineage.getByText(/Overdue retrieval \+2/)).toBeVisible();
+  await expect(lineage.getByText(/Source \+ domain diversity -2/)).toBeVisible();
 
   const frozenBeforeReload = await page.evaluate((key) => localStorage.getItem(key), EXPERIMENT_KEY);
   await page.reload();

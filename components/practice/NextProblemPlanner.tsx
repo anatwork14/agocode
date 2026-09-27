@@ -36,6 +36,12 @@ import {
 } from "@/lib/learning/recommendation-health";
 import { recordRecommendationSelection } from "@/lib/learning/recommendation-policy";
 import {
+  hasActiveRecommendationPolicySuspension,
+  readRecommendationPolicySafetyState,
+  synchronizeRecommendationPolicySafety,
+  type RecommendationPolicySafetyState,
+} from "@/lib/learning/recommendation-recovery";
+import {
   readRecommendationPolicySnapshotHistory,
   recordRecommendationPolicySnapshot,
   type RecommendationPolicySnapshotHistory,
@@ -59,6 +65,7 @@ type PlannerSnapshot = {
   recommendationHistoryIds: string[];
   recommendationHistory: RecommendationHistory;
   policyExperiment: RecommendationPolicyExperimentState;
+  policySafety: RecommendationPolicySafetyState;
   policySnapshots: RecommendationPolicySnapshotHistory;
   calibration: DifficultyCalibrationProfile;
   independence: ProblemIndependenceProfile;
@@ -110,6 +117,7 @@ function collectPlannerSnapshot(): PlannerSnapshot {
     recommendationHistoryIds,
     recommendationHistory,
     policyExperiment: readRecommendationPolicyExperimentState(window.localStorage),
+    policySafety: readRecommendationPolicySafetyState(window.localStorage),
     policySnapshots: readRecommendationPolicySnapshotHistory(window.localStorage),
     calibration,
     independence,
@@ -177,8 +185,26 @@ export function NextProblemPlanner() {
     return buildPromotedRecommendationPolicyHealth({
       state: snapshot.policyExperiment,
       snapshots: snapshot.policySnapshots,
+      safety: snapshot.policySafety,
     });
   }, [snapshot]);
+
+  useEffect(() => {
+    if (!snapshot || !policyHealth?.fallbackRequired) return;
+    const updated = synchronizeRecommendationPolicySafety(
+      window.localStorage,
+      snapshot.policyExperiment,
+      policyHealth,
+    );
+    const before = JSON.stringify(snapshot.policySafety);
+    const after = JSON.stringify(updated);
+    if (before !== after) {
+      const refreshTimer = window.setTimeout(() => {
+        setSnapshot((current) => current ? { ...current, policySafety: updated } : current);
+      }, 0);
+      return () => window.clearTimeout(refreshTimer);
+    }
+  }, [policyHealth, snapshot]);
 
   const plannerPolicy = useMemo(() => {
     if (!snapshot || !policyHealth) return null;
@@ -186,6 +212,7 @@ export function NextProblemPlanner() {
       snapshot.policyExperiment,
       snapshot.recommendationHistory,
       policyHealth,
+      snapshot.policySafety,
     );
   }, [policyHealth, snapshot]);
 
@@ -246,24 +273,28 @@ export function NextProblemPlanner() {
   const primaryIndependence = snapshot.independence.states[primary.exercise.id];
   const primaryReview = snapshot.review.statuses[primary.exercise.id];
   const dueNow = snapshot.review.due + snapshot.review.overdue;
-  const policyTitle = policyHealth.fallbackRequired
+  const safetySuspended = hasActiveRecommendationPolicySuspension(snapshot.policySafety, snapshot.policyExperiment.candidate?.id);
+  const safetyBaseline = policyHealth.fallbackRequired || safetySuspended;
+  const policyTitle = safetyBaseline
     ? "Safety baseline"
     : plannerPolicy.mode === "experiment"
       ? `${plannerPolicy.variant === "candidate" ? "Candidate" : "Baseline"} experiment arm`
       : plannerPolicy.mode === "candidate-default"
         ? "Candidate local default"
         : "Deterministic baseline";
-  const policyDetail = policyHealth.fallbackRequired
-    ? "The persisted candidate is temporarily suspended because post-promotion stability or curriculum coverage fell outside the safety guardrails. The candidate remains stored for inspection and explicit rollback."
-    : plannerPolicy.mode === "experiment"
-      ? `Assignment ${(plannerPolicy.assignmentIndex ?? 0) + 1} · frozen policy comparison · choice outcome will be attributed to this arm`
-      : plannerPolicy.mode === "candidate-default"
-        ? policyHealth.status === "observing"
-          ? `The promoted candidate remains active while AgoCode collects ${policyHealth.minimumSnapshots} distinct post-promotion learner states for its first health check.`
-          : "A promoted and currently healthy local candidate is active. Rollback remains available from Progress."
-        : "The fixed baseline weights remain authoritative. No experimental score deltas are active.";
-  const policyInspectionHref = policyHealth.fallbackRequired ? "/progress#policy-health" : "/progress#policy-experiment";
-  const policyInspectionLabel = policyHealth.fallbackRequired ? "Inspect policy health →" : "Inspect experiment →";
+  const policyDetail = safetySuspended
+    ? `The promoted candidate is latched off after a safety breach. AgoCode will keep serving baseline-v1 until at least ${policyHealth.minimumSnapshots} fresh post-suspension learner states pass stability + coverage and you explicitly reactivate the candidate.`
+    : policyHealth.fallbackRequired
+      ? "Post-promotion stability or curriculum coverage just crossed a safety boundary. AgoCode is serving baseline-v1 and persisting a suspension latch so later aggregate recovery cannot silently reactivate the candidate."
+      : plannerPolicy.mode === "experiment"
+        ? `Assignment ${(plannerPolicy.assignmentIndex ?? 0) + 1} · frozen policy comparison · choice outcome will be attributed to this arm`
+        : plannerPolicy.mode === "candidate-default"
+          ? policyHealth.status === "observing"
+            ? `The promoted candidate remains active while AgoCode collects ${policyHealth.minimumSnapshots} distinct states in the current ${policyHealth.monitoringEpoch ?? "promotion"} health epoch.`
+            : "A promoted and currently healthy local candidate is active. Rollback remains available from Progress."
+          : "The fixed baseline weights remain authoritative. No experimental score deltas are active.";
+  const policyInspectionHref = safetyBaseline ? "/progress#policy-recovery" : "/progress#policy-experiment";
+  const policyInspectionLabel = safetyBaseline ? "Inspect safety recovery →" : "Inspect experiment →";
 
   return (
     <div className="next-problem">
@@ -380,8 +411,8 @@ export function NextProblemPlanner() {
           clue, not as a penalty; self-authored notebook confidence is not treated as mastery; best-ever independence is never
           demoted by time; instead, a separate spacing clock makes stale evidence eligible for retrieval while fresh evidence is
           down-weighted. A running policy experiment changes only small, versioned rationale deltas; a promoted candidate remains
-          under post-promotion stability and curriculum-coverage checks, and a hard health breach immediately serves the baseline
-          without deleting the candidate, experiment history, or explicit rollback path.
+          under post-promotion stability and curriculum-coverage checks. A hard health breach latches the planner onto baseline-v1;
+          the candidate can return only after fresh recovery evidence passes and an explicit local reactivation starts a new health epoch.
         </p>
         <div className="action-row">
           <Link className="button" href="/review">Open retrieval queue →</Link>

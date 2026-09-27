@@ -36,9 +36,12 @@ import {
 } from "@/lib/learning/recommendation-health";
 import { recordRecommendationSelection } from "@/lib/learning/recommendation-policy";
 import {
+  buildRecommendationPolicyProbationAudit,
   hasActiveRecommendationPolicySuspension,
   readRecommendationPolicySafetyState,
+  synchronizeRecommendationPolicyProbationFailure,
   synchronizeRecommendationPolicySafety,
+  type RecommendationPolicyProbationAudit,
   type RecommendationPolicySafetyState,
 } from "@/lib/learning/recommendation-recovery";
 import {
@@ -53,6 +56,10 @@ import {
   type RecommendationHistory,
 } from "@/lib/learning/recommendations";
 import { readReasoningAttemptHistory } from "@/lib/learning/reasoning-attempts";
+import {
+  buildRecommendationOutcomeAudit,
+  type RecommendationOutcomeAudit,
+} from "@/lib/learning/system-evaluation";
 
 const REASONING_EVIDENCE_KEY = "agocode.progress.design.reasoning-notebooks";
 const ATLAS_RECOGNITION_KEY = "agocode.progress.transfer.atlas-recognition";
@@ -64,6 +71,7 @@ type PlannerSnapshot = {
   missedExerciseIds: string[];
   recommendationHistoryIds: string[];
   recommendationHistory: RecommendationHistory;
+  recommendationOutcomes: RecommendationOutcomeAudit;
   policyExperiment: RecommendationPolicyExperimentState;
   policySafety: RecommendationPolicySafetyState;
   policySnapshots: RecommendationPolicySnapshotHistory;
@@ -108,6 +116,12 @@ function collectPlannerSnapshot(): PlannerSnapshot {
     reviewHistory: readProblemReviewHistory(window.localStorage),
     now: Date.now(),
   });
+  const recommendationOutcomes = buildRecommendationOutcomeAudit({
+    recommendations: recommendationHistory,
+    reasoningAttempts: attemptHistory,
+    recognitionHistory,
+    now: Date.now(),
+  });
 
   return {
     mastery: buildMasterySnapshot(evidenceMap),
@@ -116,6 +130,7 @@ function collectPlannerSnapshot(): PlannerSnapshot {
     missedExerciseIds,
     recommendationHistoryIds,
     recommendationHistory,
+    recommendationOutcomes,
     policyExperiment: readRecommendationPolicyExperimentState(window.localStorage),
     policySafety: readRecommendationPolicySafetyState(window.localStorage),
     policySnapshots: readRecommendationPolicySnapshotHistory(window.localStorage),
@@ -189,6 +204,17 @@ export function NextProblemPlanner() {
     });
   }, [snapshot]);
 
+  const policyProbation = useMemo<RecommendationPolicyProbationAudit | null>(() => {
+    if (!snapshot || !policyHealth) return null;
+    return buildRecommendationPolicyProbationAudit({
+      state: snapshot.policyExperiment,
+      safety: snapshot.policySafety,
+      recommendations: snapshot.recommendationHistory,
+      outcomes: snapshot.recommendationOutcomes,
+      health: policyHealth,
+    });
+  }, [policyHealth, snapshot]);
+
   useEffect(() => {
     if (!snapshot || !policyHealth?.fallbackRequired) return;
     const updated = synchronizeRecommendationPolicySafety(
@@ -206,6 +232,23 @@ export function NextProblemPlanner() {
     }
   }, [policyHealth, snapshot]);
 
+  useEffect(() => {
+    if (!snapshot || !policyProbation || policyProbation.failureReason !== "outcomes") return;
+    const updated = synchronizeRecommendationPolicyProbationFailure(
+      window.localStorage,
+      snapshot.policyExperiment,
+      policyProbation,
+    );
+    const before = JSON.stringify(snapshot.policySafety);
+    const after = JSON.stringify(updated);
+    if (before !== after) {
+      const refreshTimer = window.setTimeout(() => {
+        setSnapshot((current) => current ? { ...current, policySafety: updated } : current);
+      }, 0);
+      return () => window.clearTimeout(refreshTimer);
+    }
+  }, [policyProbation, snapshot]);
+
   const plannerPolicy = useMemo(() => {
     if (!snapshot || !policyHealth) return null;
     return resolveRecommendationPlannerPolicyWithHealth(
@@ -213,8 +256,9 @@ export function NextProblemPlanner() {
       snapshot.recommendationHistory,
       policyHealth,
       snapshot.policySafety,
+      policyProbation ?? undefined,
     );
-  }, [policyHealth, snapshot]);
+  }, [policyHealth, policyProbation, snapshot]);
 
   const recommendations = useMemo(() => {
     if (!snapshot || !plannerPolicy) return [];
@@ -251,12 +295,13 @@ export function NextProblemPlanner() {
       policyId: plannerPolicy.policyId,
       policyVariant: plannerPolicy.variant,
       experimentId: plannerPolicy.experimentId,
+      probationId: plannerPolicy.probationId,
       policyAdjustment: item.policyAdjustment,
     });
     router.push(`/exercises/${item.exercise.id}`);
   }
 
-  if (!snapshot || !plannerPolicy || !policyHealth) {
+  if (!snapshot || !plannerPolicy || !policyHealth || !policyProbation) {
     return <div className="next-problem__loading">Reading mastery, friction, calibration, attempt history, retrieval freshness, independence, transfer misses, and recent practice from this browser…</div>;
   }
 
@@ -274,27 +319,37 @@ export function NextProblemPlanner() {
   const primaryReview = snapshot.review.statuses[primary.exercise.id];
   const dueNow = snapshot.review.due + snapshot.review.overdue;
   const safetySuspended = hasActiveRecommendationPolicySuspension(snapshot.policySafety, snapshot.policyExperiment.candidate?.id);
-  const safetyBaseline = policyHealth.fallbackRequired || safetySuspended;
+  const safetyBaseline = policyHealth.fallbackRequired || policyProbation.fallbackRequired || safetySuspended;
   const policyTitle = safetyBaseline
     ? "Safety baseline"
     : plannerPolicy.mode === "experiment"
       ? `${plannerPolicy.variant === "candidate" ? "Candidate" : "Baseline"} experiment arm`
-      : plannerPolicy.mode === "candidate-default"
-        ? "Candidate local default"
-        : "Deterministic baseline";
-  const policyDetail = safetySuspended
-    ? `The promoted candidate is latched off after a safety breach. AgoCode will keep serving baseline-v1 until at least ${policyHealth.minimumSnapshots} fresh post-suspension learner states pass stability + coverage and you explicitly reactivate the candidate.`
-    : policyHealth.fallbackRequired
-      ? "Post-promotion stability or curriculum coverage just crossed a safety boundary. AgoCode is serving baseline-v1 and persisting a suspension latch so later aggregate recovery cannot silently reactivate the candidate."
-      : plannerPolicy.mode === "experiment"
-        ? `Assignment ${(plannerPolicy.assignmentIndex ?? 0) + 1} · frozen policy comparison · choice outcome will be attributed to this arm`
+      : plannerPolicy.mode === "recovery-probation"
+        ? `${plannerPolicy.variant === "candidate" ? "Candidate" : "Baseline"} recovery probation arm`
         : plannerPolicy.mode === "candidate-default"
-          ? policyHealth.status === "observing"
-            ? `The promoted candidate remains active while AgoCode collects ${policyHealth.minimumSnapshots} distinct states in the current ${policyHealth.monitoringEpoch ?? "promotion"} health epoch.`
-            : "A promoted and currently healthy local candidate is active. Rollback remains available from Progress."
-          : "The fixed baseline weights remain authoritative. No experimental score deltas are active.";
-  const policyInspectionHref = safetyBaseline ? "/progress#policy-recovery" : "/progress#policy-experiment";
-  const policyInspectionLabel = safetyBaseline ? "Inspect safety recovery →" : "Inspect experiment →";
+          ? "Candidate local default"
+          : "Deterministic baseline";
+  const policyDetail = safetySuspended
+    ? `The promoted candidate is latched off after a safety breach. AgoCode will keep serving baseline-v1 until fresh post-suspension states pass stability + coverage and you explicitly restart recovery.`
+    : policyHealth.fallbackRequired
+      ? "Post-promotion stability or curriculum coverage crossed a safety boundary. AgoCode is serving baseline-v1 and persisting a suspension latch."
+      : policyProbation.fallbackRequired
+        ? "Recovery probation no longer satisfies its safety or objective-outcome boundary. AgoCode is serving baseline-v1 while the failure is latched."
+        : plannerPolicy.mode === "experiment"
+          ? `Assignment ${(plannerPolicy.assignmentIndex ?? 0) + 1} · frozen policy comparison · choice outcome will be attributed to this arm`
+          : plannerPolicy.mode === "recovery-probation"
+            ? `Canary assignment ${(plannerPolicy.assignmentIndex ?? 0) + 1} · baseline-first alternating recovery · at least ${policyProbation.minimumPerVariant} mature outcomes per arm plus healthy replay are required before full candidate service can return.`
+            : plannerPolicy.mode === "candidate-default"
+              ? policyHealth.status === "observing"
+                ? `The promoted candidate remains active while AgoCode collects ${policyHealth.minimumSnapshots} distinct states in the current ${policyHealth.monitoringEpoch ?? "promotion"} health epoch.`
+                : "A promoted and currently healthy local candidate is active. Rollback remains available from Progress."
+              : "The fixed baseline weights remain authoritative. No experimental score deltas are active.";
+  const policyInspectionHref = safetyBaseline || plannerPolicy.mode === "recovery-probation"
+    ? "/progress#policy-recovery"
+    : "/progress#policy-experiment";
+  const policyInspectionLabel = safetyBaseline || plannerPolicy.mode === "recovery-probation"
+    ? "Inspect safety recovery →"
+    : "Inspect experiment →";
 
   return (
     <div className="next-problem">
@@ -412,7 +467,7 @@ export function NextProblemPlanner() {
           demoted by time; instead, a separate spacing clock makes stale evidence eligible for retrieval while fresh evidence is
           down-weighted. A running policy experiment changes only small, versioned rationale deltas; a promoted candidate remains
           under post-promotion stability and curriculum-coverage checks. A hard health breach latches the planner onto baseline-v1;
-          the candidate can return only after fresh recovery evidence passes and an explicit local reactivation starts a new health epoch.
+          recovery requires fresh replay evidence, explicit local reactivation, and a baseline-first probation canary whose objective outcomes must clear before full candidate service resumes.
         </p>
         <div className="action-row">
           <Link className="button" href="/review">Open retrieval queue →</Link>

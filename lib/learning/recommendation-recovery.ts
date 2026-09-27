@@ -1,8 +1,5 @@
 import type { StorageLike } from "./evidence.ts";
-import {
-  BASELINE_RECOMMENDATION_POLICY_ID,
-  type RecommendationPolicyExperimentState,
-} from "./recommendation-experiment.ts";
+import type { RecommendationPolicyExperimentState } from "./recommendation-experiment.ts";
 import {
   buildRecommendationPolicyCoverageAudit,
   type RecommendationPolicyCoverageAudit,

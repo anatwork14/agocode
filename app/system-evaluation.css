@@ -180,6 +180,98 @@
   margin-bottom: 0;
 }
 
+.system-audit__experiment {
+  margin-top: 18px;
+  border-top: 3px solid var(--ink);
+}
+
+.system-audit__experiment-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: 20px;
+  border: 1px solid var(--line);
+  background: var(--line);
+}
+
+.system-audit__experiment-metrics > div {
+  min-width: 0;
+  padding: 15px;
+  background: var(--paper-raised);
+}
+
+.system-audit__experiment-metrics span,
+.system-audit__experiment-metrics strong,
+.system-audit__experiment-metrics small {
+  display: block;
+}
+
+.system-audit__experiment-metrics strong {
+  margin: 3px 0;
+  font-family: var(--font-editorial), serif;
+  font-size: clamp(1.25rem, 2vw, 1.7rem);
+}
+
+.system-audit__candidate {
+  display: grid;
+  grid-template-columns: minmax(220px, .75fr) minmax(0, 1.4fr);
+  gap: 22px;
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid var(--line-strong);
+  background: var(--paper-raised);
+}
+
+.system-audit__candidate strong,
+.system-audit__candidate small {
+  display: block;
+}
+
+.system-audit__candidate-adjustments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-content: start;
+}
+
+.system-audit__candidate-adjustments span {
+  padding: 6px 9px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  font-size: .78rem;
+}
+
+.system-audit__candidate-adjustments strong {
+  display: inline;
+  margin-right: 4px;
+  font-family: var(--font-mono), monospace;
+}
+
+.system-audit__experiment-note {
+  display: grid;
+  gap: 6px;
+  margin-top: 18px;
+  padding: 16px 18px;
+  border-left: 3px solid var(--accent);
+  background: var(--paper-raised);
+}
+
+.system-audit__experiment-note p {
+  margin: 0;
+}
+
+.system-audit__experiment-note span {
+  color: var(--muted);
+  font-size: .82rem;
+}
+
+.system-audit__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
 .system-audit__boundary {
   margin-top: 18px;
 }
@@ -188,13 +280,18 @@
   .system-audit__grid {
     grid-template-columns: 1fr;
   }
+
+  .system-audit__experiment-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 700px) {
   .system-audit__privacy,
   .system-audit__boundary,
   .system-audit__recommendation,
-  .system-audit__skill {
+  .system-audit__skill,
+  .system-audit__candidate {
     grid-template-columns: 1fr;
   }
 
@@ -205,7 +302,8 @@
 
 @media (max-width: 480px) {
   .system-audit__metrics,
-  .system-audit__diagnostic-summary {
+  .system-audit__diagnostic-summary,
+  .system-audit__experiment-metrics {
     grid-template-columns: 1fr;
   }
 

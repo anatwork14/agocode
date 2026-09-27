@@ -58,15 +58,25 @@ export function RecommendationPolicyLineageAudit() {
   useEffect(() => {
     const hydrate = () => setState(collectLineage());
     const timer = window.setTimeout(hydrate, 0);
+    let policyActionTimer: number | undefined;
     const handleStorage = (event: StorageEvent) => {
       if (!event.key || event.key.startsWith("agocode.")) hydrate();
     };
+    const handleSameTabPolicyAction = (event: MouseEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element) || !target.closest("#policy-experiment")) return;
+      if (policyActionTimer !== undefined) window.clearTimeout(policyActionTimer);
+      policyActionTimer = window.setTimeout(hydrate, 0);
+    };
     window.addEventListener("storage", handleStorage);
     window.addEventListener("focus", hydrate);
+    window.addEventListener("click", handleSameTabPolicyAction);
     return () => {
       window.clearTimeout(timer);
+      if (policyActionTimer !== undefined) window.clearTimeout(policyActionTimer);
       window.removeEventListener("storage", handleStorage);
       window.removeEventListener("focus", hydrate);
+      window.removeEventListener("click", handleSameTabPolicyAction);
     };
   }, []);
 

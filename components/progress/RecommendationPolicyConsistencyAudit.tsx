@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { buildRecommendationPolicyConsistencyAudit } from "@/lib/learning/recommendation-consistency";
+import {
+  buildRecommendationPolicyConsistencyAudit,
+  readRecommendationPolicyRepairReceipt,
+  repairRecommendationPolicyConsistency,
+  type RecommendationPolicyRepairReceipt,
+} from "@/lib/learning/recommendation-consistency";
 import { readRecommendationPolicyExperimentState } from "@/lib/learning/recommendation-experiment";
 import { readRecommendationPolicySafetyState } from "@/lib/learning/recommendation-recovery";
 import { readRecommendationHistory } from "@/lib/learning/recommendations";
@@ -18,8 +23,15 @@ function collectConsistency() {
 
 export function RecommendationPolicyConsistencyAudit() {
   const [audit, setAudit] = useState<ReturnType<typeof collectConsistency> | null>(null);
+  const [repairReceipt, setRepairReceipt] = useState<RecommendationPolicyRepairReceipt | null>(null);
+  const [confirmRepair, setConfirmRepair] = useState(false);
+  const [repairMessage, setRepairMessage] = useState<string | null>(null);
+
   useEffect(() => {
-    const hydrate = () => setAudit(collectConsistency());
+    const hydrate = () => {
+      setAudit(collectConsistency());
+      setRepairReceipt(readRecommendationPolicyRepairReceipt(window.localStorage) ?? null);
+    };
     const timer = window.setTimeout(hydrate, 0);
     const handleStorage = (event: StorageEvent) => { if (!event.key || event.key.startsWith("agocode.")) hydrate(); };
     window.addEventListener("storage", handleStorage);
@@ -33,6 +45,17 @@ export function RecommendationPolicyConsistencyAudit() {
 
   if (!audit) return <div className="system-audit-loading">Checking recommendation-policy consistency…</div>;
   const badgeClass = audit.status === "healthy" ? "aligned" : audit.status === "critical" ? "optimistic" : "insufficient";
+
+  const handleRepair = () => {
+    const result = repairRecommendationPolicyConsistency(window.localStorage);
+    setAudit(result.audit);
+    setRepairReceipt(result.receipt ?? readRecommendationPolicyRepairReceipt(window.localStorage) ?? null);
+    setConfirmRepair(false);
+    setRepairMessage(result.repaired
+      ? "Policy control state returned to baseline-v1. Learner recommendation choices and learning evidence were preserved."
+      : "The repair could not establish a consistent persisted state. AgoCode remains fail-closed on baseline-v1.");
+  };
+
   return (
     <section className="system-audit" id="policy-consistency" aria-labelledby="policy-consistency-title">
       <div className="section-heading">
@@ -59,6 +82,41 @@ export function RecommendationPolicyConsistencyAudit() {
           <strong>{audit.fallbackRequired ? "Candidate traffic is not trustworthy until state is repaired or reset." : "Policy state is internally usable."}</strong>
           <p>{audit.explanation}</p>
         </div>
+
+        {audit.fallbackRequired ? (
+          <div className="system-audit__empty" style={{ marginTop: 12 }}>
+            <strong>Safe repair is available.</strong>
+            <p>
+              The repair removes only contradictory experiment attribution from affected recommendation choices, resets candidate / experiment / safety control metadata to baseline-v1, and keeps the learner&apos;s exercise choices, rationale snapshots, outcomes, mastery, and other learning evidence intact.
+            </p>
+            {!confirmRepair ? (
+              <div className="action-row" style={{ marginTop: 12 }}>
+                <button className="button" type="button" onClick={() => { setConfirmRepair(true); setRepairMessage(null); }}>Repair policy state</button>
+              </div>
+            ) : (
+              <div style={{ marginTop: 12 }}>
+                <p><strong>Confirm baseline reset?</strong> The current candidate and experiment metadata will be retired because their integrity can no longer be proven.</p>
+                <div className="action-row" style={{ marginTop: 10 }}>
+                  <button className="button button--primary" type="button" onClick={handleRepair}>Confirm repair</button>
+                  <button className="button" type="button" onClick={() => setConfirmRepair(false)}>Cancel</button>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : null}
+
+        {repairMessage ? <p aria-live="polite" style={{ marginTop: 12 }}>{repairMessage}</p> : null}
+
+        {repairReceipt ? (
+          <div className="system-audit__empty" style={{ marginTop: 12 }} data-testid="policy-repair-receipt">
+            <strong>Last safe repair · {new Date(repairReceipt.repairedAt).toLocaleString()}</strong>
+            <p>
+              Resolved {repairReceipt.criticalIssuesResolved} critical consistency issue{repairReceipt.criticalIssuesResolved === 1 ? "" : "s"}; quarantined {repairReceipt.quarantinedAttributions} contradictory attribution record{repairReceipt.quarantinedAttributions === 1 ? "" : "s"}; preserved {repairReceipt.preservedRecommendationChoices} recommendation choice{repairReceipt.preservedRecommendationChoices === 1 ? "" : "s"}. Remaining warnings: {repairReceipt.remainingWarnings}.
+            </p>
+            {repairReceipt.previousCandidatePolicyId ? <small className="mono">retired candidate: {repairReceipt.previousCandidatePolicyId}</small> : null}
+          </div>
+        ) : null}
+
         {audit.issues.length ? (
           <div className="system-audit__skills">
             {audit.issues.map((issue, index) => (

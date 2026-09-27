@@ -204,7 +204,7 @@ test("six fresh stable and balanced states make reactivation explicitly availabl
   assert.equal(recovery.coverage?.status, "balanced");
 });
 
-test("reactivation refuses insufficient evidence, then clears the latch only after a ready audit", () => {
+test("reactivation refuses insufficient evidence, then starts probation only after a ready audit", () => {
   const storage = memoryStorage();
   const state = promotedState();
   let safety = synchronizeRecommendationPolicySafety(storage, state, health(), "2026-09-11T00:00:00.000Z");
@@ -218,6 +218,7 @@ test("reactivation refuses insufficient evidence, then clears the latch only aft
     explanation: "test",
   }, "2026-09-19T00:00:00.000Z");
   assert.ok(refused.suspension);
+  assert.equal(refused.probation, undefined);
 
   seedRecoveryStates(storage, 12, 6);
   const recovery = buildRecommendationPolicyRecoveryAudit({
@@ -228,7 +229,9 @@ test("reactivation refuses insufficient evidence, then clears the latch only aft
   safety = reactivateRecommendationPolicyAfterRecovery(storage, state, recovery, "2026-09-20T00:00:00.000Z");
   assert.equal(safety.suspension, undefined);
   assert.equal(safety.lastReactivatedAt, "2026-09-20T00:00:00.000Z");
-  assert.equal(safety.events.at(-1)?.event, "candidate-reactivated");
+  assert.equal(safety.probation?.candidatePolicyId, state.candidate.id);
+  assert.equal(safety.events.at(-2)?.event, "candidate-reactivated");
+  assert.equal(safety.events.at(-1)?.event, "candidate-probation-started");
 });
 
 test("health after reactivation starts a fresh epoch and excludes earlier failure states", () => {
@@ -236,6 +239,12 @@ test("health after reactivation starts a fresh epoch and excludes earlier failur
   const safety = {
     version: 1,
     candidatePolicyId: state.candidate.id,
+    probation: {
+      version: 1,
+      id: "recovery-probation-test",
+      candidatePolicyId: state.candidate.id,
+      startedAt: "2026-09-20T00:00:00.000Z",
+    },
     lastReactivatedAt: "2026-09-20T00:00:00.000Z",
     events: [],
   };
@@ -282,7 +291,7 @@ test("safety state for an old candidate is ignored by the current candidate", ()
   assert.equal(resolved.mode, "candidate-default");
 });
 
-test("safety lifecycle events remain bounded across repeated suspend/reactivate cycles", () => {
+test("safety lifecycle events remain bounded across repeated suspend/probation cycles", () => {
   const storage = memoryStorage();
   const state = promotedState();
   for (let index = 0; index < RECOMMENDATION_POLICY_SAFETY_EVENT_LIMIT + 4; index += 1) {
@@ -299,6 +308,7 @@ test("safety lifecycle events remain bounded across repeated suspend/reactivate 
       explanation: "test",
     }, `2026-10-${day}T12:00:00.000Z`);
     assert.equal(safety.suspension, undefined);
+    assert.ok(safety.probation);
   }
   const safety = readRecommendationPolicySafetyState(storage);
   assert.equal(safety.events.length, RECOMMENDATION_POLICY_SAFETY_EVENT_LIMIT);

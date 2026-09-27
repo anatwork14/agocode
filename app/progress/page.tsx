@@ -6,6 +6,7 @@ import { ProblemSolvingFriction } from "@/components/progress/ProblemSolvingFric
 import { ProblemSolvingProgress } from "@/components/progress/ProblemSolvingProgress";
 import { ProgressDashboard } from "@/components/progress/ProgressDashboard";
 import { RecommendationCoverageAudit } from "@/components/progress/RecommendationCoverageAudit";
+import { RecommendationPolicyHealthAudit } from "@/components/progress/RecommendationPolicyHealthAudit";
 import { RecommendationStabilityAudit } from "@/components/progress/RecommendationStabilityAudit";
 
 export const metadata = { title: "Progress" };
@@ -36,6 +37,7 @@ export default function ProgressPage() {
           <ProblemSolvingFriction />
           <RecommendationStabilityAudit />
           <RecommendationCoverageAudit />
+          <RecommendationPolicyHealthAudit />
           <LearningSystemAudit />
         </section>
       </div>

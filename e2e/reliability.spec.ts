@@ -4,6 +4,7 @@ const DAILY_SESSION_KEY = "agocode.practice.daily-session";
 const LEGACY_EVIDENCE_KEY = "agocode.progress.binary-search.rebuild";
 const RECOVERY_KEY = "agocode.system.storage-recovery.v1";
 const RECOMMENDATION_HISTORY_KEY = "agocode.progress.next-problem-history";
+const POLICY_EXPERIMENT_KEY = "agocode.progress.recommendation-policy-experiment";
 const REASONING_ATTEMPT_HISTORY_KEY = "agocode.progress.reasoning-attempt-history";
 const DIAGNOSTIC_STATE_KEY = "agocode.progress.diagnostic-placement";
 const ANALYSIS_EXERCISE_A = "goodrich-1-1-experimental-running-time-study";
@@ -276,4 +277,72 @@ test("adaptive planner snapshots the visible rationale inside existing recommend
   await page.reload();
   const storedAfterReload = await page.evaluate((key) => localStorage.getItem(key), RECOMMENDATION_HISTORY_KEY);
   expect(storedAfterReload).toBe(storedBeforeReload);
+});
+
+test("versioned policy experiment attributes a real planner choice to the rendered arm without mutating the frozen experiment", async ({ page }) => {
+  const experimentState = {
+    version: 1,
+    defaultPolicyId: "baseline-v1",
+    candidate: {
+      id: "candidate-v1-e2e",
+      createdAt: "2026-09-27T00:00:00.000Z",
+      baselinePolicyId: "baseline-v1",
+      adjustments: { "combined-diversity": 2 },
+      source: {
+        matureSnapshottedChoices: 20,
+        baselineStrongEvidenceRate: 50,
+        suggestedChanges: 1,
+      },
+    },
+    experiment: {
+      id: "experiment-e2e",
+      candidatePolicyId: "candidate-v1-e2e",
+      status: "running",
+      startedAt: "2026-09-27T00:00:00.000Z",
+    },
+  };
+
+  await page.goto("/");
+  await page.evaluate(({ key, state }) => {
+    localStorage.setItem(key, JSON.stringify(state));
+  }, { key: POLICY_EXPERIMENT_KEY, state: experimentState });
+  const frozenState = await page.evaluate((key) => localStorage.getItem(key), POLICY_EXPERIMENT_KEY);
+
+  await page.goto("/practice/next");
+  const policyPanel = page.locator(".next-problem__policy");
+  await expect(policyPanel).toBeVisible();
+  const policyTitle = (await policyPanel.locator("strong").first().innerText()).trim();
+  const renderedVariant = policyTitle.startsWith("Candidate") ? "candidate" : "baseline";
+  expect(["baseline", "candidate"]).toContain(renderedVariant);
+  const renderedPolicyId = (await policyPanel.locator("small.mono").innerText()).trim();
+
+  const hero = page.locator(".next-problem__hero");
+  const chooseButton = hero.getByRole("button", { name: /I'll solve this/ });
+  await expect(chooseButton).toBeVisible();
+  await chooseButton.click();
+  await expect(page).toHaveURL(/\/exercises\/[^/]+$/);
+
+  const historyRaw = await page.evaluate((key) => localStorage.getItem(key), RECOMMENDATION_HISTORY_KEY);
+  expect(historyRaw).not.toBeNull();
+  const history = JSON.parse(historyRaw ?? "null");
+  const last = history.entries.at(-1);
+  expect(last.experimentId).toBe("experiment-e2e");
+  expect(last.policyVariant).toBe(renderedVariant);
+  expect(last.policyId).toBe(renderedPolicyId);
+  expect(typeof last.policyAdjustment).toBe("number");
+  expect(Array.isArray(last.reasons)).toBeTruthy();
+
+  const frozenAfterChoice = await page.evaluate((key) => localStorage.getItem(key), POLICY_EXPERIMENT_KEY);
+  expect(frozenAfterChoice).toBe(frozenState);
+
+  await page.goto("/progress#policy-experiment");
+  const experimentPanel = page.locator("#policy-experiment");
+  await expect(experimentPanel.getByRole("heading", { level: 3, name: "Does the frozen candidate actually outperform the baseline?" })).toBeVisible();
+  await expect(experimentPanel.getByText("candidate-v1-e2e", { exact: false }).first()).toBeVisible();
+  await expect(experimentPanel.getByText("running", { exact: true })).toBeVisible();
+  await expect(experimentPanel.getByText("Collecting evidence", { exact: true })).toBeVisible();
+
+  await page.reload();
+  await expect(page.locator("#policy-experiment").getByText("candidate-v1-e2e", { exact: false }).first()).toBeVisible();
+  expect(await page.evaluate((key) => localStorage.getItem(key), POLICY_EXPERIMENT_KEY)).toBe(frozenState);
 });

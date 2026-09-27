@@ -29,7 +29,7 @@ export const RECOMMENDATION_POLICY_LINEAGE_LIMIT = 12;
 
 export type RecommendationExperimentStatus = "running" | "paused" | "completed";
 export type RecommendationExperimentDecision = "insufficient" | "candidate-leading" | "inconclusive" | "candidate-trailing";
-export type RecommendationPlannerPolicyMode = "baseline-default" | "candidate-default" | "experiment";
+export type RecommendationPlannerPolicyMode = "baseline-default" | "candidate-default" | "experiment" | "recovery-probation";
 export type RecommendationPolicyLifecycleEvent =
   | "cycle-archived"
   | "experiment-started"
@@ -86,6 +86,7 @@ export type ResolvedRecommendationPlannerPolicy = {
   policyId: string;
   variant: RecommendationPolicyVariant;
   experimentId?: string;
+  probationId?: string;
   assignmentIndex?: number;
   adjustments: RecommendationScoreAdjustments;
 };

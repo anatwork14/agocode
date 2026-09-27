@@ -31,6 +31,7 @@ import {
   type RecommendationPolicyExperimentState,
 } from "@/lib/learning/recommendation-experiment";
 import { recordRecommendationSelection } from "@/lib/learning/recommendation-policy";
+import { recordRecommendationPolicySnapshot } from "@/lib/learning/recommendation-stability";
 import {
   buildAdaptiveRecommendations,
   readRecommendationHistory,
@@ -137,6 +138,21 @@ export function NextProblemPlanner() {
       window.removeEventListener("focus", hydrate);
     };
   }, []);
+
+  useEffect(() => {
+    if (!snapshot) return;
+    recordRecommendationPolicySnapshot(window.localStorage, {
+      mastery: snapshot.mastery,
+      obstacles: snapshot.obstacles,
+      recentExerciseIds: snapshot.recentExerciseIds,
+      missedExerciseIds: snapshot.missedExerciseIds,
+      recommendationHistoryIds: snapshot.recommendationHistoryIds,
+      difficultyCalibration: snapshot.calibration,
+      problemIndependence: snapshot.independence.states,
+      problemReview: snapshot.review.statuses,
+      limit: 5,
+    });
+  }, [snapshot]);
 
   const plannerPolicy = useMemo(() => {
     if (!snapshot) return null;

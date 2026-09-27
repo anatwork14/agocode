@@ -54,7 +54,7 @@ test("promoted candidate stays active while post-promotion health is still obser
     level: 2,
     name: "Does a promoted candidate remain safe as the learner state changes?",
   })).toBeVisible();
-  await expect(health.getByText("Monitoring", { exact: true })).toBeVisible();
+  await expect(health.locator(".system-audit__calibration", { hasText: "Monitoring" })).toBeVisible();
   await expect(health.getByText("1/6", { exact: true })).toBeVisible();
   await expect(health.getByText("candidate-v1-health-e2e", { exact: true })).toBeVisible();
   await expect(health.getByText("No", { exact: true })).toBeVisible();

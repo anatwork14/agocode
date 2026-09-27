@@ -2,8 +2,17 @@ import {
   AGOCODE_INTERNAL_STORAGE_PREFIX,
   collectAgoCodeData,
   isAgoCodeStorageKey,
+  isPortableAgoCodeStorageKey,
+  type AgoCodeDataExport,
   type PortableStorage,
 } from "./data-portability.ts";
+import {
+  buildRecommendationPolicyConsistencyAudit,
+  type RecommendationPolicyConsistencyAudit,
+} from "./recommendation-consistency.ts";
+import { readRecommendationPolicyExperimentState } from "./recommendation-experiment.ts";
+import { readRecommendationPolicySafetyState } from "./recommendation-recovery.ts";
+import { readRecommendationHistory } from "./recommendations.ts";
 import { progressEvidenceKeys } from "./progressCatalog.ts";
 
 export const AGOCODE_STORAGE_SCHEMA_VERSION = 1 as const;
@@ -58,6 +67,13 @@ export type AgoCodeStorageMigrationResult = {
   migratedKeys: string[];
   recoveryPoint?: AgoCodeStorageRecoveryPoint;
   schemaState?: AgoCodeStorageSchemaState;
+};
+
+export type AgoCodeStorageImportResult = {
+  importedKeys: string[];
+  mode: "merge" | "replace";
+  recoveryPoint: AgoCodeStorageRecoveryPoint;
+  policyConsistency: RecommendationPolicyConsistencyAudit;
 };
 
 type JsonResult =
@@ -272,6 +288,83 @@ export function restoreAgoCodeStorageRecoveryPoint(
   for (const [key, value] of Object.entries(recoveryPoint.entries)) storage.setItem(key, value);
   storage.setItem(AGOCODE_STORAGE_RECOVERY_KEY, JSON.stringify(recoveryPoint));
   return Object.keys(recoveryPoint.entries).length;
+}
+
+/**
+ * Imports one portable AgoCode bundle as a transaction.
+ *
+ * A complete browser-local recovery point is serialized before any learner state is touched.
+ * Replace mode removes only portable learner-owned AgoCode keys, preserving the recovery point
+ * and other internal metadata while the transaction is in flight. Every imported byte is then
+ * read back for verification. Any write/removal/verification failure automatically restores the
+ * pre-import recovery point before the error is surfaced.
+ *
+ * Recommendation-policy consistency is audited after the data transaction succeeds. A critical
+ * policy contradiction does not discard the learner's imported evidence: the planner already
+ * fails closed to baseline-v1 and the explicit policy-repair flow can quarantine only the
+ * untrustworthy attribution metadata.
+ */
+export function importAgoCodeDataSafely(
+  storage: PortableStorage,
+  data: AgoCodeDataExport,
+  replace = false,
+  importedAt = new Date().toISOString(),
+): AgoCodeStorageImportResult {
+  if (!storage.removeItem) throw new Error("This storage provider cannot support rollback, so import was not started.");
+
+  const entries = Object.entries(data.entries).filter(([key, value]) => (
+    isPortableAgoCodeStorageKey(key) && typeof value === "string"
+  ));
+  const importedKeys = entries.map(([key]) => key).sort();
+  const recoveryPoint = createAgoCodeStorageRecoveryPoint(storage, "pre-import", importedAt);
+
+  try {
+    if (replace) {
+      const currentPortableKeys = listAgoCodeKeys(storage).filter(isPortableAgoCodeStorageKey);
+      currentPortableKeys.forEach((key) => storage.removeItem?.(key));
+    }
+
+    for (const [key, value] of entries) storage.setItem(key, value);
+
+    const failedVerification = entries
+      .filter(([key, value]) => storage.getItem(key) !== value)
+      .map(([key]) => key);
+    if (failedVerification.length) {
+      throw new Error(`Imported bytes could not be verified for: ${failedVerification.join(", ")}`);
+    }
+
+    if (replace) {
+      const expected = new Set(importedKeys);
+      const unexpected = listAgoCodeKeys(storage)
+        .filter(isPortableAgoCodeStorageKey)
+        .filter((key) => !expected.has(key));
+      if (unexpected.length) {
+        throw new Error(`Replace import left unexpected learner-data keys: ${unexpected.join(", ")}`);
+      }
+    }
+
+    const policyConsistency = buildRecommendationPolicyConsistencyAudit({
+      state: readRecommendationPolicyExperimentState(storage),
+      safety: readRecommendationPolicySafetyState(storage),
+      recommendations: readRecommendationHistory(storage),
+    });
+
+    return {
+      importedKeys,
+      mode: replace ? "replace" : "merge",
+      recoveryPoint,
+      policyConsistency,
+    };
+  } catch (error) {
+    const originalMessage = error instanceof Error ? error.message : "Unknown import failure.";
+    try {
+      restoreAgoCodeStorageRecoveryPoint(storage, recoveryPoint);
+    } catch (rollbackError) {
+      const rollbackMessage = rollbackError instanceof Error ? rollbackError.message : "Unknown rollback failure.";
+      throw new Error(`Import failed and automatic rollback also failed. Import: ${originalMessage} Rollback: ${rollbackMessage}`);
+    }
+    throw new Error(`Import failed; the previous AgoCode state was restored automatically. ${originalMessage}`);
+  }
 }
 
 export function migrateAgoCodeStorage(

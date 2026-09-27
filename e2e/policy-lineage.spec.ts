@@ -35,6 +35,13 @@ test("policy lifecycle actions append a bounded read-only lineage visible after 
 
   await page.goto("/progress#policy-experiment");
   const experiment = page.locator("#policy-experiment");
+  const lineage = page.locator("#policy-lineage");
+  await expect(lineage.getByRole("heading", {
+    level: 2,
+    name: "What policy versions have existed locally, and what happened to each cycle?",
+  })).toBeVisible();
+  await expect(lineage.getByText("No Phase 10 lifecycle event has been recorded yet.", { exact: true })).toBeVisible();
+
   await expect(experiment.getByRole("button", { name: "Pause experiment" })).toBeVisible();
   await experiment.getByRole("button", { name: "Pause experiment" }).click();
 
@@ -44,6 +51,7 @@ test("policy lifecycle actions append a bounded read-only lineage visible after 
   expect(stored.lineage[0].event).toBe("experiment-paused");
   expect(stored.lineage[0].candidatePolicyId).toBe("candidate-v1-lineage-e2e");
   expect(stored.lineage[0].adjustments).toEqual({ "retrieval-overdue": 2, "combined-diversity": -2 });
+  await expect(lineage.getByText("Experiment paused", { exact: true })).toBeVisible();
 
   await expect(experiment.getByRole("button", { name: "Resume experiment" })).toBeVisible();
   await experiment.getByRole("button", { name: "Resume experiment" }).click();
@@ -56,11 +64,6 @@ test("policy lifecycle actions append a bounded read-only lineage visible after 
     "experiment-resumed",
   ]);
 
-  const lineage = page.locator("#policy-lineage");
-  await expect(lineage.getByRole("heading", {
-    level: 2,
-    name: "What policy versions have existed locally, and what happened to each cycle?",
-  })).toBeVisible();
   await expect(lineage.getByText("Experiment resumed", { exact: true })).toBeVisible();
   await expect(lineage.getByText("Experiment paused", { exact: true })).toBeVisible();
   await expect(lineage.getByText("candidate-v1-lineage-e2e", { exact: true }).first()).toBeVisible();

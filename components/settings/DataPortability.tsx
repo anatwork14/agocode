@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import {
   collectAgoCodeData,
-  importAgoCodeData,
   parseAgoCodeData,
   resetAgoCodeData,
   serializeAgoCodeData,
@@ -11,6 +10,7 @@ import {
 import {
   auditAgoCodeStorage,
   createAgoCodeStorageRecoveryPoint,
+  importAgoCodeDataSafely,
   migrateAgoCodeStorage,
   restoreAgoCodeStorageRecoveryPoint,
   type AgoCodeStorageAudit,
@@ -48,11 +48,19 @@ export function DataPortability() {
     if (!file) return;
     try {
       const data = parseAgoCodeData(await file.text());
-      const count = importAgoCodeData(window.localStorage, data, replace);
+      const result = importAgoCodeDataSafely(window.localStorage, data, replace);
       refresh();
-      setMessage(`Imported ${count} AgoCode entries${replace ? " after clearing existing AgoCode data" : ""}. Storage health was re-audited; safe legacy evidence can be migrated below.`);
+      const policyWarning = result.policyConsistency.fallbackRequired
+        ? " Recommendation-policy metadata contains a critical contradiction, so the planner remains fail-closed on baseline-v1 until you use the explicit repair control in Progress."
+        : result.policyConsistency.warnings
+          ? ` Recommendation-policy metadata is usable with ${result.policyConsistency.warnings} bounded-history warning${result.policyConsistency.warnings === 1 ? "" : "s"}.`
+          : " Recommendation-policy metadata passed its consistency audit.";
+      setMessage(
+        `Imported ${result.importedKeys.length} AgoCode entr${result.importedKeys.length === 1 ? "y" : "ies"} in ${result.mode} mode. A complete pre-import recovery point was created and every imported value was verified after writing.${policyWarning}`,
+      );
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Could not import this file.");
+      refresh();
+      setMessage(error instanceof Error ? error.message : "Could not import this file safely.");
     }
   }
 
@@ -156,7 +164,7 @@ export function DataPortability() {
               <p>
                 {audit.recoveryPoint
                   ? `${Object.keys(audit.recoveryPoint.entries).length} learner-data entries are preserved in the latest browser-local recovery snapshot.`
-                  : "Any schema migration will refuse to start until a complete learner-data recovery snapshot has been serialized successfully."}
+                  : "Any schema migration or learning-data import will refuse to start unless a complete learner-data recovery snapshot can be serialized first."}
               </p>
             </div>
 
@@ -184,7 +192,7 @@ export function DataPortability() {
         <section>
           <span className="mono">IMPORT</span>
           <h2>Restore or merge a prior export.</h2>
-          <p>Only portable AgoCode-prefixed keys are accepted. Foreign and internal recovery keys inside a file are ignored.</p>
+          <p>Every import is transactional: AgoCode creates a complete recovery point first, writes only portable AgoCode keys, reads every imported value back for verification, and restores the previous state automatically if the transaction fails.</p>
           <label className="data-portability__replace">
             <input type="checkbox" checked={replace} onChange={(event) => setReplace(event.target.checked)} />
             <span>Replace existing AgoCode data before import</span>

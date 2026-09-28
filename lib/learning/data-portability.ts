@@ -42,6 +42,12 @@ export type AgoCodeParsedImport = {
   integrity: AgoCodeImportIntegrity;
 };
 
+type ParsedAgoCodeEnvelope = Record<string, unknown> & {
+  product: "AgoCode";
+  version: typeof AGOCODE_DATA_EXPORT_VERSION;
+  entries: Record<string, unknown>;
+};
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
@@ -66,7 +72,7 @@ async function sha256Hex(value: string) {
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
-function parseEnvelope(raw: string) {
+function parseEnvelope(raw: string): ParsedAgoCodeEnvelope {
   const parsed = JSON.parse(raw) as unknown;
   if (!isRecord(parsed) || parsed.product !== "AgoCode" || parsed.version !== AGOCODE_DATA_EXPORT_VERSION) {
     throw new Error("Unsupported AgoCode data export.");
@@ -74,7 +80,7 @@ function parseEnvelope(raw: string) {
   if (!isRecord(parsed.entries)) {
     throw new Error("The export does not contain a valid entries object.");
   }
-  return parsed;
+  return parsed as ParsedAgoCodeEnvelope;
 }
 
 function parseIntegrityManifest(value: unknown): AgoCodeDataIntegrity | undefined {

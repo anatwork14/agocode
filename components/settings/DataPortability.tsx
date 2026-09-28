@@ -6,25 +6,57 @@ import {
   parseAgoCodeData,
   resetAgoCodeData,
   serializeAgoCodeData,
+  type AgoCodeDataExport,
 } from "@/lib/learning/data-portability";
 import {
   auditAgoCodeStorage,
   createAgoCodeStorageRecoveryPoint,
   importAgoCodeDataSafely,
   migrateAgoCodeStorage,
+  previewAgoCodeDataImport,
   restoreAgoCodeStorageRecoveryPoint,
+  type AgoCodeImportConflictPolicy,
   type AgoCodeStorageAudit,
+  type AgoCodeStorageImportPreview,
 } from "@/lib/learning/storage-reliability";
+
+type PendingImport = {
+  fileName: string;
+  data: AgoCodeDataExport;
+  preview: AgoCodeStorageImportPreview;
+  localBasis: string;
+};
+
+function localImportBasis() {
+  const entries = collectAgoCodeData(window.localStorage).entries;
+  return JSON.stringify(Object.entries(entries).sort(([left], [right]) => left.localeCompare(right)));
+}
 
 export function DataPortability() {
   const [entryCount, setEntryCount] = useState(0);
   const [audit, setAudit] = useState<AgoCodeStorageAudit | null>(null);
   const [message, setMessage] = useState("");
   const [replace, setReplace] = useState(false);
+  const [conflictPolicy, setConflictPolicy] = useState<AgoCodeImportConflictPolicy>("preserve-local");
+  const [pendingImport, setPendingImport] = useState<PendingImport | null>(null);
 
   function refresh() {
     setEntryCount(Object.keys(collectAgoCodeData(window.localStorage).entries).length);
     setAudit(auditAgoCodeStorage(window.localStorage));
+  }
+
+  function buildPendingImport(
+    data: AgoCodeDataExport,
+    fileName: string,
+    nextReplace = replace,
+    nextConflictPolicy = conflictPolicy,
+  ): PendingImport {
+    return {
+      fileName,
+      data,
+      preview: previewAgoCodeDataImport(window.localStorage, data, nextReplace, nextConflictPolicy),
+      localBasis: localImportBasis(),
+    };
   }
 
   useEffect(() => {
@@ -44,19 +76,56 @@ export function DataPortability() {
     setMessage(`Exported ${Object.keys(data.entries).length} learner-owned AgoCode storage entries. Internal recovery metadata stays browser-local.`);
   }
 
-  async function importFile(file: File | undefined) {
+  async function stageImportFile(file: File | undefined) {
     if (!file) return;
     try {
       const data = parseAgoCodeData(await file.text());
-      const result = importAgoCodeDataSafely(window.localStorage, data, replace);
+      setPendingImport(buildPendingImport(data, file.name));
+      setMessage("");
+    } catch (error) {
+      setPendingImport(null);
+      setMessage(error instanceof Error ? error.message : "Could not preview this import file.");
+    }
+  }
+
+  function updateReplace(nextReplace: boolean) {
+    setReplace(nextReplace);
+    if (pendingImport) setPendingImport(buildPendingImport(pendingImport.data, pendingImport.fileName, nextReplace, conflictPolicy));
+  }
+
+  function updateConflictPolicy(nextConflictPolicy: AgoCodeImportConflictPolicy) {
+    setConflictPolicy(nextConflictPolicy);
+    if (pendingImport) setPendingImport(buildPendingImport(pendingImport.data, pendingImport.fileName, replace, nextConflictPolicy));
+  }
+
+  function applyPendingImport() {
+    if (!pendingImport) return;
+    if (pendingImport.localBasis !== localImportBasis()) {
+      setPendingImport(buildPendingImport(pendingImport.data, pendingImport.fileName));
+      setMessage("Local AgoCode data changed after this preview was created. The preview was refreshed; review the new impact before applying the import.");
+      return;
+    }
+
+    try {
+      const result = importAgoCodeDataSafely(
+        window.localStorage,
+        pendingImport.data,
+        replace,
+        new Date().toISOString(),
+        conflictPolicy,
+      );
       refresh();
+      setPendingImport(null);
+      const skippedMessage = result.skippedConflictKeys.length
+        ? ` Kept ${result.skippedConflictKeys.length} local conflict${result.skippedConflictKeys.length === 1 ? "" : "s"} unchanged by explicit merge policy.`
+        : "";
       const policyWarning = result.policyConsistency.fallbackRequired
         ? " Recommendation-policy metadata contains a critical contradiction, so the planner remains fail-closed on baseline-v1 until you use the explicit repair control in Progress."
         : result.policyConsistency.warnings
           ? ` Recommendation-policy metadata is usable with ${result.policyConsistency.warnings} bounded-history warning${result.policyConsistency.warnings === 1 ? "" : "s"}.`
           : " Recommendation-policy metadata passed its consistency audit.";
       setMessage(
-        `Imported ${result.importedKeys.length} AgoCode entr${result.importedKeys.length === 1 ? "y" : "ies"} in ${result.mode} mode. A complete pre-import recovery point was created and every imported value was verified after writing.${policyWarning}`,
+        `Imported ${result.importedKeys.length} AgoCode entr${result.importedKeys.length === 1 ? "y" : "ies"} in ${result.mode} mode. A complete pre-import recovery point was created and every applied value was verified after writing.${skippedMessage}${policyWarning}`,
       );
     } catch (error) {
       refresh();
@@ -91,6 +160,7 @@ export function DataPortability() {
     try {
       const count = restoreAgoCodeStorageRecoveryPoint(window.localStorage);
       refresh();
+      setPendingImport(null);
       setMessage(`Restored ${count} AgoCode learner-data entries from the latest recovery point.`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Could not restore the recovery point.");
@@ -101,10 +171,12 @@ export function DataPortability() {
     if (!window.confirm("Delete all AgoCode learning data stored in this browser? Export first if you may need it later.")) return;
     const count = resetAgoCodeData(window.localStorage);
     refresh();
+    setPendingImport(null);
     setMessage(`Deleted ${count} AgoCode storage entries from this browser.`);
   }
 
   const invalidEntries = audit?.entries.filter((entry) => entry.classification === "invalid-known-evidence") ?? [];
+  const importPreview = pendingImport?.preview;
 
   return (
     <div className="data-portability">
@@ -191,16 +263,93 @@ export function DataPortability() {
 
         <section>
           <span className="mono">IMPORT</span>
-          <h2>Restore or merge a prior export.</h2>
-          <p>Every import is transactional: AgoCode creates a complete recovery point first, writes only portable AgoCode keys, reads every imported value back for verification, and restores the previous state automatically if the transaction fails.</p>
+          <h2>Preview first, then restore or merge.</h2>
+          <p>Selecting a file never changes browser state. AgoCode first shows additions, conflicts, unchanged values, removals, and the projected policy-consistency result. Applying the reviewed plan is still transactional and recoverable.</p>
           <label className="data-portability__replace">
-            <input type="checkbox" checked={replace} onChange={(event) => setReplace(event.target.checked)} />
+            <input type="checkbox" checked={replace} onChange={(event) => updateReplace(event.target.checked)} />
             <span>Replace existing AgoCode data before import</span>
           </label>
           <label className="button data-portability__file">
             Choose AgoCode JSON
-            <input type="file" accept="application/json,.json" onChange={(event) => void importFile(event.target.files?.[0])} />
+            <input type="file" accept="application/json,.json" onChange={(event) => void stageImportFile(event.target.files?.[0])} />
           </label>
+
+          {pendingImport && importPreview ? (
+            <div className="storage-health__recovery" data-testid="import-preflight" style={{ marginTop: 16 }}>
+              <div>
+                <span className="mono">IMPORT PREVIEW</span>
+                <strong>{pendingImport.fileName}</strong>
+              </div>
+              <p>No AgoCode browser data has changed yet. Review the projected transaction before applying it.</p>
+
+              <div className="storage-health__metrics" style={{ marginTop: 12 }}>
+                <article data-testid="import-preflight-additions">
+                  <span>Add</span>
+                  <strong>{importPreview.additions.length}</strong>
+                  <small>new learner-data keys</small>
+                </article>
+                <article data-testid="import-preflight-conflicts">
+                  <span>Conflicts</span>
+                  <strong>{importPreview.conflicts.length}</strong>
+                  <small>same key, different bytes</small>
+                </article>
+                <article data-testid="import-preflight-identical">
+                  <span>Unchanged</span>
+                  <strong>{importPreview.identical.length}</strong>
+                  <small>byte-identical values</small>
+                </article>
+                <article data-testid="import-preflight-removals">
+                  <span>Remove</span>
+                  <strong>{importPreview.removals.length}</strong>
+                  <small>{replace ? "local keys absent from file" : "merge removes nothing"}</small>
+                </article>
+              </div>
+
+              {!replace && importPreview.conflicts.length ? (
+                <fieldset style={{ marginTop: 14 }}>
+                  <legend><strong>For conflicting keys</strong></legend>
+                  <label className="data-portability__replace">
+                    <input
+                      type="radio"
+                      name="import-conflict-policy"
+                      checked={conflictPolicy === "preserve-local"}
+                      onChange={() => updateConflictPolicy("preserve-local")}
+                    />
+                    <span>Keep local values — skip {importPreview.conflicts.length} conflicting imported key{importPreview.conflicts.length === 1 ? "" : "s"}</span>
+                  </label>
+                  <label className="data-portability__replace">
+                    <input
+                      type="radio"
+                      name="import-conflict-policy"
+                      checked={conflictPolicy === "overwrite"}
+                      onChange={() => updateConflictPolicy("overwrite")}
+                    />
+                    <span>Use imported values — overwrite the conflicting local keys</span>
+                  </label>
+                </fieldset>
+              ) : null}
+
+              {replace ? (
+                <p><strong>Replace mode:</strong> imported values win, and {importPreview.removals.length} local learner-data key{importPreview.removals.length === 1 ? "" : "s"} absent from this file will be removed after the recovery point is created.</p>
+              ) : importPreview.skippedConflictKeys.length ? (
+                <p><strong>Merge policy:</strong> {importPreview.skippedConflictKeys.length} conflict{importPreview.skippedConflictKeys.length === 1 ? "" : "s"} will keep the current local value.</p>
+              ) : null}
+
+              {importPreview.policyConsistency.fallbackRequired ? (
+                <div className="storage-health__warning" role="status" data-testid="import-preflight-policy-warning">
+                  <strong>Projected policy state requires baseline fallback.</strong>
+                  <p>The import would preserve the learner data, but recommendation-policy metadata has {importPreview.policyConsistency.criticalIssues} critical consistency issue{importPreview.policyConsistency.criticalIssues === 1 ? "" : "s"}. After import, the planner will remain on baseline-v1 until the explicit Progress repair flow is used.</p>
+                </div>
+              ) : (
+                <p data-testid="import-preflight-policy-ok">Projected recommendation-policy state is internally usable{importPreview.policyConsistency.warnings ? ` with ${importPreview.policyConsistency.warnings} bounded-history warning${importPreview.policyConsistency.warnings === 1 ? "" : "s"}` : ""}.</p>
+              )}
+
+              <div className="storage-health__actions" style={{ marginTop: 14 }}>
+                <button className="button button--primary" type="button" onClick={applyPendingImport}>Apply reviewed import</button>
+                <button className="button" type="button" onClick={() => { setPendingImport(null); setMessage(""); }}>Cancel preview</button>
+              </div>
+            </div>
+          ) : null}
         </section>
 
         <section className="data-portability__danger">

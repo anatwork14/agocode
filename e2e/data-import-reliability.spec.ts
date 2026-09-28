@@ -12,7 +12,7 @@ function exportBundle(entries: Record<string, string>) {
   });
 }
 
-test("replace import creates a recoverable transaction before changing learner data", async ({ page }) => {
+test("replace import previews removals before creating a recoverable transaction", async ({ page }) => {
   await page.goto("/");
   await page.evaluate(() => {
     localStorage.setItem("agocode.progress.before-import", "before");
@@ -21,7 +21,7 @@ test("replace import creates a recoverable transaction before changing learner d
   });
 
   await page.goto("/settings/data");
-  await expect(page.getByRole("heading", { level: 2, name: "Restore or merge a prior export." })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Preview first, then restore or merge." })).toBeVisible();
   await page.getByLabel("Replace existing AgoCode data before import").check();
 
   await page.locator('input[type="file"]').setInputFiles({
@@ -33,8 +33,26 @@ test("replace import creates a recoverable transaction before changing learner d
     })),
   });
 
+  const preview = page.getByTestId("import-preflight");
+  await expect(preview).toBeVisible();
+  await expect(page.getByTestId("import-preflight-additions").getByText("2", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("import-preflight-removals").getByText("2", { exact: true })).toBeVisible();
+  await expect(preview.getByText(/No AgoCode browser data has changed yet/)).toBeVisible();
+
+  const beforeApply = await page.evaluate((recoveryKey) => ({
+    before: localStorage.getItem("agocode.progress.before-import"),
+    customBefore: localStorage.getItem("agocode.custom.before-import"),
+    after: localStorage.getItem("agocode.progress.after-import"),
+    recovery: localStorage.getItem(recoveryKey),
+  }), RECOVERY_KEY);
+  expect(beforeApply.before).toBe("before");
+  expect(beforeApply.customBefore).toBe("custom-before");
+  expect(beforeApply.after).toBeNull();
+  expect(beforeApply.recovery).toBeNull();
+
+  await preview.getByRole("button", { name: "Apply reviewed import" }).click();
   await expect(page.getByRole("status").last()).toContainText("complete pre-import recovery point");
-  await expect(page.getByRole("status").last()).toContainText("every imported value was verified");
+  await expect(page.getByRole("status").last()).toContainText("every applied value was verified");
 
   const imported = await page.evaluate((recoveryKey) => ({
     before: localStorage.getItem("agocode.progress.before-import"),
@@ -72,7 +90,43 @@ test("replace import creates a recoverable transaction before changing learner d
   expect(restored.unrelated).toBe("keep");
 });
 
-test("imported critical policy contradiction stays fail-closed and is routed to explicit repair", async ({ page }) => {
+test("merge conflict preview defaults to preserving local values until overwrite is explicit", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    localStorage.setItem("agocode.custom.conflict", "local-value");
+    localStorage.setItem("agocode.custom.local-only", "stay-local");
+  });
+  await page.goto("/settings/data");
+
+  await page.locator('input[type="file"]').setInputFiles({
+    name: "agocode-merge-conflict.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(exportBundle({
+      "agocode.custom.conflict": "imported-value",
+      "agocode.custom.new": "new-value",
+    })),
+  });
+
+  const preview = page.getByTestId("import-preflight");
+  await expect(page.getByTestId("import-preflight-conflicts").getByText("1", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("import-preflight-additions").getByText("1", { exact: true })).toBeVisible();
+  await expect(page.getByLabel(/Keep local values/)).toBeChecked();
+  expect(await page.evaluate(() => localStorage.getItem("agocode.custom.new"))).toBeNull();
+
+  await preview.getByRole("button", { name: "Apply reviewed import" }).click();
+  await expect(page.getByRole("status").last()).toContainText("Kept 1 local conflict unchanged");
+
+  const merged = await page.evaluate(() => ({
+    conflict: localStorage.getItem("agocode.custom.conflict"),
+    localOnly: localStorage.getItem("agocode.custom.local-only"),
+    added: localStorage.getItem("agocode.custom.new"),
+  }));
+  expect(merged.conflict).toBe("local-value");
+  expect(merged.localOnly).toBe("stay-local");
+  expect(merged.added).toBe("new-value");
+});
+
+test("imported critical policy contradiction is visible before apply and remains fail-closed after import", async ({ page }) => {
   await page.goto("/settings/data");
   const contradictoryHistory = JSON.stringify({
     version: 1,
@@ -94,6 +148,11 @@ test("imported critical policy contradiction stays fail-closed and is routed to 
     })),
   });
 
+  const preview = page.getByTestId("import-preflight");
+  await expect(page.getByTestId("import-preflight-policy-warning")).toContainText("Projected policy state requires baseline fallback");
+  expect(await page.evaluate(() => localStorage.getItem("agocode.progress.imported-learning-note"))).toBeNull();
+
+  await preview.getByRole("button", { name: "Apply reviewed import" }).click();
   const status = page.getByRole("status").last();
   await expect(status).toContainText("planner remains fail-closed on baseline-v1");
   await expect(status).toContainText("explicit repair control in Progress");

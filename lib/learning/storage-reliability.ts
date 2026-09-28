@@ -69,9 +69,25 @@ export type AgoCodeStorageMigrationResult = {
   schemaState?: AgoCodeStorageSchemaState;
 };
 
+export type AgoCodeImportConflictPolicy = "preserve-local" | "overwrite";
+
+export type AgoCodeStorageImportPreview = {
+  mode: "merge" | "replace";
+  conflictPolicy: AgoCodeImportConflictPolicy;
+  additions: string[];
+  identical: string[];
+  conflicts: string[];
+  removals: string[];
+  skippedConflictKeys: string[];
+  appliedKeys: string[];
+  policyConsistency: RecommendationPolicyConsistencyAudit;
+};
+
 export type AgoCodeStorageImportResult = {
   importedKeys: string[];
+  skippedConflictKeys: string[];
   mode: "merge" | "replace";
+  conflictPolicy: AgoCodeImportConflictPolicy;
   recoveryPoint: AgoCodeStorageRecoveryPoint;
   policyConsistency: RecommendationPolicyConsistencyAudit;
 };
@@ -134,6 +150,51 @@ function listAgoCodeKeys(storage: PortableStorage) {
     if (key && isAgoCodeStorageKey(key)) keys.push(key);
   }
   return keys;
+}
+
+function listPortableAgoCodeKeys(storage: PortableStorage) {
+  return listAgoCodeKeys(storage).filter(isPortableAgoCodeStorageKey);
+}
+
+function portableImportEntries(data: AgoCodeDataExport) {
+  return Object.entries(data.entries)
+    .filter(([key, value]) => isPortableAgoCodeStorageKey(key) && typeof value === "string")
+    .sort(([left], [right]) => left.localeCompare(right));
+}
+
+function copyStorage(storage: PortableStorage): PortableStorage {
+  const values = new Map<string, string>();
+  for (let index = 0; index < storage.length; index += 1) {
+    const key = storage.key(index);
+    if (!key) continue;
+    const value = storage.getItem(key);
+    if (value !== null) values.set(key, value);
+  }
+  return {
+    get length() {
+      return values.size;
+    },
+    key(index: number) {
+      return [...values.keys()][index] ?? null;
+    },
+    getItem(key: string) {
+      return values.get(key) ?? null;
+    },
+    setItem(key: string, value: string) {
+      values.set(key, value);
+    },
+    removeItem(key: string) {
+      values.delete(key);
+    },
+  };
+}
+
+function auditRecommendationPolicyConsistency(storage: PortableStorage) {
+  return buildRecommendationPolicyConsistencyAudit({
+    state: readRecommendationPolicyExperimentState(storage),
+    safety: readRecommendationPolicySafetyState(storage),
+    recommendations: readRecommendationHistory(storage),
+  });
 }
 
 function classifyEntry(key: string, raw: string): StorageAuditEntry {
@@ -291,39 +352,87 @@ export function restoreAgoCodeStorageRecoveryPoint(
 }
 
 /**
+ * Builds a read-only model of an import before any browser state is mutated.
+ *
+ * Merge mode distinguishes byte-identical keys from true conflicts. The safer default is to keep
+ * the local value for conflicts, but callers can explicitly choose imported values instead.
+ * Replace mode always adopts the imported bundle and reports local learner-data keys that will be
+ * removed because they are absent from the file.
+ *
+ * The projected recommendation-policy audit is evaluated on an in-memory copy so a learner can see
+ * whether the proposed import would force baseline fallback before committing the transaction.
+ */
+export function previewAgoCodeDataImport(
+  storage: PortableStorage,
+  data: AgoCodeDataExport,
+  replace = false,
+  conflictPolicy: AgoCodeImportConflictPolicy = "preserve-local",
+): AgoCodeStorageImportPreview {
+  const entries = portableImportEntries(data);
+  const incomingKeys = new Set(entries.map(([key]) => key));
+  const additions: string[] = [];
+  const identical: string[] = [];
+  const conflicts: string[] = [];
+
+  for (const [key, value] of entries) {
+    const current = storage.getItem(key);
+    if (current === null) additions.push(key);
+    else if (current === value) identical.push(key);
+    else conflicts.push(key);
+  }
+
+  const effectiveConflictPolicy: AgoCodeImportConflictPolicy = replace ? "overwrite" : conflictPolicy;
+  const removals = replace
+    ? listPortableAgoCodeKeys(storage).filter((key) => !incomingKeys.has(key)).sort()
+    : [];
+  const skippedConflictKeys = effectiveConflictPolicy === "preserve-local" ? [...conflicts] : [];
+  const skipped = new Set(skippedConflictKeys);
+  const appliedEntries = entries.filter(([key]) => !skipped.has(key));
+  const projected = copyStorage(storage);
+
+  if (replace) listPortableAgoCodeKeys(projected).forEach((key) => projected.removeItem?.(key));
+  for (const [key, value] of appliedEntries) projected.setItem(key, value);
+
+  return {
+    mode: replace ? "replace" : "merge",
+    conflictPolicy: effectiveConflictPolicy,
+    additions: additions.sort(),
+    identical: identical.sort(),
+    conflicts: conflicts.sort(),
+    removals,
+    skippedConflictKeys: skippedConflictKeys.sort(),
+    appliedKeys: appliedEntries.map(([key]) => key).sort(),
+    policyConsistency: auditRecommendationPolicyConsistency(projected),
+  };
+}
+
+/**
  * Imports one portable AgoCode bundle as a transaction.
  *
  * A complete browser-local recovery point is serialized before any learner state is touched.
  * Replace mode removes only portable learner-owned AgoCode keys, preserving the recovery point
- * and other internal metadata while the transaction is in flight. Every imported byte is then
- * read back for verification. Any write/removal/verification failure automatically restores the
+ * and other internal metadata while the transaction is in flight. Merge conflicts can either keep
+ * the local value or explicitly adopt the imported value. Every value that should be applied is
+ * read back byte-for-byte. Any write/removal/verification failure automatically restores the
  * pre-import recovery point before the error is surfaced.
- *
- * Recommendation-policy consistency is audited after the data transaction succeeds. A critical
- * policy contradiction does not discard the learner's imported evidence: the planner already
- * fails closed to baseline-v1 and the explicit policy-repair flow can quarantine only the
- * untrustworthy attribution metadata.
  */
 export function importAgoCodeDataSafely(
   storage: PortableStorage,
   data: AgoCodeDataExport,
   replace = false,
   importedAt = new Date().toISOString(),
+  conflictPolicy: AgoCodeImportConflictPolicy = "overwrite",
 ): AgoCodeStorageImportResult {
   if (!storage.removeItem) throw new Error("This storage provider cannot support rollback, so import was not started.");
 
-  const entries = Object.entries(data.entries).filter(([key, value]) => (
-    isPortableAgoCodeStorageKey(key) && typeof value === "string"
-  ));
+  const preview = previewAgoCodeDataImport(storage, data, replace, conflictPolicy);
+  const skipped = new Set(preview.skippedConflictKeys);
+  const entries = portableImportEntries(data).filter(([key]) => !skipped.has(key));
   const importedKeys = entries.map(([key]) => key).sort();
   const recoveryPoint = createAgoCodeStorageRecoveryPoint(storage, "pre-import", importedAt);
 
   try {
-    if (replace) {
-      const currentPortableKeys = listAgoCodeKeys(storage).filter(isPortableAgoCodeStorageKey);
-      currentPortableKeys.forEach((key) => storage.removeItem?.(key));
-    }
-
+    if (replace) listPortableAgoCodeKeys(storage).forEach((key) => storage.removeItem?.(key));
     for (const [key, value] of entries) storage.setItem(key, value);
 
     const failedVerification = entries
@@ -335,25 +444,19 @@ export function importAgoCodeDataSafely(
 
     if (replace) {
       const expected = new Set(importedKeys);
-      const unexpected = listAgoCodeKeys(storage)
-        .filter(isPortableAgoCodeStorageKey)
-        .filter((key) => !expected.has(key));
+      const unexpected = listPortableAgoCodeKeys(storage).filter((key) => !expected.has(key));
       if (unexpected.length) {
         throw new Error(`Replace import left unexpected learner-data keys: ${unexpected.join(", ")}`);
       }
     }
 
-    const policyConsistency = buildRecommendationPolicyConsistencyAudit({
-      state: readRecommendationPolicyExperimentState(storage),
-      safety: readRecommendationPolicySafetyState(storage),
-      recommendations: readRecommendationHistory(storage),
-    });
-
     return {
       importedKeys,
-      mode: replace ? "replace" : "merge",
+      skippedConflictKeys: preview.skippedConflictKeys,
+      mode: preview.mode,
+      conflictPolicy: preview.conflictPolicy,
       recoveryPoint,
-      policyConsistency,
+      policyConsistency: auditRecommendationPolicyConsistency(storage),
     };
   } catch (error) {
     const originalMessage = error instanceof Error ? error.message : "Unknown import failure.";

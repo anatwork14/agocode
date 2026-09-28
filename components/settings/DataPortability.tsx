@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react";
 import {
   collectAgoCodeData,
-  parseAgoCodeData,
+  collectSealedAgoCodeData,
+  parseAgoCodeDataForImport,
   resetAgoCodeData,
   serializeAgoCodeData,
   type AgoCodeDataExport,
+  type AgoCodeImportIntegrity,
 } from "@/lib/learning/data-portability";
 import {
   auditAgoCodeStorage,
@@ -23,6 +25,7 @@ import {
 type PendingImport = {
   fileName: string;
   data: AgoCodeDataExport;
+  integrity: AgoCodeImportIntegrity;
   preview: AgoCodeStorageImportPreview;
   localBasis: string;
 };
@@ -48,12 +51,14 @@ export function DataPortability() {
   function buildPendingImport(
     data: AgoCodeDataExport,
     fileName: string,
+    integrity: AgoCodeImportIntegrity,
     nextReplace = replace,
     nextConflictPolicy = conflictPolicy,
   ): PendingImport {
     return {
       fileName,
       data,
+      integrity,
       preview: previewAgoCodeDataImport(window.localStorage, data, nextReplace, nextConflictPolicy),
       localBasis: localImportBasis(),
     };
@@ -64,23 +69,27 @@ export function DataPortability() {
     return () => window.clearTimeout(timer);
   }, []);
 
-  function exportData() {
-    const data = collectAgoCodeData(window.localStorage);
-    const blob = new Blob([serializeAgoCodeData(data)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `agocode-learning-data-${data.exportedAt.slice(0, 10)}.json`;
-    anchor.click();
-    URL.revokeObjectURL(url);
-    setMessage(`Exported ${Object.keys(data.entries).length} learner-owned AgoCode storage entries. Internal recovery metadata stays browser-local.`);
+  async function exportData() {
+    try {
+      const data = await collectSealedAgoCodeData(window.localStorage);
+      const blob = new Blob([serializeAgoCodeData(data)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `agocode-learning-data-${data.exportedAt.slice(0, 10)}.json`;
+      anchor.click();
+      URL.revokeObjectURL(url);
+      setMessage(`Exported ${Object.keys(data.entries).length} learner-owned AgoCode storage entries with a SHA-256 integrity manifest. Internal recovery metadata stays browser-local.`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not create an integrity-sealed export.");
+    }
   }
 
   async function stageImportFile(file: File | undefined) {
     if (!file) return;
     try {
-      const data = parseAgoCodeData(await file.text());
-      setPendingImport(buildPendingImport(data, file.name));
+      const parsed = await parseAgoCodeDataForImport(await file.text());
+      setPendingImport(buildPendingImport(parsed.data, file.name, parsed.integrity));
       setMessage("");
     } catch (error) {
       setPendingImport(null);
@@ -90,23 +99,44 @@ export function DataPortability() {
 
   function updateReplace(nextReplace: boolean) {
     setReplace(nextReplace);
-    if (pendingImport) setPendingImport(buildPendingImport(pendingImport.data, pendingImport.fileName, nextReplace, conflictPolicy));
+    if (pendingImport) {
+      setPendingImport(buildPendingImport(
+        pendingImport.data,
+        pendingImport.fileName,
+        pendingImport.integrity,
+        nextReplace,
+        conflictPolicy,
+      ));
+    }
   }
 
   function updateConflictPolicy(nextConflictPolicy: AgoCodeImportConflictPolicy) {
     setConflictPolicy(nextConflictPolicy);
-    if (pendingImport) setPendingImport(buildPendingImport(pendingImport.data, pendingImport.fileName, replace, nextConflictPolicy));
+    if (pendingImport) {
+      setPendingImport(buildPendingImport(
+        pendingImport.data,
+        pendingImport.fileName,
+        pendingImport.integrity,
+        replace,
+        nextConflictPolicy,
+      ));
+    }
   }
 
   function applyPendingImport() {
     if (!pendingImport) return;
     if (pendingImport.localBasis !== localImportBasis()) {
-      setPendingImport(buildPendingImport(pendingImport.data, pendingImport.fileName));
+      setPendingImport(buildPendingImport(
+        pendingImport.data,
+        pendingImport.fileName,
+        pendingImport.integrity,
+      ));
       setMessage("Local AgoCode data changed after this preview was created. The preview was refreshed; review the new impact before applying the import.");
       return;
     }
 
     try {
+      const sourceIntegrity = pendingImport.integrity;
       const result = importAgoCodeDataSafely(
         window.localStorage,
         pendingImport.data,
@@ -119,13 +149,16 @@ export function DataPortability() {
       const skippedMessage = result.skippedConflictKeys.length
         ? ` Kept ${result.skippedConflictKeys.length} local conflict${result.skippedConflictKeys.length === 1 ? "" : "s"} unchanged by explicit merge policy.`
         : "";
+      const integrityMessage = sourceIntegrity.status === "verified"
+        ? " Source bundle SHA-256 integrity was verified before staging."
+        : " Source bundle was a compatible legacy export without an integrity manifest, so original-file integrity could not be verified.";
       const policyWarning = result.policyConsistency.fallbackRequired
         ? " Recommendation-policy metadata contains a critical contradiction, so the planner remains fail-closed on baseline-v1 until you use the explicit repair control in Progress."
         : result.policyConsistency.warnings
           ? ` Recommendation-policy metadata is usable with ${result.policyConsistency.warnings} bounded-history warning${result.policyConsistency.warnings === 1 ? "" : "s"}.`
           : " Recommendation-policy metadata passed its consistency audit.";
       setMessage(
-        `Imported ${result.importedKeys.length} AgoCode entr${result.importedKeys.length === 1 ? "y" : "ies"} in ${result.mode} mode. A complete pre-import recovery point was created and every applied value was verified after writing.${skippedMessage}${policyWarning}`,
+        `Imported ${result.importedKeys.length} AgoCode entr${result.importedKeys.length === 1 ? "y" : "ies"} in ${result.mode} mode. A complete pre-import recovery point was created and every applied value was verified after writing.${integrityMessage}${skippedMessage}${policyWarning}`,
       );
     } catch (error) {
       refresh();
@@ -257,14 +290,14 @@ export function DataPortability() {
         <section>
           <span className="mono">EXPORT</span>
           <h2>Make your learning history portable.</h2>
-          <p>Download one versioned JSON bundle before changing browsers, clearing storage, or testing a migration.</p>
-          <button className="button button--primary" type="button" onClick={exportData}>Export learning data</button>
+          <p>Download one versioned JSON bundle before changing browsers, clearing storage, or testing a migration. New exports include a SHA-256 integrity manifest so accidental backup damage can be detected before import.</p>
+          <button className="button button--primary" type="button" onClick={() => void exportData()}>Export learning data</button>
         </section>
 
         <section>
           <span className="mono">IMPORT</span>
           <h2>Preview first, then restore or merge.</h2>
-          <p>Selecting a file never changes browser state. AgoCode first shows additions, conflicts, unchanged values, removals, and the projected policy-consistency result. Applying the reviewed plan is still transactional and recoverable.</p>
+          <p>Selecting a file never changes browser state. AgoCode verifies integrity when the bundle provides a manifest, then shows additions, conflicts, unchanged values, removals, and the projected policy-consistency result. Applying the reviewed plan is still transactional and recoverable.</p>
           <label className="data-portability__replace">
             <input type="checkbox" checked={replace} onChange={(event) => updateReplace(event.target.checked)} />
             <span>Replace existing AgoCode data before import</span>
@@ -281,6 +314,17 @@ export function DataPortability() {
                 <strong>{pendingImport.fileName}</strong>
               </div>
               <p>No AgoCode browser data has changed yet. Review the projected transaction before applying it.</p>
+
+              {pendingImport.integrity.status === "verified" ? (
+                <p data-testid="import-integrity-status">
+                  <strong>Verified SHA-256 integrity.</strong> The manifest covers {pendingImport.integrity.entryCount} portable entr{pendingImport.integrity.entryCount === 1 ? "y" : "ies"}; these bytes match the bundle digest. This is corruption detection, not an authenticity signature.
+                </p>
+              ) : (
+                <div className="storage-health__warning" data-testid="import-integrity-status">
+                  <strong>Legacy bundle — no integrity manifest.</strong>
+                  <p>This compatible v1 export can still be previewed and imported, but AgoCode cannot prove that its bytes match the original backup. Consider exporting a fresh integrity-sealed copy after restoration.</p>
+                </div>
+              )}
 
               <div className="storage-health__metrics" style={{ marginTop: 12 }}>
                 <article data-testid="import-preflight-additions">
